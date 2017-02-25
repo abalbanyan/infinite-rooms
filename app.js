@@ -1,6 +1,7 @@
 
 
 window.onload = function(){
+
 	console.log("Starting.")
 	var canvas = document.getElementById('webgl-canvas');
 	canvas.width  = 960 * 1.5//window.innerWidth - 250;
@@ -77,6 +78,9 @@ window.onload = function(){
 	var scalingMatrix = new Float32Array(16);
 	var tempViewMatrix = new Float32Array(16);
 	var resetViewMatrix = new Float32Array(16);
+
+	var rotationMatrix1 = new Float32Array(16);
+	var rotationMatrix2 = new Float32Array(16);
 
 	
 	//////////////// Textures /////////////////////////////
@@ -166,15 +170,7 @@ window.onload = function(){
 				gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
 				break;
 			case 82: // r - reset
-				mat4.mul(viewMatrix, resetViewMatrix, identityMatrix);
-				gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
-
-				mat4.perspective(projMatrix, glMatrix.toRadian(fovY), canvas.width / canvas.height, 0.1, 1000.0); // fovy, aspect ratio, near, far
-				gl.uniformMatrix4fv(mProjLoc, gl.FALSE, projMatrix);
-				heading = 0; pitch = 0;
-				N = 1;
-				ambientLight = 0.8;
-
+				resetCamera();
 				break;
 
 			case 49:
@@ -188,6 +184,63 @@ window.onload = function(){
 			case 57:
 				N = e.keyCode-48; break;
 		}
+	}
+	function resetCamera(){
+		mat4.mul(viewMatrix, resetViewMatrix, identityMatrix);
+		gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
+
+		mat4.perspective(projMatrix, glMatrix.toRadian(fovY), canvas.width / canvas.height, 0.1, 1000.0); // fovy, aspect ratio, near, far
+		gl.uniformMatrix4fv(mProjLoc, gl.FALSE, projMatrix);
+		N = 1;
+		ambientLight = 0.8;		
+	}
+
+	var footsteps_audio = new Audio('/sound/footsteps.wav');
+	function handleInput(){
+		var gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []); 
+		if(gamepads){
+			var gamepad = gamepads[0];
+		}
+
+		var axes = gamepad.axes;
+		// Left joystick:  (axes[0], axes[1]) => (x,y) Movement
+		// Right joystick: (axes[2], axes[3]) => (x,y) Camera
+
+		// Round down joystick values to prevent camera drifting when player is idle.
+		for(var i = 0; i < axes.length; i++){
+			if(axes[i] < 0.1 && axes[i] > -0.1)
+				axes[i] = 0.0;
+		}
+		
+		if(axes[1] || axes[0])
+			footsteps_audio.play();
+		else
+			footsteps_audio.pause();
+
+
+		// Camera
+		mat4.rotate(rotationMatrix1, identityMatrix, glMatrix.toRadian(axes[2] * 0.5), [0,1,0]); // Change heading.
+		mat4.rotate(rotationMatrix2, identityMatrix, glMatrix.toRadian(axes[3] * 0.5), [1,0,0]); // Change pitch.
+		mat4.mul(rotationMatrix, rotationMatrix1, rotationMatrix2);
+		mat4.translate(translationMatrix, identityMatrix, [-axes[0] * 0.5,0,-axes[1] * 0.5]);
+
+		mat4.mul(viewMatrix, rotationMatrix, viewMatrix);
+		mat4.mul(viewMatrix, translationMatrix, viewMatrix);
+		
+		// Buttons
+		if(gamepad.buttons[0].pressed){ // A
+			mat4.translate(translationMatrix, identityMatrix, [0, -1, 0]);
+			mat4.mul(viewMatrix, translationMatrix, viewMatrix);
+		}
+		if(gamepad.buttons[1].pressed){ // B
+			mat4.translate(translationMatrix, identityMatrix, [0, 1, 0]);
+			mat4.mul(viewMatrix, translationMatrix, viewMatrix);
+		}
+		if(gamepad.buttons[3].pressed){ // Y
+			resetCamera();
+		}
+
+		gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
 	}
 
 	////////////////////// Objects /////////////////////
@@ -214,6 +267,9 @@ window.onload = function(){
 	var isAttached = 0;
 	var distance = 4;
 	var loop = function(){
+
+		handleInput();
+
 		gl.clearColor(0, 0, 0, 1.0); // R G B A
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		theta = performance.now() / 1000 / 6 *  2 * Math.PI;
@@ -245,5 +301,12 @@ window.onload = function(){
 		});
 		requestAnimationFrame(loop);
 	}
+
+	window.addEventListener("gamepadconnected", function(e){
+		var gp = navigator.getGamepads()[e.gamepad.index];
+		console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
+		  gp.index, gp.id,
+		  gp.buttons.length, gp.axes.length);
+	});
 	requestAnimationFrame(loop);
 }
