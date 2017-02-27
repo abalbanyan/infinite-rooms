@@ -93,18 +93,12 @@ window.onload = function(){
 	var lightPositions = [0.0, 0.0, 0.0, 1.0];
 	var lightColors = [1,0.3,0.1,1];
 	var lightAttenuations = [2.0/10000.0];
+	var ambience = 0.8
 
-	var lightPos_loc = gl.getUniformLocation(program, 'lightPosition');
-	var lightColor_loc = gl.getUniformLocation(program, 'lightColor');
-	var ambient_loc = gl.getUniformLocation(program, 'ambient');
-	var attenuation_factor_loc = gl.getUniformLocation(program, 'attenuation_factor');
+	var light = new Light(lightPositions, lightColors, lightAttenuations, ambience, gl, program);
 	var gouraud_loc = gl.getUniformLocation(program, 'GOURAUD');
 	var color_normals_loc = gl.getUniformLocation(program, 'COLOR_NORMALS');
 	var color_vertices_loc = gl.getUniformLocation(program, 'COLOR_VERTICES');
-
-	gl.uniform4fv(lightPos_loc, lightPositions);
-	gl.uniform4fv(lightColor_loc, lightColors);
-	gl.uniform1f(attenuation_factor_loc, lightAttenuations);
 
 	gl.uniform1i(gouraud_loc, 0);
 	gl.uniform1i(color_normals_loc, 0);
@@ -119,18 +113,11 @@ window.onload = function(){
 	var heading = 0; // Degrees
 	var pitch = 0;
 	var N = 1;
-	var ambientLight = 0.8;
 	mat4.mul(resetViewMatrix, viewMatrix, identityMatrix); // Used to reset camera.
 
 	document.onkeydown = function(e){
 		e = e || window.event;
 		switch(e.keyCode){
-			case 187:
-				ambientLight += (ambientLight < 1.4)? 0.1 : 0.0;
-				break;
-			case 189:
-				ambientLight -= (ambientLight > 0.0)? 0.1 : 0.0;
-				break;
 			case 37: // left
 				heading -= N;
 				mat4.rotate(rotationMatrix, identityMatrix, glMatrix.toRadian(-N), [0,1,0]);
@@ -183,7 +170,6 @@ window.onload = function(){
 		mat4.perspective(projMatrix, glMatrix.toRadian(fovY), canvas.width / canvas.height, 0.1, 1000.0); // fovy, aspect ratio, near, far
 		gl.uniformMatrix4fv(mProjLoc, gl.FALSE, projMatrix);
 		N = 1;
-		ambientLight = 0.8;
 	}
 
 	var footsteps_audio = new Audio('/sound/footsteps.wav');
@@ -269,7 +255,6 @@ window.onload = function(){
 		var i = 0;
 		objects.forEach(function(object){
 
-			gl.uniform1f(ambient_loc, ambientLight);
 			gl.uniform4fv(shapeColorLoc, [1,1,1,1]);
 
 
