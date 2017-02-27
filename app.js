@@ -196,11 +196,14 @@ window.onload = function(){
 	}
 
 	var footsteps_audio = new Audio('/sound/footsteps.wav');
+	var gamepads;
 	function handleInput(){
-		var gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []); 
+		gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []); 
 		if(gamepads){
 			var gamepad = gamepads[0];
 		}
+		if(gamepad == null)
+			return;
 
 		var axes = gamepad.axes;
 		// Left joystick:  (axes[0], axes[1]) => (x,y) Movement
