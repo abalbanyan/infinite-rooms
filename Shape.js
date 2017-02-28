@@ -7,6 +7,10 @@ class Shape{
 		this.gl = gl;
 		this.program = program;
 		this.buffers = buffers;
+		this.material = { diffusivity: 1.5, smoothness: 40, shininess: 0.5 }; // Default material properties
+		//this.material.diffusivity = 1.5;
+		//this.material.smoothness = 40;
+		//this.material.shininess = 0.5;
 
 		this.use_texture = false;
 		this.texture = gl.createTexture()
@@ -16,6 +20,9 @@ class Shape{
 		this.normalAttribLocation = gl.getAttribLocation(program, 'vertNormal');
 		this.textureCoordAttribLocation = gl.getAttribLocation(program, 'texCoord');
 		this.useTextureLocation = gl.getUniformLocation(program, 'USE_TEXTURE');
+		this.diffusivityLocation = gl.getUniformLocation(program, 'diffusivity');
+		this.smoothnessLocation = gl.getUniformLocation(program, 'smoothness');
+		this.shininessLocation = gl.getUniformLocation(program, 'shininess');
 	}
 
 	// This function causes the shape to display a texture when it is drawn.
@@ -31,8 +38,8 @@ class Shape{
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-			gl.texImage2D( 
-				gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, 
+			gl.texImage2D(
+				gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
 				img
 			);
 			gl.bindTexture(gl.TEXTURE_2D, null);
@@ -42,6 +49,12 @@ class Shape{
 
 	disableTexture(){
 		this.use_texture = false;
+	}
+
+	setMaterialProperties(new_diffusivity, new_smoothness, new_shininess){
+		this.material.diffusivity = new_diffusivity;
+		this.material.smoothness = new_smoothness;
+		this.material.shininess = new_shininess;
 	}
 
 	// Binds and buffers data, then draws the shape.
@@ -67,14 +80,19 @@ class Shape{
 		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.buffers.indexNormalBuffer);
 		this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), this.gl.STATIC_DRAW);
 
-		this.gl.vertexAttribPointer(this.normalAttribLocation, 
-			3, 
-			this.gl.FLOAT, 
-			this.gl.FALSE, 
-			3 * Float32Array.BYTES_PER_ELEMENT, 
+		this.gl.vertexAttribPointer(this.normalAttribLocation,
+			3,
+			this.gl.FLOAT,
+			this.gl.FALSE,
+			3 * Float32Array.BYTES_PER_ELEMENT,
 			0
 		);
 		this.gl.enableVertexAttribArray(this.normalAttribLocation);
+
+		// Setup materials for lighting
+		this.gl.uniform1f(this.diffusivityLocation, this.material.diffusivity);
+		this.gl.uniform1f(this.smoothnessLocation, this.material.smoothness);
+		this.gl.uniform1f(this.shininessLocation, this.material.shininess);
 
 		if(this.use_texture){
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.texCoordBuffer);

@@ -29,18 +29,18 @@ window.onload = function(){
 	gl.attachShader(program, vertexShader);
 	gl.attachShader(program, fragmentShader);
 	gl.linkProgram(program);
-	gl.useProgram(program); 
+	gl.useProgram(program);
 	gl.enable(gl.DEPTH_TEST);
 
     ////////////////// Create Buffers /////////////////
 
 	// Chunks of memory on GPU that are ready to use.
-	var vertexBuffer = gl.createBuffer(); 
+	var vertexBuffer = gl.createBuffer();
 	var indexBuffer = gl.createBuffer();
 	var normalBuffer = gl.createBuffer();
 	var indexNormalBuffer = gl.createBuffer();
 	var texCoordBuffer = gl.createBuffer();
-	var buffers = {vertexBuffer:vertexBuffer, indexBuffer:indexBuffer, normalBuffer:normalBuffer, 
+	var buffers = {vertexBuffer:vertexBuffer, indexBuffer:indexBuffer, normalBuffer:normalBuffer,
 					indexNormalBuffer:indexNormalBuffer, texCoordBuffer:texCoordBuffer};
 
 	/////////////////// Initialize Matrices ///////////
@@ -55,7 +55,7 @@ window.onload = function(){
 	var worldMatrix = new Float32Array(16);
 	var viewMatrix = new Float32Array(16);
 	var projMatrix = new Float32Array(16);
-	
+
 	var cameraWorldMatrix = new Float32Array(16);
 	var cameraWorldNormalMatrixHelper = new Float32Array(16);
 	var cameraWorldNormalMatrix = new Float32Array(9);
@@ -68,7 +68,7 @@ window.onload = function(){
 	gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
 	gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
 	gl.uniformMatrix4fv(mProjLoc, gl.FALSE, projMatrix);
-	
+
 	gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, cameraWorldMatrix);
 	gl.uniformMatrix3fv(mWorldNormalLoc, gl.FALSE, cameraWorldNormalMatrix);
 
@@ -82,38 +82,23 @@ window.onload = function(){
 	var rotationMatrix1 = new Float32Array(16);
 	var rotationMatrix2 = new Float32Array(16);
 
-	
+
 	//////////////// Textures /////////////////////////////
 
 	var use_texture_loc = gl.getUniformLocation(program, 'USE_TEXTURE');
 	gl.uniform1i(use_texture_loc, 0);
-	
+
 	//////////////// Lighting /////////////////////////////
 
 	var lightPositions = [0.0, 0.0, 0.0, 1.0];
 	var lightColors = [1,0.3,0.1,1];
 	var lightAttenuations = [2.0/10000.0];
+	var ambience = 0.8
 
-	var lightPos_loc = gl.getUniformLocation(program, 'lightPosition');
-	var lightColor_loc = gl.getUniformLocation(program, 'lightColor');
-	var ambient_loc = gl.getUniformLocation(program, 'ambient');
-	var diffusivity_loc = gl.getUniformLocation(program, 'diffusivity');
-	var shininess_loc = gl.getUniformLocation(program, 'shininess');
-	var smoothness_loc = gl.getUniformLocation(program, 'smoothness');
-	var attenuation_factor_loc = gl.getUniformLocation(program, 'attenuation_factor');
+	var light = new Light(lightPositions, lightColors, lightAttenuations, ambience, gl, program);
 	var gouraud_loc = gl.getUniformLocation(program, 'GOURAUD');
 	var color_normals_loc = gl.getUniformLocation(program, 'COLOR_NORMALS');
 	var color_vertices_loc = gl.getUniformLocation(program, 'COLOR_VERTICES');
-
-	gl.uniform4fv(lightPos_loc, lightPositions);
-	gl.uniform4fv(lightColor_loc, lightColors);
-	gl.uniform1f(attenuation_factor_loc, lightAttenuations);
-
-	function setLightProperties(materialProperties){
-		gl.uniform1f(diffusivity_loc, materialProperties.diffusivity);
-		gl.uniform1f(shininess_loc, materialProperties.shininessObj);
-		gl.uniform1f(smoothness_loc, materialProperties.smoothnessObj);
-	}
 
 	gl.uniform1i(gouraud_loc, 0);
 	gl.uniform1i(color_normals_loc, 0);
@@ -128,19 +113,12 @@ window.onload = function(){
 	var heading = 0; // Degrees
 	var pitch = 0;
 	var N = 1;
-	var ambientLight = 0.8;
 	mat4.mul(resetViewMatrix, viewMatrix, identityMatrix); // Used to reset camera.
 
 	document.onkeydown = function(e){
 		e = e || window.event;
 		switch(e.keyCode){
-			case 187:
-				ambientLight += (ambientLight < 1.4)? 0.1 : 0.0;
-				break;
-			case 189:
-				ambientLight -= (ambientLight > 0.0)? 0.1 : 0.0;
-				break;
-			case 37: // left 
+			case 37: // left
 				heading -= N;
 				mat4.rotate(rotationMatrix, identityMatrix, glMatrix.toRadian(-N), [0,1,0]);
 				mat4.mul(viewMatrix, rotationMatrix, viewMatrix);
@@ -192,13 +170,12 @@ window.onload = function(){
 		mat4.perspective(projMatrix, glMatrix.toRadian(fovY), canvas.width / canvas.height, 0.1, 1000.0); // fovy, aspect ratio, near, far
 		gl.uniformMatrix4fv(mProjLoc, gl.FALSE, projMatrix);
 		N = 1;
-		ambientLight = 0.8;		
 	}
 
 	var footsteps_audio = new Audio('/sound/footsteps.wav');
 	var gamepads;
 	function handleInput(){
-		gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []); 
+		gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []);
 		if(gamepads){
 			var gamepad = gamepads[0];
 		}
@@ -214,7 +191,7 @@ window.onload = function(){
 			if(axes[i] < 0.1 && axes[i] > -0.1)
 				axes[i] = 0.0;
 		}
-		
+
 		if(axes[1] || axes[0])
 			footsteps_audio.play();
 		else
@@ -229,7 +206,7 @@ window.onload = function(){
 
 		mat4.mul(viewMatrix, rotationMatrix, viewMatrix);
 		mat4.mul(viewMatrix, translationMatrix, viewMatrix);
-		
+
 		// Buttons
 		if(gamepad.buttons[0].pressed){ // A
 			mat4.translate(translationMatrix, identityMatrix, [0, -1, 0]);
@@ -247,8 +224,6 @@ window.onload = function(){
 	}
 
 	////////////////////// Objects /////////////////////
-
-	var materialProperties = {diffusivity: 1.5, smoothnessObj: 40, shininessObj: 0.5}; // Just a sample. Should eventually associate a materialProperty with each object.
 
 	var images = ["textures/dirt.png", "textures/wood.png", "textures/diamond.png", "textures/space.png"];
 	var objects = [];
@@ -280,8 +255,6 @@ window.onload = function(){
 		var i = 0;
 		objects.forEach(function(object){
 
-			gl.uniform1f(ambient_loc, ambientLight);
-			setLightProperties(materialProperties);
 			gl.uniform4fv(shapeColorLoc, [1,1,1,1]);
 
 
