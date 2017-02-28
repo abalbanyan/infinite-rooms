@@ -181,7 +181,7 @@ window.onload = function(){
 	}
 
 	// This section of Control is responsible for gamepad functionality.
-	var footsteps_audio = new Audio('/sound/footsteps.wav');
+	var footsteps_audio = new Audio('sound/footsteps.wav');
 	var gamepads;
 	var swimMode = false;
 	var playerSpeed = 0.5;
@@ -314,7 +314,7 @@ window.onload = function(){
 	// Note that the wallMesh vertices vary slightly from the floorMesh. The z vertices are not set equal to 0, which means the walls will scale as if they were faces of a cube.
 	for(var i = 0; i < 4; i++){
 		var wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, buffers);
-		wall.attachTexture("/textures/wallpaper1.png");
+		wall.attachTexture("textures/wallpaper1.png");
 		objects.push(new Object(wall, [0,0,0], [100,50,100], glMatrix.toRadian(i*90), [6,3]))
 	}
 
