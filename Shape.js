@@ -12,6 +12,7 @@ class Shape{
 		//this.material.smoothness = 40;
 		//this.material.shininess = 0.5;
 
+		this.shapeColor = null;
 		this.use_texture = false;
 		this.texture = gl.createTexture()
 
@@ -23,6 +24,7 @@ class Shape{
 		this.diffusivityLocation = gl.getUniformLocation(program, 'diffusivity');
 		this.smoothnessLocation = gl.getUniformLocation(program, 'smoothness');
 		this.shininessLocation = gl.getUniformLocation(program, 'shininess');
+		this.shapeColorLocation = gl.getUniformLocation(program, 'shapeColor');
 	}
 
 	// This function causes the shape to display a texture when it is drawn.
@@ -39,10 +41,15 @@ class Shape{
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 			gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-			gl.generateMipmap(gl.TEXTURE_2D);
+		//	gl.generateMipmap(gl.TEXTURE_2D);
 			gl.bindTexture(gl.TEXTURE_2D, null);
 		}
 		img.src = source;
+	}
+
+	// Use this when no texture is attached.
+	setColor(color){
+		this.shapeColor = color;
 	}
 
 	disableTexture(){
@@ -91,6 +98,9 @@ class Shape{
 		this.gl.uniform1f(this.diffusivityLocation, this.material.diffusivity);
 		this.gl.uniform1f(this.smoothnessLocation, this.material.smoothness);
 		this.gl.uniform1f(this.shininessLocation, this.material.shininess);
+
+		// Set color if a color was specified.
+		if(this.shapeColor != null) this.gl.uniform4fv(this.shapeColorLocation, this.shapeColor);
 
 		if(this.use_texture){
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.texCoordBuffer);

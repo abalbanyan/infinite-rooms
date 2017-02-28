@@ -65,7 +65,7 @@ window.onload = function(){
 	var fovY = 60;
 	var playerPos = {x: 0, y:0, z:0}; // Use this to keep track of the player's position.
 	mat4.identity(worldMatrix);
-	mat4.lookAt(viewMatrix, [0, 15, -40], [0,15,0], [0,1,0]); // Eye, Point, Up. The camera is initialized using lookAt. I promise I don't use it anywhere else!
+	mat4.lookAt(viewMatrix, [0, 30, -50], [0,30,0], [0,1,0]); // Eye, Point, Up. The camera is initialized using lookAt. I promise I don't use it anywhere else!
  	mat4.perspective(projMatrix, glMatrix.toRadian(fovY), canvas.width / canvas.height, 0.1, 1000.0); // fovy, aspect ratio, near, far
 
 	gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
@@ -82,7 +82,7 @@ window.onload = function(){
 	var rotationMatrix = new Float32Array(16);
 	var translationMatrix = new Float32Array(16);
 	var scalingMatrix = new Float32Array(16);
-	var tempViewMatrix = new Float32Array(16);
+	var tempViewMatrix = new Float32Array(16); 		
 	var resetViewMatrix = new Float32Array(16);
 	var navigationMatrix = new Float32Array(16); 
 
@@ -97,7 +97,7 @@ window.onload = function(){
 
 	//////////////// Lighting /////////////////////////////
 
-	var lightPositions = [0.0, 0.0, 0.0, 1.0];
+	var lightPositions = [0.0, 50.0, 0.0, 1.0];
 	var lightColors = [1,0.3,0.1,1];
 	var lightAttenuations = [2.0/10000.0];
 	var ambience = 0.8
@@ -176,11 +176,14 @@ window.onload = function(){
 		mat4.perspective(projMatrix, glMatrix.toRadian(fovY), canvas.width / canvas.height, 0.1, 1000.0); // fovy, aspect ratio, near, far
 		gl.uniformMatrix4fv(mProjLoc, gl.FALSE, projMatrix);
 		N = 1;
+		heading = 0;
+		pitch = 0;
 	}
 
+	// This section of Control is responsible for gamepad functionality.
 	var footsteps_audio = new Audio('/sound/footsteps.wav');
 	var gamepads;
-	var swimMode = true;
+	var swimMode = false;
 	var playerSpeed = 0.5;
 	function handleInput(){
 		gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []);
@@ -206,13 +209,21 @@ window.onload = function(){
 			footsteps_audio.pause();
 
 		// Camera
-		// TODO: Fix pitch/heading issue. Currently does not work like it does in actual FPS.
-		mat4.rotate(rotationMatrix1, identityMatrix, glMatrix.toRadian(axes[2] ), [0,1,0]); // Change heading.
-		mat4.rotate(rotationMatrix2, identityMatrix, glMatrix.toRadian(axes[3] ), [1,0,0]); // Change pitch.
-		//mat4.mul(rotationMatrix, rotationMatrix1, rotationMatrix2);
-		mat4.mul(viewMatrix, rotationMatrix1, viewMatrix);
-		mat4.mul(viewMatrix, rotationMatrix2, viewMatrix);
+		// TODO: Fix pitch/heading issue. Currently does not work like it does in actual FPS. Want to rotate view about world's Y axis, not about view's Y axis.
+		if(swimMode){
+			mat4.rotate(rotationMatrix1, identityMatrix, glMatrix.toRadian(axes[2] ), [0,1,0]); // Change heading.
+			mat4.rotate(rotationMatrix2, identityMatrix, glMatrix.toRadian(axes[3] ), [1,0,0]); // Change pitch.
+			mat4.mul(viewMatrix, rotationMatrix1, viewMatrix);
+			mat4.mul(viewMatrix, rotationMatrix2, viewMatrix);
+		} else {
+			pitch += (pitch + axes[3] > 91 || pitch + axes[3] < -91)? 0 : axes[3];
+			heading += axes[2]; gl
 
+			mat4.rotate(rotationMatrix1, identityMatrix, glMatrix.toRadian(axes[2] ), [0,1,0]); // Change heading.
+			mat4.rotate(rotationMatrix2, identityMatrix, glMatrix.toRadian(axes[3] ), [1,0,0]); // Change pitch.
+			mat4.mul(viewMatrix, rotationMatrix1, viewMatrix);
+			mat4.mul(viewMatrix, rotationMatrix2, viewMatrix);
+		}
 
 		// Navigation
 		// TODO: Fix movement issue. Don't want to move exactly in direction of camera.
@@ -221,6 +232,8 @@ window.onload = function(){
 			mat4.mul(viewMatrix, translationMatrix, viewMatrix);
 		}
 		else{
+			mat4.translate(translationMatrix, identityMatrix, [-axes[0] * 0.5,0,-axes[1] * 0.5]);		
+			mat4.mul(viewMatrix, translationMatrix, viewMatrix);
 			playerPos.x += axes[0] * playerSpeed;
 			playerPos.z += axes[1] * playerSpeed;
 		}
@@ -256,6 +269,29 @@ window.onload = function(){
 			this.texture_scale = texture_scale; // This will determine how many times a texture will repeat.
 		}
 	}
+	function addObjectFromJSON(jsonfile, translation, scale, rotation, texture, index = 0, color = null)
+	{
+	    var rawFile = new XMLHttpRequest();
+	    rawFile.open("GET", jsonfile, true);
+	    rawFile.onreadystatechange = function ()
+	    {
+	        if(rawFile.readyState === 4)
+	        {
+	            var mesh = JSON.parse(rawFile.responseText);
+	            var indices = [].concat.apply([], mesh.meshes[index].faces);
+	            var vertices = mesh.meshes[index].vertices;
+	            var normals = mesh.meshes[index].normals;
+	            var textureCoords = [].concat.apply([], mesh.meshes[index].texturecoords);
+
+	            console.log(indices, vertices, normals, textureCoords);
+	            var shape = new Shape(vertices, indices, normals, textureCoords, gl, program, buffers);
+	            if(texture != null) shape.attachTexture(texture);
+	            if(color != null) shape.setColor(color);
+	            objects.push(new Object(shape, translation, scale, rotation));
+	        }
+	    }
+	    rawFile.send();
+	}
 
 	for(var i = 0; i < 2; i++){
 		var cube = new Shape(cubeMesh.vertices, cubeMesh.indices, cubeMesh.normals, cubeMesh.textureCoords, gl, program, buffers);
@@ -263,32 +299,29 @@ window.onload = function(){
 		objects.push(new Object(cube, [i*5,0,0], [1,1,1], 0));
 	}
 
-	var sphere = new Shape(sphereMesh.vertices, sphereMesh.indices, sphereMesh.normals, sphereMesh.textureCoords, gl, program, buffers);
-	sphere.attachTexture(images[2]);
-	objects.push(new Object(sphere, [-5,0,0], [1,1,1], 0));
-
-	var sphere = new Shape(sphereMesh.vertices, sphereMesh.indices, sphereMesh.normals, sphereMesh.textureCoords, gl, program, buffers);
-	sphere.attachTexture(images[3]);
-	objects.push(new Object(sphere, [-10,0,0], [1,1,1], 0));
-
  	var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
 	floor.attachTexture(images[2]);
 	objects.push(new Object(floor, [0,0,0], [100,100,100], 0, [4,4]));
 
 	var ceiling = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
-	ceiling.attachTexture(images[3]);
+	//ceiling.attachTexture(images[3]);
 	objects.push(new Object(ceiling, [0,50,0], [100,100,100], 0));
+
+	addObjectFromJSON("meshes/bed.json", [75,0,65], [0.75,0.75,0.75], glMatrix.toRadian(180), "textures/bedwood.png", 1);
+	addObjectFromJSON("meshes/bed.json", [75,0,65], [0.75,0.75,0.75], glMatrix.toRadian(180), null, 0, [0.8,1,1,1]);
 
 	// Generate 4 walls.
 	// Note that the wallMesh vertices vary slightly from the floorMesh. The z vertices are not set equal to 0, which means the walls will scale as if they were faces of a cube.
 	for(var i = 0; i < 4; i++){
 		var wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, buffers);
 		wall.attachTexture("/textures/wallpaper1.png");
-		objects.push(new Object(wall, [0,0,0], [100,50,100], glMatrix.toRadian(i*90), [4,2]))
+		objects.push(new Object(wall, [0,0,0], [100,50,100], glMatrix.toRadian(i*90), [6,3]))
 	}
 
-	// TODO: Make Objects use the .draw() method, not shapes. 
+	// TODO: Make Objects use the .draw() method, not shapes?
 	// TODO: Add support for model trees.
+	// TODO: Add some general functionality for modifying room parameters like roomSize, roomHeight, roomType, etc. A Room class might be needed. 
+	// TODO: Load different rooms?
 
 	////////////////////// Render Loop /////////////////
 	var isAttached = 0;
@@ -300,10 +333,6 @@ window.onload = function(){
 		gl.clearColor(0.9, 0.9, 1, 1.0); // R G B A
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		theta = performance.now() / 1000 / 6 *  2 * Math.PI;
-
-		// Perform xyz navigation. This is independent of the view. We move around by translating everything else.
-		// Be sure to multiply navigationMatrix by worldMatrix for every object.
-		//mat4.translate(navigationMatrix, identityMatrix, [playerPos.x, playerPos.y, playerPos.z]);
 
 		objects.forEach(function(object){
 			// Begin transformations.
@@ -333,6 +362,7 @@ window.onload = function(){
 
 			//mat4.mul(worldMatrix, navigationMatrix, worldMatrix);
 			gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
+			gl.uniform4fv(shapeColorLoc, [1,1,1,1]);
 
 			object.shape.draw();
 		});
