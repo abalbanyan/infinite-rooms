@@ -4,8 +4,8 @@ window.onload = function(){
 
 	console.log("Starting.")
 	var canvas = document.getElementById('webgl-canvas');
-	canvas.width  = 960 * 1.5//window.innerWidth - 250;
-	canvas.height = 540 * 1.5//window.innerHeight - 250;
+	canvas.width  = 960 * 1.1//window.innerWidth - 250;
+	canvas.height = 540 * 1.1//window.innerHeight - 250;
 
 	var gl = canvas.getContext('webgl'); // For Chrome and Firefox, all that's needed.
 
@@ -50,6 +50,7 @@ window.onload = function(){
 	var mViewLoc = gl.getUniformLocation(program, 'mView');
 	var mProjLoc = gl.getUniformLocation(program, 'mProj');
 	var mWorldNormalLoc = gl.getUniformLocation(program, 'mWorldNormal');
+	var textureTransformLoc = gl.getUniformLocation(program, 'textureTransform');
 
 	// These are all initiliazed to 0.
 	var worldMatrix = new Float32Array(16);
@@ -59,10 +60,12 @@ window.onload = function(){
 	var cameraWorldMatrix = new Float32Array(16);
 	var cameraWorldNormalMatrixHelper = new Float32Array(16);
 	var cameraWorldNormalMatrix = new Float32Array(9);
+	var textureTransform = new Float32Array(9);
 
-	var fovY = 50;
+	var fovY = 60;
+	var playerPos = {x: 0, y:0, z:0}; // Use this to keep track of the player's position.
 	mat4.identity(worldMatrix);
-	mat4.lookAt(viewMatrix, [0, 20, -30], [0,0,0], [0,1,0]); // Eye, Point, Up. The camera is initialized using lookAt. I promise I don't use it anywhere else!
+	mat4.lookAt(viewMatrix, [0, 15, -40], [0,15,0], [0,1,0]); // Eye, Point, Up. The camera is initialized using lookAt. I promise I don't use it anywhere else!
  	mat4.perspective(projMatrix, glMatrix.toRadian(fovY), canvas.width / canvas.height, 0.1, 1000.0); // fovy, aspect ratio, near, far
 
 	gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
@@ -72,12 +75,16 @@ window.onload = function(){
 	gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, cameraWorldMatrix);
 	gl.uniformMatrix3fv(mWorldNormalLoc, gl.FALSE, cameraWorldNormalMatrix);
 
+	gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, mat3.identity(textureTransform));
+	gl.uniform4fv(shapeColorLoc, [1,1,1,1]);
+
 	var identityMatrix = new Float32Array(16);		mat4.identity(identityMatrix);
 	var rotationMatrix = new Float32Array(16);
 	var translationMatrix = new Float32Array(16);
 	var scalingMatrix = new Float32Array(16);
 	var tempViewMatrix = new Float32Array(16);
 	var resetViewMatrix = new Float32Array(16);
+	var navigationMatrix = new Float32Array(16); 
 
 	var rotationMatrix1 = new Float32Array(16);
 	var rotationMatrix2 = new Float32Array(16);
@@ -107,7 +114,6 @@ window.onload = function(){
 
 	////////////////////// Control ///////////////////////
 
-	fovY = 45;
 	mat4.perspective(projMatrix, glMatrix.toRadian(fovY), canvas.width / canvas.height, 0.1, 1000.0); // fovy, aspect ratio, near, far
 	gl.uniformMatrix4fv(mProjLoc, gl.FALSE, projMatrix);
 	var heading = 0; // Degrees
@@ -174,6 +180,8 @@ window.onload = function(){
 
 	var footsteps_audio = new Audio('/sound/footsteps.wav');
 	var gamepads;
+	var swimMode = true;
+	var playerSpeed = 0.5;
 	function handleInput(){
 		gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []);
 		if(gamepads){
@@ -197,15 +205,26 @@ window.onload = function(){
 		else
 			footsteps_audio.pause();
 
-
 		// Camera
-		mat4.rotate(rotationMatrix1, identityMatrix, glMatrix.toRadian(axes[2] * 0.5), [0,1,0]); // Change heading.
-		mat4.rotate(rotationMatrix2, identityMatrix, glMatrix.toRadian(axes[3] * 0.5), [1,0,0]); // Change pitch.
-		mat4.mul(rotationMatrix, rotationMatrix1, rotationMatrix2);
-		mat4.translate(translationMatrix, identityMatrix, [-axes[0] * 0.5,0,-axes[1] * 0.5]);
+		// TODO: Fix pitch/heading issue. Currently does not work like it does in actual FPS.
+		mat4.rotate(rotationMatrix1, identityMatrix, glMatrix.toRadian(axes[2] ), [0,1,0]); // Change heading.
+		mat4.rotate(rotationMatrix2, identityMatrix, glMatrix.toRadian(axes[3] ), [1,0,0]); // Change pitch.
+		//mat4.mul(rotationMatrix, rotationMatrix1, rotationMatrix2);
+		mat4.mul(viewMatrix, rotationMatrix1, viewMatrix);
+		mat4.mul(viewMatrix, rotationMatrix2, viewMatrix);
 
-		mat4.mul(viewMatrix, rotationMatrix, viewMatrix);
-		mat4.mul(viewMatrix, translationMatrix, viewMatrix);
+
+		// Navigation
+		// TODO: Fix movement issue. Don't want to move exactly in direction of camera.
+		if(swimMode){
+			mat4.translate(translationMatrix, identityMatrix, [-axes[0] * 0.5,0,-axes[1] * 0.5]);		
+			mat4.mul(viewMatrix, translationMatrix, viewMatrix);
+		}
+		else{
+			playerPos.x += axes[0] * playerSpeed;
+			playerPos.z += axes[1] * playerSpeed;
+		}
+
 
 		// Buttons
 		if(gamepad.buttons[0].pressed){ // A
@@ -225,21 +244,51 @@ window.onload = function(){
 
 	////////////////////// Objects /////////////////////
 
-	var images = ["textures/dirt.png", "textures/wood.png", "textures/diamond.png", "textures/space.png"];
+	var images = ["textures/dirt.png", "textures/crate.png", "textures/hardwood.png", "textures/space.png"];
 	var objects = [];
+	
+	class Object{
+		constructor(shape, translation, scale, rotation, texture_scale = null){
+			this.shape = shape;
+			this.translation = translation;
+			this.scale = scale;
+			this.rotation = rotation;
+			this.texture_scale = texture_scale; // This will determine how many times a texture will repeat.
+		}
+	}
+
 	for(var i = 0; i < 2; i++){
 		var cube = new Shape(cubeMesh.vertices, cubeMesh.indices, cubeMesh.normals, cubeMesh.textureCoords, gl, program, buffers);
 		cube.attachTexture(images[i]);
-		objects.push(cube);
+		objects.push(new Object(cube, [i*5,0,0], [1,1,1], 0));
 	}
 
 	var sphere = new Shape(sphereMesh.vertices, sphereMesh.indices, sphereMesh.normals, sphereMesh.textureCoords, gl, program, buffers);
 	sphere.attachTexture(images[2]);
-	objects.push(sphere);
+	objects.push(new Object(sphere, [-5,0,0], [1,1,1], 0));
 
 	var sphere = new Shape(sphereMesh.vertices, sphereMesh.indices, sphereMesh.normals, sphereMesh.textureCoords, gl, program, buffers);
 	sphere.attachTexture(images[3]);
-	objects.push(sphere);
+	objects.push(new Object(sphere, [-10,0,0], [1,1,1], 0));
+
+ 	var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
+	floor.attachTexture(images[2]);
+	objects.push(new Object(floor, [0,0,0], [100,100,100], 0, [4,4]));
+
+	var ceiling = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
+	ceiling.attachTexture(images[3]);
+	objects.push(new Object(ceiling, [0,50,0], [100,100,100], 0));
+
+	// Generate 4 walls.
+	// Note that the wallMesh vertices vary slightly from the floorMesh. The z vertices are not set equal to 0, which means the walls will scale as if they were faces of a cube.
+	for(var i = 0; i < 4; i++){
+		var wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, buffers);
+		wall.attachTexture("/textures/wallpaper1.png");
+		objects.push(new Object(wall, [0,0,0], [100,50,100], glMatrix.toRadian(i*90), [4,2]))
+	}
+
+	// TODO: Make Objects use the .draw() method, not shapes. 
+	// TODO: Add support for model trees.
 
 	////////////////////// Render Loop /////////////////
 	var isAttached = 0;
@@ -248,21 +297,32 @@ window.onload = function(){
 
 		handleInput();
 
-		gl.clearColor(0, 0, 0, 1.0); // R G B A
+		gl.clearColor(0.9, 0.9, 1, 1.0); // R G B A
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		theta = performance.now() / 1000 / 6 *  2 * Math.PI;
 
-		var i = 0;
+		// Perform xyz navigation. This is independent of the view. We move around by translating everything else.
+		// Be sure to multiply navigationMatrix by worldMatrix for every object.
+		//mat4.translate(navigationMatrix, identityMatrix, [playerPos.x, playerPos.y, playerPos.z]);
+
 		objects.forEach(function(object){
-
-			gl.uniform4fv(shapeColorLoc, [1,1,1,1]);
-
-
 			// Begin transformations.
 			mat4.identity(worldMatrix);
-			mat4.translate(translationMatrix, identityMatrix, [((i/distance)%2)? -i : i+distance ,0,0]);
+			mat4.scale(scalingMatrix, identityMatrix, object.scale);
+			mat4.rotate(rotationMatrix, identityMatrix, object.rotation, [0,1,0]);
+			mat4.translate(translationMatrix, identityMatrix, object.translation);
+
+			mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
+			mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
 			mat4.mul(worldMatrix, translationMatrix, worldMatrix);
-			i += distance;
+
+			if(object.texture_scale != null){
+				mat3.identity(textureTransform);
+				mat3.scale(textureTransform, textureTransform, object.texture_scale);
+				gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, textureTransform);
+			} else {
+				gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, mat3.identity(textureTransform));
+			}
 
 			// This is needed for lighting.
 			mat4.mul(cameraWorldMatrix, viewMatrix, worldMatrix);
@@ -271,9 +331,10 @@ window.onload = function(){
 			mat3.fromMat4(cameraWorldNormalMatrix, cameraWorldMatrix);
 			gl.uniformMatrix3fv(mWorldNormalLoc, gl.FALSE, cameraWorldNormalMatrix);
 
+			//mat4.mul(worldMatrix, navigationMatrix, worldMatrix);
 			gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
 
-			object.draw();
+			object.shape.draw();
 		});
 		requestAnimationFrame(loop);
 	}

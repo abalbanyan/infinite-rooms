@@ -149,6 +149,63 @@ var cubeMesh = new Mesh(
 	]
 )
 
+var floorMesh = new Mesh(
+	// vertices:
+	[
+		1.0, 0.0, 1.0,
+		1.0, 0.0, -1.0,
+		-1.0, 0.0, -1.0,
+		-1.0, 0.0, 1.0
+	],
+	// indices:
+	[
+		1,0,2,
+		3,2,0
+	],
+	// normals:
+	[
+		1.0, 0.0, 1.0,
+		1.0, 0.0, -1.0,
+		-1.0, 0.0, -1.0,
+		-1.0, 0.0, 1.0
+	],
+	// texuture coords:
+	[
+		0,0,
+		0,1,
+		1,1,
+		1,0
+	]
+)
+
+var wallMesh = new Mesh(
+	// vertices:
+	[
+		1.0, 1.0, 1.0,
+		1.0, -1.0, 1.0,
+		-1.0, -1.0, 1.0,
+		-1.0, 1.0, 1.0
+	],
+	// indices:
+	[
+		1,0,2,3,2,0
+	],
+	// normals:
+	[
+		1.0, 1.0, 1.0,
+		1.0, -1.0, 1.0,
+		-1.0, -1.0, 1.0,
+		-1.0, 1.0, 1.0
+	],
+	// texuture coords:
+	[
+		0,0,
+		0,1,
+		1,1,
+		1,0
+	]
+)
+
 var sphereMesh = generateSphere(30, 30, 2);
 
 // The complexity of the spheres can be set by increasing @latitudeBands or @longitudeBands.
