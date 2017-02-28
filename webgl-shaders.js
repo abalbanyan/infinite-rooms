@@ -16,6 +16,7 @@ uniform vec4 shapeColor;
 uniform mat4 mWorld;
 uniform mat4 mView;
 uniform mat4 mProj;
+uniform mat3 textureTransform;
 
 uniform mat3 mWorldNormal; 
 
@@ -37,7 +38,9 @@ void main(){
 
 	vec4 object_space_pos = vec4(vertPosition, 1.0);
 	gl_Position = mProj * mView * mWorld * object_space_pos;
-	fragTexCoord = texCoord;
+	
+	vec3 texCoord_transformed = textureTransform * vec3(texCoord, 1.0);
+	fragTexCoord = texCoord_transformed.xy;
 
 	if( COLOR_NORMALS || COLOR_VERTICES )
 	{
