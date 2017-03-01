@@ -6,11 +6,25 @@
 </head>
 
 <body>
+
+<style>
+div.crosshair{
+	position: absolute;
+	color: white;
+}
+</style>
+
+
+
 <center>
 		<canvas id="webgl-canvas" width="960", height="540">
 			Your browser does not support HTML5.
 		</canvas>
-</center>
+
+	<!-- stupid crosshair -->
+	<div>
+	<h1 style="position: absolute; left: 50%; text-align:center; z-index: 1;  top: 287px;  ">+</h1>
+	</div>
 
 		<script src="gl-matrix.js"></script>
 		<script src="meshData.js"></script>
