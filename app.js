@@ -261,61 +261,69 @@ window.onload = function(){
 	var objects = [];
 	
 	class Object{
-		constructor(shape, translation, scale, rotation, texture_scale = null){
+		constructor(shape, translation, scale, rotation, axis = [0,1,0], texture_scale = null, name = null){
 			this.shape = shape;
 			this.translation = translation;
 			this.scale = scale;
 			this.rotation = rotation;
+			this.axis = axis;
 			this.texture_scale = texture_scale; // This will determine how many times a texture will repeat.
+			this.name = name;
 		}
 	}
-	function addObjectFromJSON(jsonfile, translation, scale, rotation, texture, index = 0, color = null)
+	function addObjectFromJSON(jsonfile, translation, scale, rotation, axis, texture, color = null, name = null)
 	{
 	    var rawFile = new XMLHttpRequest();
+	    var rotation = glMatrix.toRadian(rotation);
 	    rawFile.open("GET", jsonfile, true);
 	    rawFile.onreadystatechange = function ()
 	    {
 	        if(rawFile.readyState === 4)
 	        {
-	            var mesh = JSON.parse(rawFile.responseText);
-	            var indices = [].concat.apply([], mesh.meshes[index].faces);
-	            var vertices = mesh.meshes[index].vertices;
-	            var normals = mesh.meshes[index].normals;
-	            var textureCoords = [].concat.apply([], mesh.meshes[index].texturecoords);
-
-	            console.log(indices, vertices, normals, textureCoords);
-	            var shape = new Shape(vertices, indices, normals, textureCoords, gl, program, buffers);
-	            if(texture != null) shape.attachTexture(texture);
-	            if(color != null) shape.setColor(color);
-	            objects.push(new Object(shape, translation, scale, rotation));
+	            var meshJSON = JSON.parse(rawFile.responseText);
+	            var mesh, indices, vertices, normals, textureCoords, shape;
+	          	for(var i = 0; i < meshJSON.meshes.length; i++){
+	          		mesh = meshJSON.meshes[i];
+		            indices = [].concat.apply([], mesh.faces);
+		            vertices = mesh.vertices;
+		            normals = mesh.normals;
+		            textureCoords = [].concat.apply([], mesh.texturecoords);
+		            shape = new Shape(vertices, indices, normals, textureCoords, gl, program, buffers);
+		            if(textureCoords.length && texture != null) shape.attachTexture(texture); // First check if the mesh component has a texture.
+		            else if(color != null) shape.setColor(color);
+		            else shape.setColor([0,1,0,1]); // Set color to red if both of the above fail.
+		      		var object = new Object(shape, translation, scale, rotation, axis);
+		      		object.name = name; // kinda hacky...
+		            objects.push(object);
+	        	}
 	        }
 	    }
 	    rawFile.send();
 	}
 
-	for(var i = 0; i < 2; i++){
-		var cube = new Shape(cubeMesh.vertices, cubeMesh.indices, cubeMesh.normals, cubeMesh.textureCoords, gl, program, buffers);
-		cube.attachTexture(images[i]);
-		objects.push(new Object(cube, [i*5,0,0], [1,1,1], 0));
-	}
+	addObjectFromJSON("meshes/bed.json", 			[75,0,65], [0.75,0.75,0.75],   180, [0,1,0], "textures/bedwood.png", [0.8,1,1,1], "bed");
+	addObjectFromJSON("meshes/bedside-table.json", 	[35,0,88], [1,1,1], 		   -90, [0,1,0],"textures/bedwood.png", [1,1,1,1],   "table");
+	addObjectFromJSON("meshes/window1.json", 		[-100,10,0], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1],   "window1");
+	addObjectFromJSON("meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0],  null,					 [90/255,67/255,80/255,1],   "window2");
+	addObjectFromJSON("meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 	90, [0,1,0],"textures/wood2.png", [90/255,67/255,80/255,1], "desk");
+	addObjectFromJSON("meshes/bulb.json",			[0,52,0], [0.05,0.05,0.05], 		180,[1,0,0],null, [1,0.85,0,1], "bulb");
+	addObjectFromJSON("meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0],"textures/cheese.png", [90/255,67/255,80/255,1], "desk");
+
 
  	var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
 	floor.attachTexture(images[2]);
-	objects.push(new Object(floor, [0,0,0], [100,100,100], 0, [4,4]));
+	objects.push(new Object(floor, [0,0,0], [100,100,100], 0, [0,1,0], [4,4]));
 
 	var ceiling = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
-	//ceiling.attachTexture(images[3]);
-	objects.push(new Object(ceiling, [0,50,0], [100,100,100], 0));
-
-	addObjectFromJSON("meshes/bed.json", [75,0,65], [0.75,0.75,0.75], glMatrix.toRadian(180), "textures/bedwood.png", 1);
-	addObjectFromJSON("meshes/bed.json", [75,0,65], [0.75,0.75,0.75], glMatrix.toRadian(180), null, 0, [0.8,1,1,1]);
+	ceiling.attachTexture("textures/crate.png");
+	objects.push(new Object(ceiling, [0,50,0], [100,100,100], 0, [0,1,0], [8,8]));
 
 	// Generate 4 walls.
 	// Note that the wallMesh vertices vary slightly from the floorMesh. The z vertices are not set equal to 0, which means the walls will scale as if they were faces of a cube.
 	for(var i = 0; i < 4; i++){
 		var wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, buffers);
 		wall.attachTexture("textures/wallpaper1.png");
-		objects.push(new Object(wall, [0,0,0], [100,50,100], glMatrix.toRadian(i*90), [6,3]))
+		objects.push(new Object(wall, [0,0,0], [100,50,100], glMatrix.toRadian(i*90), [0,1,0], [6,3]))
 	}
 
 	// TODO: Make Objects use the .draw() method, not shapes?
@@ -338,7 +346,7 @@ window.onload = function(){
 			// Begin transformations.
 			mat4.identity(worldMatrix);
 			mat4.scale(scalingMatrix, identityMatrix, object.scale);
-			mat4.rotate(rotationMatrix, identityMatrix, object.rotation, [0,1,0]);
+			mat4.rotate(rotationMatrix, identityMatrix, object.rotation, object.axis);
 			mat4.translate(translationMatrix, identityMatrix, object.translation);
 
 			mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
