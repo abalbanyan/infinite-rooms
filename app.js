@@ -62,9 +62,7 @@ window.onload = function(){
 	var cameraWorldNormalMatrix = new Float32Array(9);
 	var textureTransform = new Float32Array(9);
 
-	var fovY = 60;
-	var playerPos = {x: 0, y:0, z:0}; // Use this to keep track of the player's position.
-	mat4.identity(worldMatrix);
+	var fovY = 50;
 	mat4.lookAt(viewMatrix, [0, 30, -50], [0,30,0], [0,1,0]); // Eye, Point, Up. The camera is initialized using lookAt. I promise I don't use it anywhere else!
  	mat4.perspective(projMatrix, glMatrix.toRadian(fovY), canvas.width / canvas.height, 0.1, 1000.0); // fovy, aspect ratio, near, far
 
@@ -82,13 +80,16 @@ window.onload = function(){
 	var rotationMatrix = new Float32Array(16);
 	var translationMatrix = new Float32Array(16);
 	var scalingMatrix = new Float32Array(16);
-	var tempViewMatrix = new Float32Array(16); 		
 	var resetViewMatrix = new Float32Array(16);
 	var navigationMatrix = new Float32Array(16); 
 
 	var rotationMatrix1 = new Float32Array(16);
 	var rotationMatrix2 = new Float32Array(16);
 
+	var testViewMatrix = new Float32Array(16);
+	mat4.mul(testViewMatrix, viewMatrix, identityMatrix);
+	var curViewMatrix = new Float32Array(16);
+	mat4.mul(resetViewMatrix, viewMatrix, identityMatrix); // Used to reset camera.
 
 	//////////////// Textures /////////////////////////////
 
@@ -111,7 +112,6 @@ window.onload = function(){
 	gl.uniform1i(color_normals_loc, 0);
 	gl.uniform1i(color_vertices_loc, 0);
 
-
 	////////////////////// Control ///////////////////////
 
 	mat4.perspective(projMatrix, glMatrix.toRadian(fovY), canvas.width / canvas.height, 0.1, 1000.0); // fovy, aspect ratio, near, far
@@ -119,72 +119,84 @@ window.onload = function(){
 	var heading = 0; // Degrees
 	var pitch = 0;
 	var N = 1;
-	mat4.mul(resetViewMatrix, viewMatrix, identityMatrix); // Used to reset camera.
+	var swimMode = 0; // Enabling this makes movement non-ground based - you instead move wherever you're looking.
+	function rotateCamera(headingDelta, pitchDelta){
+		heading += headingDelta;
+		pitch += (pitch + pitchDelta > 91 || pitch + pitchDelta < -91)? 0 : pitchDelta; // Don't increase pitch beyond +/-90 degrees.
+	}
+
+	var currentDirectionX = [];
+	var currentDirectionY = [];
+	var currentDirectionZ = [];
+	var tempViewMatrix = new Float32Array(16); 		
+	function movePlayer(xDelta, yDelta, zDelta){
+		currentDirectionX = [0,0,0]; currentDirectionY = [0,0,0]; currentDirectionZ = [0,0,0];
+
+		// The third row of an inverted viewMatrix represents the current direction of the camera. (i.e. indexes 2, 6, and 10.)
+		// Rotate the view to face in the x, y, and z directions.
+		if(zDelta){
+			currentDirectionZ = [curViewMatrix[2], swimMode * curViewMatrix[6], -curViewMatrix[10]];
+			vec3.normalize(currentDirectionZ, currentDirectionZ);
+		} 
+		if(xDelta){
+			mat4.rotate(rotationMatrix, identityMatrix, glMatrix.toRadian(90), [0,1,0]);
+			mat4.mul(tempViewMatrix, rotationMatrix, curViewMatrix);
+			currentDirectionX = [tempViewMatrix[2], swimMode * tempViewMatrix[6], -tempViewMatrix[10]];
+			vec3.normalize(currentDirectionX, currentDirectionX);
+		}
+		if(yDelta){
+			mat4.rotate(rotationMatrix, identityMatrix, glMatrix.toRadian(90), [1,0,0]);
+			mat4.mul(tempViewMatrix, rotationMatrix, curViewMatrix);
+			currentDirectionY = [tempViewMatrix[2], -tempViewMatrix[6], -tempViewMatrix[10]];
+			vec3.normalize(currentDirectionY, currentDirectionY);
+		}
+
+		// Multiply everything by the deltas here to account for the magnitude of the movement.
+		mat4.translate(translationMatrix, identityMatrix, [
+			currentDirectionX[0] * xDelta + currentDirectionY[0] * yDelta + currentDirectionZ[0] * zDelta,
+			currentDirectionX[1] * xDelta + currentDirectionY[1] * yDelta + currentDirectionZ[1] * zDelta,
+			currentDirectionX[2] * xDelta + currentDirectionY[2] * yDelta + currentDirectionZ[2] * zDelta
+		]);
+		mat4.mul(testViewMatrix, translationMatrix, testViewMatrix);
+	}
+
+	function resetCamera(){
+		mat4.mul(testViewMatrix, resetViewMatrix, identityMatrix);
+		gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
+		heading = 0; pitch = 0;
+	}
 
 	document.onkeydown = function(e){
 		e = e || window.event;
 		switch(e.keyCode){
 			case 37: // left
-				heading -= N;
-				mat4.rotate(rotationMatrix, identityMatrix, glMatrix.toRadian(-N), [0,1,0]);
-				mat4.mul(viewMatrix, rotationMatrix, viewMatrix);
-				gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
+				rotateCamera(-N, 0);
 				break;
 			case 39: // right
-				heading += N;
-				mat4.rotate(rotationMatrix, identityMatrix, glMatrix.toRadian(N), [0,1,0]);
-				mat4.mul(viewMatrix, rotationMatrix, viewMatrix);
-				gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
+				rotateCamera(N, 0);
 				break;
 			case 38: // up
-				pitch += N;
-				mat4.rotate(rotationMatrix, identityMatrix, glMatrix.toRadian(-N), [1,0,0]);
-				mat4.mul(viewMatrix, rotationMatrix, viewMatrix);
-				gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
+				rotateCamera(0, -N);
 				break;
 			case 40: // down
-				pitch -= N;
-				mat4.rotate(rotationMatrix, identityMatrix, glMatrix.toRadian(N), [1,0,0]);
-				mat4.mul(viewMatrix, rotationMatrix, viewMatrix);
-				gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
+				rotateCamera(0, N);
 				break;
 			case 32: // space - move in
-				mat4.translate(translationMatrix, identityMatrix, [0,0,N]);
-				mat4.mul(viewMatrix, translationMatrix, viewMatrix);
-				gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
+				movePlayer(0,0,N);
 				break;
 			case 82: // r - reset
 				resetCamera();
 				break;
-
 			case 49:
-			case 50:
-			case 51:
-			case 52:
-			case 53:
-			case 54:
-			case 55:
-			case 56:
 			case 57:
 				N = e.keyCode-48; break;
 		}
-	}
-	function resetCamera(){
-		mat4.mul(viewMatrix, resetViewMatrix, identityMatrix);
-		gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
-
-		mat4.perspective(projMatrix, glMatrix.toRadian(fovY), canvas.width / canvas.height, 0.1, 1000.0); // fovy, aspect ratio, near, far
-		gl.uniformMatrix4fv(mProjLoc, gl.FALSE, projMatrix);
-		N = 1;
-		heading = 0;
-		pitch = 0;
 	}
 
 	// This section of Control is responsible for gamepad functionality.
 	var footsteps_audio = new Audio('sound/footsteps.wav');
 	var gamepads;
-	var swimMode = false;
-	var playerSpeed = 0.5;
+	var playerSpeed = 0.8;
 	function handleInput(){
 		gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []);
 		if(gamepads){
@@ -209,50 +221,22 @@ window.onload = function(){
 			footsteps_audio.pause();
 
 		// Camera
-		// TODO: Fix pitch/heading issue. Currently does not work like it does in actual FPS. Want to rotate view about world's Y axis, not about view's Y axis.
-		if(swimMode){
-			mat4.rotate(rotationMatrix1, identityMatrix, glMatrix.toRadian(axes[2] ), [0,1,0]); // Change heading.
-			mat4.rotate(rotationMatrix2, identityMatrix, glMatrix.toRadian(axes[3] ), [1,0,0]); // Change pitch.
-			mat4.mul(viewMatrix, rotationMatrix1, viewMatrix);
-			mat4.mul(viewMatrix, rotationMatrix2, viewMatrix);
-		} else {
-			pitch += (pitch + axes[3] > 91 || pitch + axes[3] < -91)? 0 : axes[3];
-			heading += axes[2]; gl
-
-			mat4.rotate(rotationMatrix1, identityMatrix, glMatrix.toRadian(axes[2] ), [0,1,0]); // Change heading.
-			mat4.rotate(rotationMatrix2, identityMatrix, glMatrix.toRadian(axes[3] ), [1,0,0]); // Change pitch.
-			mat4.mul(viewMatrix, rotationMatrix1, viewMatrix);
-			mat4.mul(viewMatrix, rotationMatrix2, viewMatrix);
-		}
-
+		rotateCamera(axes[2], axes[3]);
 		// Navigation
-		// TODO: Fix movement issue. Don't want to move exactly in direction of camera.
-		if(swimMode){
-			mat4.translate(translationMatrix, identityMatrix, [-axes[0] * 0.5,0,-axes[1] * 0.5]);		
-			mat4.mul(viewMatrix, translationMatrix, viewMatrix);
-		}
-		else{
-			mat4.translate(translationMatrix, identityMatrix, [-axes[0] * 0.5,0,-axes[1] * 0.5]);		
-			mat4.mul(viewMatrix, translationMatrix, viewMatrix);
-			playerPos.x += axes[0] * playerSpeed;
-			playerPos.z += axes[1] * playerSpeed;
-		}
-
+		movePlayer(-axes[0] * playerSpeed, 0, -axes[1] * playerSpeed);
 
 		// Buttons
 		if(gamepad.buttons[0].pressed){ // A
-			mat4.translate(translationMatrix, identityMatrix, [0, -1, 0]);
-			mat4.mul(viewMatrix, translationMatrix, viewMatrix);
+			movePlayer(0,-1,0);
 		}
 		if(gamepad.buttons[1].pressed){ // B
-			mat4.translate(translationMatrix, identityMatrix, [0, 1, 0]);
-			mat4.mul(viewMatrix, translationMatrix, viewMatrix);
+			movePlayer(0, 1,0);
 		}
 		if(gamepad.buttons[3].pressed){ // Y
 			resetCamera();
 		}
 
-		gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
+		playerSpeed = gamepad.buttons[2].pressed? 1.2 : 0.8;
 	}
 
 	////////////////////// Objects /////////////////////
@@ -341,6 +325,15 @@ window.onload = function(){
 		gl.clearColor(0.9, 0.9, 1, 1.0); // R G B A
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		theta = performance.now() / 1000 / 6 *  2 * Math.PI;
+
+		// Adjust view. The order of the rotation ensures that the camera rotates heading around the world's Y axis.
+		mat4.mul(viewMatrix, testViewMatrix, identityMatrix);
+		mat4.rotate(rotationMatrix1, identityMatrix, glMatrix.toRadian(heading), [0,1,0]); // Adjust heading.
+		mat4.rotate(rotationMatrix2, identityMatrix, glMatrix.toRadian(pitch), [1,0,0]); // Adjust pitch.
+		mat4.mul(viewMatrix, rotationMatrix1, viewMatrix);
+		mat4.mul(viewMatrix, rotationMatrix2, viewMatrix);
+		mat4.invert(curViewMatrix, viewMatrix); 		
+		gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
 
 		objects.forEach(function(object){
 			// Begin transformations.
