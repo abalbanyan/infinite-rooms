@@ -1,5 +1,5 @@
 // how much health is left
-var healthleft = 20;
+var healthleft = 40;
 // sets health bar to whatever percentage
 var setHealth = function(percent){
 	var newpct = percent + "%"
