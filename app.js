@@ -246,8 +246,6 @@ window.onload = function(){
 	}
 
 	////////////////////// Objects /////////////////////
-
-	var images = ["textures/dirt.png", "textures/crate.png", "textures/hardwood.png", "textures/space.png"];
 	var objects = [];
 
 	class Object{
@@ -290,31 +288,52 @@ window.onload = function(){
 	    }
 	    rawFile.send();
 	}
+	function loadBedroom()
+	{
+		var images = ["textures/dirt.png", "textures/crate.png", "textures/hardwood.png", "textures/space.png"];
 
-// first room
-	addObjectFromJSON("meshes/bed.json", 			[75,0,65], [0.75,0.75,0.75],   180, [0,1,0], "textures/bedwood.png", [0.8,1,1,1], "bed");
-	addObjectFromJSON("meshes/bedside-table.json", 	[35,0,88], [1,1,1], 		   -90, [0,1,0],"textures/bedwood.png", [1,1,1,1],   "table");
-	addObjectFromJSON("meshes/window1.json", 		[-100,10,0], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1],   "window1");
-	addObjectFromJSON("meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0],  null,					 [90/255,67/255,80/255,1],   "window2");
-	addObjectFromJSON("meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 	90, [0,1,0],"textures/wood2.png", [90/255,67/255,80/255,1], "desk");
-	addObjectFromJSON("meshes/bulb.json",			[0,52,0], [0.05,0.05,0.05], 		180,[1,0,0],null, [1,0.85,0,1], "bulb");
-	addObjectFromJSON("meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0],"textures/cheese.png", [90/255,67/255,80/255,1], "desk");
+		addObjectFromJSON("meshes/bed.json", 			[75,0,65], [0.75,0.75,0.75],   180, [0,1,0], "textures/bedwood.png", [0.8,1,1,1], "bed");
+		addObjectFromJSON("meshes/bedside-table.json", 	[35,0,88], [1,1,1], 		   -90, [0,1,0],"textures/bedwood.png", [1,1,1,1],   "table");
+		addObjectFromJSON("meshes/window1.json", 		[-100,10,0], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1],   "window1");
+		addObjectFromJSON("meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0],  null,					 [90/255,67/255,80/255,1],   "window2");
+		addObjectFromJSON("meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 	90, [0,1,0],"textures/wood2.png", [90/255,67/255,80/255,1], "desk");
+		addObjectFromJSON("meshes/bulb.json",			[0,52,0], [0.05,0.05,0.05], 		180,[1,0,0],null, [1,0.85,0,1], "bulb");
+		addObjectFromJSON("meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0],"textures/cheese.png", [90/255,67/255,80/255,1], "desk");
 
 
- 	var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
-	floor.attachTexture(images[2]);
-	objects.push(new Object(floor, [0,0,0], [100,100,100], 0, [0,1,0], [4,4]));
+		var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
+		floor.attachTexture(images[2]);
+		objects.push(new Object(floor, [0,0,0], [100,100,100], 0, [0,1,0], [4,4]));
 
-	var ceiling = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
-	ceiling.attachTexture("textures/crate.png");
-	objects.push(new Object(ceiling, [0,50,0], [100,100,100], 0, [0,1,0], [8,8]));
+		var ceiling = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
+		ceiling.attachTexture("textures/crate.png");
+		objects.push(new Object(ceiling, [0,80,0], [100,100,100], 0, [0,1,0], [8,8]));
+	}
+
+	function loadBathroom()
+	{
+		var images = ["textures/dirt.png", "textures/crate.png", "textures/hardwood.png", "textures/space.png"];
+
+		addObjectFromJSON("meshes/toilet.json", [0, 0, 0], [.25, .25, .25], -90, [1, 0, 0], "textures/porcelain.png", [0, 0, 0, 0, 0], "toilet");
+		
+		var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
+		floor.attachTexture(images[2]);
+		objects.push(new Object(floor, [0,0,0], [100,100,100], 0, [0,1,0], [4,4]));
+
+		var ceiling = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
+		ceiling.attachTexture("textures/crate.png");
+		objects.push(new Object(ceiling, [0,80,0], [100,100,100], 0, [0,1,0], [8,8]));
+	}
+
+	loadBathroom();
+
 
 	// Generate 4 walls.
 	// Note that the wallMesh vertices vary slightly from the floorMesh. The z vertices are not set equal to 0, which means the walls will scale as if they were faces of a cube.
 	for(var i = 0; i < 4; i++){
 		var wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, buffers);
 		wall.attachTexture("textures/wallpaper1.png");
-		objects.push(new Object(wall, [0,0,0], [100,50,100], glMatrix.toRadian(i*90), [0,1,0], [6,3]))
+		objects.push(new Object(wall, [0,0,0], [100,80,100], glMatrix.toRadian(i*90), [0,1,0], [6,3]))
 	}
 
 	// TODO: Make Objects use the .draw() method, not shapes?
