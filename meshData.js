@@ -16,7 +16,7 @@ class Mesh{
 	}
 }
 
-var cubeSize = 2;
+var cubeSize = 1;
 var cubeMesh = new Mesh(
 	// Vertices:
 	[          
@@ -54,7 +54,7 @@ var cubeMesh = new Mesh(
 		-cubeSize, -cubeSize, -cubeSize,  
 		-cubeSize, -cubeSize, cubeSize,  
 		cubeSize, -cubeSize, cubeSize,    
-		cubeSize, -cubeSize, -cubeSize,    
+		cubeSize, -cubeSize, -cubeSize
 	],
 	// Indices:
 	[
@@ -118,7 +118,7 @@ var cubeMesh = new Mesh(
 		-cubeSize, -cubeSize, -cubeSize,  
 		-cubeSize, -cubeSize, cubeSize,  
 		cubeSize, -cubeSize, cubeSize,    
-		cubeSize, -cubeSize, -cubeSize,    
+		cubeSize, -cubeSize, -cubeSize   
 	],
 	// Texture Coordinates:
 	[
@@ -145,17 +145,17 @@ var cubeMesh = new Mesh(
 		1.0, 1.0,
 		1.0, 0,
 		0, 0,
-		0, 1.0,
+		0, 1.0
 	]
 )
 
 var floorMesh = new Mesh(
 	// vertices:
 	[
-		1.0, 0.0, 1.0,
-		1.0, 0.0, -1.0,
-		-1.0, 0.0, -1.0,
-		-1.0, 0.0, 1.0
+		-1, -1, -1,  
+		-1, -1, 1,  
+		1, -1, 1,    
+		1, -1, -1 
 	],
 	// indices:
 	[
@@ -164,10 +164,10 @@ var floorMesh = new Mesh(
 	],
 	// normals:
 	[
-		1.0, 0.0, 1.0,
-		1.0, 0.0, -1.0,
-		-1.0, 0.0, -1.0,
-		-1.0, 0.0, 1.0
+		-cubeSize, cubeSize, -cubeSize,  
+		-cubeSize, cubeSize, cubeSize,    
+		cubeSize, cubeSize, cubeSize,    
+		cubeSize, cubeSize, -cubeSize
 	],
 	// texuture coords:
 	[
@@ -177,6 +177,37 @@ var floorMesh = new Mesh(
 		1,0
 	]
 )
+
+var ceilingMesh = new Mesh(
+	// vertices:
+	[
+		-cubeSize, cubeSize, -cubeSize,  
+		-cubeSize, cubeSize, cubeSize,    
+		cubeSize, cubeSize, cubeSize,    
+		cubeSize, cubeSize, -cubeSize
+	],
+	// indices:
+	[
+		1,0,2,
+		3,2,0
+	],
+	// normals:
+	[
+		-cubeSize, -cubeSize, -cubeSize,  
+		-cubeSize, -cubeSize, cubeSize,  
+		cubeSize, -cubeSize, cubeSize,    
+		cubeSize, -cubeSize, -cubeSize
+	],
+	// texuture coords:
+	[
+		0,0,
+		0,1,
+		1,1,
+		1,0
+	]
+)
+
+
 
 var wallMesh = new Mesh(
 	// vertices:
@@ -192,10 +223,10 @@ var wallMesh = new Mesh(
 	],
 	// normals:
 	[
-		1.0, 1.0, 1.0,
-		1.0, -1.0, 1.0,
-		-1.0, -1.0, 1.0,
-		-1.0, 1.0, 1.0
+		1, 1, -1,    
+		1, -1, -1,  
+		-1, -1, -1,  
+		-1, 1, -1,    
 	],
 	// texuture coords:
 	[
