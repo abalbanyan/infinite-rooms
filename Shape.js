@@ -1,3 +1,4 @@
+// The shape of an object, along with its state within the world (i.e, translations, rotations, scales) is stored here.
 class Object{
 	constructor(shape, translation, scale, rotation, axis = [0,1,0], texture_scale = null, name = null){
 		this.shape = shape;
@@ -14,6 +15,7 @@ class Object{
 	}
 }
 
+// The properties of an object are stored here, like vertices, color, texture, etc.
 class Shape{
 	constructor(vertices, indices, normals, textureCoords, gl, program, buffers){
 		this.vertices = vertices;
@@ -30,6 +32,7 @@ class Shape{
 
 		this.shapeColor = null;
 		this.use_texture = false;
+		this.pickColor = null;
 		this.texture = gl.createTexture()
 
 		this.positionAttribLocation = gl.getAttribLocation(program, 'vertPosition');
@@ -63,13 +66,23 @@ class Shape{
 		img.src = source;
 	}
 
+	makePickable(pickColor){
+		this.pickColor = pickColor;
+	}
+
 	// Use this when no texture is attached.
 	setColor(color){
 		this.shapeColor = color;
 	}
+	getColor(){
+		return this.shapeColor;
+	}
 
 	disableTexture(){
 		this.use_texture = false;
+	}
+	enableTexture(){
+		this.use_texture = true;
 	}
 
 	setMaterialProperties(new_diffusivity, new_smoothness, new_shininess){
@@ -114,9 +127,8 @@ class Shape{
 		this.gl.uniform1f(this.diffusivityLocation, this.material.diffusivity);
 		this.gl.uniform1f(this.smoothnessLocation, this.material.smoothness);
 		this.gl.uniform1f(this.shininessLocation, this.material.shininess);
-
-		// Set color if a color was specified.
 		if(this.shapeColor != null) this.gl.uniform4fv(this.shapeColorLocation, this.shapeColor);
+
 
 		if(this.use_texture){
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.texCoordBuffer);

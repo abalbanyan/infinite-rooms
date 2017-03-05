@@ -4,11 +4,12 @@ window.onload = function(){
 
 	console.log("Starting.")
 	var canvas = document.getElementById('webgl-canvas');
-	canvas.width  = 960 * 1.1//window.innerWidth - 250;
-	canvas.height = 540 * 1.1//window.innerHeight - 250;
+	canvas.width  = 500//960 * 1.1//window.innerWidth - 250;
+	canvas.height = 500//540 * 1.1//window.innerHeight - 250;
 
-	var gl = canvas.getContext('webgl'); // For Chrome and Firefox, all that's needed.
-
+	//var gl = canvas.getContext('webgl'); // For Chrome and Firefox, all that's needed.
+	var gl = canvas.getContext("experimental-webgl", {preserveDrawingBuffer: true});
+	
 	////////////////// Health /////////////////////////
 	// how much health is left
 	var healthleft = 40;
@@ -210,6 +211,12 @@ window.onload = function(){
 			case 49:
 			case 57:
 				N = e.keyCode-48; break;
+			case 80:
+					var pixels = new Uint8Array(4);
+		gl.readPixels(canvas.width/2, canvas.height/2, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+		console.log(pixels);
+				//handlePick();
+				break;
 		}
 	}
 
@@ -263,8 +270,9 @@ window.onload = function(){
 
 	var images = ["textures/dirt.png", "textures/crate.png", "textures/hardwood.png", "textures/space.png"];
 	var objects = [];
+	var pickableObjects = [];
 
-	function addObjectFromJSON(jsonfile, translation, scale, rotation, axis, texture, color = null, name = null)
+	function addObjectFromJSON(jsonfile, translation, scale, rotation, axis, texture, color = null, name = null, pickColor = null)
 	{
 	    var rawFile = new XMLHttpRequest();
 	    var rotation = glMatrix.toRadian(rotation);
@@ -286,7 +294,15 @@ window.onload = function(){
 		            else if(color != null) shape.setColor(color);
 		            else shape.setColor([0,1,0,1]); // Set color to red if both of the above fail.
 		      		var object = new Object(shape, translation, scale, rotation, axis);
-		      		object.name = name; // kinda hacky...
+
+					if(pickColor != null) 
+						object.shape.makePickable(pickColor);
+		    
+					if(name == "bulb"){
+						console.log("test");
+					}
+
+			  		object.name = name; // kinda hacky...
 		            objects.push(object);
 	        	}
 	        }
@@ -294,16 +310,14 @@ window.onload = function(){
 	    rawFile.send();
 	}
 
-// first room
+	// first room
 	addObjectFromJSON("meshes/bed.json", 			[75,0,65], [0.75,0.75,0.75],   180, [0,1,0], "textures/bedwood.png", [0.8,1,1,1], "bed");
-	addObjectFromJSON("meshes/bedside-table.json", 	[35,0,88], [1,1,1], 		   -90, [0,1,0],"textures/bedwood.png", [1,1,1,1],   "table");
+	addObjectFromJSON("meshes/bedside-table.json", 	[35,0,88], [1,1,1], 		   -90, [0,1,0], "textures/bedwood.png", [1,1,1,1],   "table");
 	addObjectFromJSON("meshes/window1.json", 		[-100,10,0], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1],   "window1");
-	addObjectFromJSON("meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0],  null,					 [90/255,67/255,80/255,1],   "window2");
-	addObjectFromJSON("meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 	90, [0,1,0],"textures/wood2.png", [90/255,67/255,80/255,1], "desk");
-	addObjectFromJSON("meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 		180,[1,0,0],null, [1,0.85,0,1], "bulb");
-	addObjectFromJSON("meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0],"textures/cheese.png", [90/255,67/255,80/255,1], "desk");
-
-	// object(shape, translation, scale, rotation, axis, ...)
+	addObjectFromJSON("meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], null,					 [90/255,67/255,80/255,1],   "window2");
+	addObjectFromJSON("meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], "textures/wood2.png",   [90/255,67/255,80/255,1], "desk");
+	addObjectFromJSON("meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1], "bulb");
+	addObjectFromJSON("meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], "textures/cheese.png",  [90/255,67/255,80/255,1], "cheese", [1,0,1,1]);
 
  	var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
 	floor.attachTexture(images[2]);
@@ -314,8 +328,6 @@ window.onload = function(){
 	ceiling.attachTexture("textures/crate.png");
 	objects.push(new Object(ceiling, [0,ceilingHeight,0], [100,1,100], 0, [1,0,0], [8,8]));
 
-	// Generate 4 walls.
-	// Note that the wallMesh vertices vary slightly from the floorMesh. The z vertices are not set equal to 0, which means the walls will scale as if they were faces of a cube.
 	for(var i = 0; i < 4; i++){
 		var wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, buffers);
 		wall.attachTexture("textures/wallpaper1.png");
@@ -326,9 +338,51 @@ window.onload = function(){
 	// TODO: Add some general functionality for modifying room parameters like roomSize, roomHeight, roomType, etc. A Room class might be needed. 
 	// TODO: Load different rooms?
 
+	/////////// Picking ////////////////////
+
+	function handlePick(){
+		gl.clearColor(1, 1, 1, 1.0); // R G B A
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+		gl.uniformMatrix4fv(mViewLoc, gl.FALSE, testViewMatrix);
+		objects.forEach(function(object){
+			if(object.shape.pickColor == null) return;
+
+			// Begin transformations.
+			mat4.identity(worldMatrix);
+			mat4.scale(scalingMatrix, identityMatrix, object.scale);
+			mat4.rotate(rotationMatrix, identityMatrix, object.rotation, object.axis);
+			mat4.translate(translationMatrix, identityMatrix, object.translation);
+
+			mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
+			mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
+			mat4.mul(worldMatrix, translationMatrix, worldMatrix);
+
+			// This is needed for lighting.
+			mat4.mul(cameraWorldMatrix, viewMatrix, worldMatrix);
+			mat4.invert(cameraWorldMatrix, cameraWorldMatrix);
+			mat4.transpose(cameraWorldMatrix, cameraWorldMatrix);
+			mat3.fromMat4(cameraWorldNormalMatrix, cameraWorldMatrix);
+			gl.uniformMatrix3fv(mWorldNormalLoc, gl.FALSE, cameraWorldNormalMatrix);
+
+			gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
+			
+			var color = object.shape.shapeColor; // Save the old color.
+			object.shape.shapeColor = object.shape.pickColor;
+			object.shape.disableTexture();
+			object.draw();
+			//object.shape.enableTexture();
+			//object.shape.shapeColor = color; // Set the color back.
+
+	
+		});
+		var pixels = new Uint8Array(4);
+		gl.readPixels(canvas.width/2, canvas.height/2, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+		console.log(pixels);
+	}
+
+
 	////////////////////// Render Loop /////////////////
-	var isAttached = 0;
-	var distance = 4;
 	var loop = function(){
 
 		handleInput();
@@ -374,7 +428,10 @@ window.onload = function(){
 
 			//mat4.mul(worldMatrix, navigationMatrix, worldMatrix);
 			gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
-			gl.uniform4fv(shapeColorLoc, [1,1,1,1]);
+			//gl.uniform4fv(shapeColorLoc, [1,1,1,1]);
+			
+			// Set color if a color was specified.
+			if(object.shapeColor != null) gl.uniform4fv(shapeColorLoc, object.shapeColor);
 
 			object.draw();
 
