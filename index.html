@@ -8,23 +8,30 @@
 <body>
 
 <style>
-div.crosshair{
-	position: absolute;
-	color: white;
+#health {
+	width: 100%;
+	height:20px;
+	background-color: #FF69B4;
 }
 </style>
 
-
+<!-- health bar -->
+		<div style="position: absolute; left: 17%; top: 5%; width:300px; height:20px; background-color: grey;">
+			<div id="health"></div>
+		</div>
+		<img src="heart_health.png" style="position: absolute; left:15%; top: 3%; height: 50px; width: 50px">
 
 <center>
 		<canvas id="webgl-canvas" width="960", height="540">
 			Your browser does not support HTML5.
 		</canvas>
 
+
 	<!-- stupid crosshair -->
 	<div>
-	<h1 style="position: absolute; left: 50%; text-align:center; z-index: 1;  top: 287px;  ">+</h1>
+	<h1 style="position: absolute; left: 50%; text-align:center; z-index: 1;  top: 287px; ">+</h1>
 	</div>
+
 
 		<script src="gl-matrix.js"></script>
 		<script src="meshData.js"></script>
