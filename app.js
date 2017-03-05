@@ -1,10 +1,4 @@
-// how much health is left
-var healthleft = 40;
-// sets health bar to whatever percentage
-var setHealth = function(percent){
-	var newpct = percent + "%"
-	document.getElementById("health").style.width = newpct;
-}
+
 
 window.onload = function(){
 
@@ -14,6 +8,15 @@ window.onload = function(){
 	canvas.height = 540 * 1.1//window.innerHeight - 250;
 
 	var gl = canvas.getContext('webgl'); // For Chrome and Firefox, all that's needed.
+
+	////////////////// Health /////////////////////////
+	// how much health is left
+	var healthleft = 40;
+	// sets health bar to whatever percentage
+	var setHealth = function(percent){
+		var newpct = percent + "%"
+		document.getElementById("health").style.width = newpct;
+	}
 
     ////////////////// Compile Shaders ////////////////
 
@@ -104,10 +107,10 @@ window.onload = function(){
 
 	//////////////// Lighting /////////////////////////////
 
-	var lightPositions = [0.0, 50.0, 0.0, 1.0];
+	var lightPositions = [0.0, 45.0, 0.0, 1.0];
 	var lightColors = [1,0.3,0.1,1];
 	var lightAttenuations = [2.0/10000.0];
-	var ambience = 0.8
+	var ambience = 0.3
 
 	var light = new Light(lightPositions, lightColors, lightAttenuations, ambience, gl, program);
 	var gouraud_loc = gl.getUniformLocation(program, 'GOURAUD');
@@ -141,13 +144,13 @@ window.onload = function(){
 		// The third row of an inverted viewMatrix represents the current direction of the camera. (i.e. indexes 2, 6, and 10.)
 		// Rotate the view to face in the x, y, and z directions.
 		if(zDelta){
-			currentDirectionZ = [curViewMatrix[2], swimMode * curViewMatrix[6], -curViewMatrix[10]];
+			currentDirectionZ = [curViewMatrix[2], swimMode * -curViewMatrix[6], -curViewMatrix[10]];
 			vec3.normalize(currentDirectionZ, currentDirectionZ);
 		}
 		if(xDelta){
 			mat4.rotate(rotationMatrix, identityMatrix, glMatrix.toRadian(90), [0,1,0]);
 			mat4.mul(tempViewMatrix, rotationMatrix, curViewMatrix);
-			currentDirectionX = [tempViewMatrix[2], swimMode * tempViewMatrix[6], -tempViewMatrix[10]];
+			currentDirectionX = [tempViewMatrix[2], swimMode * -tempViewMatrix[6], -tempViewMatrix[10]];
 			vec3.normalize(currentDirectionX, currentDirectionX);
 		}
 		if(yDelta){
@@ -192,6 +195,17 @@ window.onload = function(){
 				break;
 			case 82: // r - reset
 				resetCamera();
+				break;
+			case 187:
+				ambience += 0.1;
+				light.setAmbience(ambience);
+				break;
+			case 189:
+				ambience -= 0.1;
+				light.setAmbience(ambience);
+				break;
+			case 192:
+				swimMode = ~swimMode;
 				break;
 			case 49:
 			case 57:
@@ -250,17 +264,6 @@ window.onload = function(){
 	var images = ["textures/dirt.png", "textures/crate.png", "textures/hardwood.png", "textures/space.png"];
 	var objects = [];
 
-	class Object{
-		constructor(shape, translation, scale, rotation, axis = [0,1,0], texture_scale = null, name = null){
-			this.shape = shape;
-			this.translation = translation;
-			this.scale = scale;
-			this.rotation = rotation;
-			this.axis = axis;
-			this.texture_scale = texture_scale; // This will determine how many times a texture will repeat.
-			this.name = name;
-		}
-	}
 	function addObjectFromJSON(jsonfile, translation, scale, rotation, axis, texture, color = null, name = null)
 	{
 	    var rawFile = new XMLHttpRequest();
@@ -297,29 +300,30 @@ window.onload = function(){
 	addObjectFromJSON("meshes/window1.json", 		[-100,10,0], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1],   "window1");
 	addObjectFromJSON("meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0],  null,					 [90/255,67/255,80/255,1],   "window2");
 	addObjectFromJSON("meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 	90, [0,1,0],"textures/wood2.png", [90/255,67/255,80/255,1], "desk");
-	addObjectFromJSON("meshes/bulb.json",			[0,52,0], [0.05,0.05,0.05], 		180,[1,0,0],null, [1,0.85,0,1], "bulb");
+	addObjectFromJSON("meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 		180,[1,0,0],null, [1,0.85,0,1], "bulb");
 	addObjectFromJSON("meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0],"textures/cheese.png", [90/255,67/255,80/255,1], "desk");
 
+	// object(shape, translation, scale, rotation, axis, ...)
 
  	var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
 	floor.attachTexture(images[2]);
-	objects.push(new Object(floor, [0,0,0], [100,100,100], 0, [0,1,0], [4,4]));
+	objects.push(new Object(floor, [0,0,0], [100,1,100], 0, [0,1,0], [4,4]));
 
-	var ceiling = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
+	var ceilingHeight = 55;
+	var ceiling = new Shape(ceilingMesh.vertices, ceilingMesh.indices, ceilingMesh.normals, ceilingMesh.textureCoords, gl, program, buffers);
 	ceiling.attachTexture("textures/crate.png");
-	objects.push(new Object(ceiling, [0,50,0], [100,100,100], 0, [0,1,0], [8,8]));
+	objects.push(new Object(ceiling, [0,ceilingHeight,0], [100,1,100], 0, [1,0,0], [8,8]));
 
 	// Generate 4 walls.
 	// Note that the wallMesh vertices vary slightly from the floorMesh. The z vertices are not set equal to 0, which means the walls will scale as if they were faces of a cube.
 	for(var i = 0; i < 4; i++){
 		var wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, buffers);
 		wall.attachTexture("textures/wallpaper1.png");
-		objects.push(new Object(wall, [0,0,0], [100,50,100], glMatrix.toRadian(i*90), [0,1,0], [6,3]))
+		objects.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(i*90), [0,1,0], [8,4]))
 	}
-
 	// TODO: Make Objects use the .draw() method, not shapes?
 	// TODO: Add support for model trees.
-	// TODO: Add some general functionality for modifying room parameters like roomSize, roomHeight, roomType, etc. A Room class might be needed.
+	// TODO: Add some general functionality for modifying room parameters like roomSize, roomHeight, roomType, etc. A Room class might be needed. 
 	// TODO: Load different rooms?
 
 	////////////////////// Render Loop /////////////////
@@ -372,7 +376,7 @@ window.onload = function(){
 			gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
 			gl.uniform4fv(shapeColorLoc, [1,1,1,1]);
 
-			object.shape.draw();
+			object.draw();
 
 			setHealth(100 - healthleft);
 

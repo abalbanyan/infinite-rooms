@@ -1,3 +1,19 @@
+class Object{
+	constructor(shape, translation, scale, rotation, axis = [0,1,0], texture_scale = null, name = null){
+		this.shape = shape;
+		this.translation = translation;
+		this.scale = scale;
+		this.rotation = rotation;
+		this.axis = axis;
+		this.texture_scale = texture_scale; // This will determine how many times a texture will repeat.
+		this.name = name;
+	}
+
+	draw(){
+		this.shape.draw();
+	}
+}
+
 class Shape{
 	constructor(vertices, indices, normals, textureCoords, gl, program, buffers){
 		this.vertices = vertices;
@@ -7,7 +23,7 @@ class Shape{
 		this.gl = gl;
 		this.program = program;
 		this.buffers = buffers;
-		this.material = { diffusivity: 1.5, smoothness: 40, shininess: 0.5 }; // Default material properties
+		this.material = { diffusivity: 3.5, smoothness: 40, shininess: 0.8 }; // Default material properties
 		//this.material.diffusivity = 1.5;
 		//this.material.smoothness = 40;
 		//this.material.shininess = 0.5;
@@ -128,27 +144,6 @@ class Shape{
 
 }
 
-// Overloading isn't supported in JavaScript...
-class ShapeFromMesh extends Shape{
-	constructor(mesh, gl, program, buffers){
-		this.vertices = mesh.vertices;
-		this.indices = mesh.indices;
-		this.normals = mesh.normals;
-		this.textureCoords = mesh.textureCoords; // Set textureCoords to null if no texture is needed.
-		this.gl = gl;
-		this.program = program;
-		this.buffers = buffers;
-
-		this.use_texture = false;
-		this.texture = gl.createTexture()
-
-		this.positionAttribLocation = gl.getAttribLocation(program, 'vertPosition');
-		this.samplerLocation = gl.getUniformLocation(program, 'sampler')
-		this.normalAttribLocation = gl.getAttribLocation(program, 'vertNormal');
-		this.textureCoordAttribLocation = gl.getAttribLocation(program, 'texCoord');
-		this.useTextureLocation = gl.getUniformLocation(program, 'USE_TEXTURE');
-	}
-}
 
 // Notes:
 /*
