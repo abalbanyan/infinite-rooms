@@ -1,4 +1,10 @@
-
+// how much health is left
+var healthleft = 40;
+// sets health bar to whatever percentage
+var setHealth = function(percent){
+	var newpct = percent + "%"
+	document.getElementById("health").style.width = newpct;
+}
 
 window.onload = function(){
 
@@ -81,7 +87,7 @@ window.onload = function(){
 	var translationMatrix = new Float32Array(16);
 	var scalingMatrix = new Float32Array(16);
 	var resetViewMatrix = new Float32Array(16);
-	var navigationMatrix = new Float32Array(16); 
+	var navigationMatrix = new Float32Array(16);
 
 	var rotationMatrix1 = new Float32Array(16);
 	var rotationMatrix2 = new Float32Array(16);
@@ -127,7 +133,7 @@ window.onload = function(){
 	var currentDirectionX = [];
 	var currentDirectionY = [];
 	var currentDirectionZ = [];
-	var tempViewMatrix = new Float32Array(16); 		
+	var tempViewMatrix = new Float32Array(16);
 	function movePlayer(xDelta, yDelta, zDelta){
 		currentDirectionX = [0,0,0]; currentDirectionY = [0,0,0]; currentDirectionZ = [0,0,0];
 
@@ -136,7 +142,7 @@ window.onload = function(){
 		if(zDelta){
 			currentDirectionZ = [curViewMatrix[2], swimMode * -curViewMatrix[6], -curViewMatrix[10]];
 			vec3.normalize(currentDirectionZ, currentDirectionZ);
-		} 
+		}
 		if(xDelta){
 			mat4.rotate(rotationMatrix, identityMatrix, glMatrix.toRadian(90), [0,1,0]);
 			mat4.mul(tempViewMatrix, rotationMatrix, curViewMatrix);
@@ -253,7 +259,19 @@ window.onload = function(){
 
 	var images = ["textures/dirt.png", "textures/crate.png", "textures/hardwood.png", "textures/space.png"];
 	var objects = [];
-	
+
+	class Object{
+		constructor(shape, translation, scale, rotation, axis = [0,1,0], texture_scale = null, name = null){
+			this.shape = shape;
+			this.translation = translation;
+			this.scale = scale;
+			this.rotation = rotation;
+			this.axis = axis;
+			this.texture_scale = texture_scale; // This will determine how many times a texture will repeat.
+			this.name = name;
+		}
+	}
+
 	function addObjectFromJSON(jsonfile, translation, scale, rotation, axis, texture, color = null, name = null)
 	{
 		var rawFile = new XMLHttpRequest();
@@ -284,6 +302,7 @@ window.onload = function(){
 		rawFile.send();
 	}
 
+// first room
 	addObjectFromJSON("meshes/bed.json", 			[75,0,65], [0.75,0.75,0.75],   180, [0,1,0], "textures/bedwood.png", [0.8,1,1,1], "bed");
 	addObjectFromJSON("meshes/bedside-table.json", 	[35,0,88], [1,1,1], 		   -90, [0,1,0],"textures/bedwood.png", [1,1,1,1],   "table");
 	addObjectFromJSON("meshes/window1.json", 		[-100,10,0], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1],   "window1");
@@ -312,7 +331,7 @@ window.onload = function(){
 	}
 	// TODO: Make Objects use the .draw() method, not shapes?
 	// TODO: Add support for model trees.
-	// TODO: Add some general functionality for modifying room parameters like roomSize, roomHeight, roomType, etc. A Room class might be needed. 
+	// TODO: Add some general functionality for modifying room parameters like roomSize, roomHeight, roomType, etc. A Room class might be needed.
 	// TODO: Load different rooms?
 
 	////////////////////// Render Loop /////////////////
@@ -332,7 +351,7 @@ window.onload = function(){
 		mat4.rotate(rotationMatrix2, identityMatrix, glMatrix.toRadian(pitch), [1,0,0]); // Adjust pitch.
 		mat4.mul(viewMatrix, rotationMatrix1, viewMatrix);
 		mat4.mul(viewMatrix, rotationMatrix2, viewMatrix);
-		mat4.invert(curViewMatrix, viewMatrix); 		
+		mat4.invert(curViewMatrix, viewMatrix);
 		gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
 
 		objects.forEach(function(object){
@@ -365,7 +384,11 @@ window.onload = function(){
 			gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
 			gl.uniform4fv(shapeColorLoc, [1,1,1,1]);
 
+
 			object.draw();
+
+			setHealth(100 - healthleft);
+
 		});
 		requestAnimationFrame(loop);
 	}
