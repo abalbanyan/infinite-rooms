@@ -31,7 +31,7 @@ window.onload = function(){
 	gl.linkProgram(program);
 	gl.useProgram(program);
 	gl.enable(gl.DEPTH_TEST);
-
+//
     ////////////////// Create Buffers /////////////////
 
 	// Chunks of memory on GPU that are ready to use.
