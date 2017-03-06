@@ -66,8 +66,12 @@ class Shape{
 		img.src = source;
 	}
 
-	makePickable(pickColor){
-		this.pickColor = pickColor;
+	makePickable(pickID){
+		var r = (pickID & 0x000000FF) >>  0;
+		var g = (pickID & 0x0000FF00) >>  8;
+		var b = (pickID & 0x00FF0000) >> 16;
+
+		this.pickColor = [r/255,g/255,b/255,1];
 	}
 
 	// Use this when no texture is attached.

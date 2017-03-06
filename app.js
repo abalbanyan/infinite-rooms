@@ -215,7 +215,8 @@ window.onload = function(){
 			case 57:
 				N = e.keyCode-48; break;
 			case 80:
-				handlePick();
+				var color = handlePick();
+				console.log(handlePick());
 				break;
 		}
 	}
@@ -272,7 +273,7 @@ window.onload = function(){
 	var objects = [];
 	var pickableObjects = [];
 
-	function addObjectFromJSON(jsonfile, translation, scale, rotation, axis, texture, color = null, name = null, pickColor = null)
+	function addObjectFromJSON(jsonfile, translation, scale, rotation, axis, texture, color = null, name = null, pickID = null)
 	{
 	    var rawFile = new XMLHttpRequest();
 	    var rotation = glMatrix.toRadian(rotation);
@@ -295,8 +296,8 @@ window.onload = function(){
 		            else shape.setColor([0,1,0,1]); // Set color to red if both of the above fail.
 		      		var object = new Object(shape, translation, scale, rotation, axis);
 
-					if(pickColor != null) 
-						object.shape.makePickable(pickColor);
+					if(pickID != null) 
+						object.shape.makePickable(pickID);
 		    
 					if(name == "bulb"){
 						console.log("test");
@@ -311,14 +312,14 @@ window.onload = function(){
 	}
 
 	// first room
-	// Pass in pickColor as the last parameter - this color corresponds to the ID returned by handlePick().
+	// Pass in pickID as the last parameter to addObjectFromJSON if the object is pickable. 
 	addObjectFromJSON("meshes/bed.json", 			[75,0,65], [0.75,0.75,0.75],   180, [0,1,0], "textures/bedwood.png", [0.8,1,1,1], "bed");
 	addObjectFromJSON("meshes/bedside-table.json", 	[35,0,88], [1,1,1], 		   -90, [0,1,0], "textures/bedwood.png", [1,1,1,1],   "table");
 	addObjectFromJSON("meshes/window1.json", 		[-100,10,0], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1],   "window1");
 	addObjectFromJSON("meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], null,					 [90/255,67/255,80/255,1],   "window2");
 	addObjectFromJSON("meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], "textures/wood2.png",   [90/255,67/255,80/255,1], "desk");
-	addObjectFromJSON("meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1], "bulb", [1,0,0,1]);
-	addObjectFromJSON("meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], "textures/cheese.png",  [90/255,67/255,80/255,1], "cheese", [1,0,1,1]);
+	addObjectFromJSON("meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1], "bulb", 22222);
+	addObjectFromJSON("meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], "textures/cheese.png",  [90/255,67/255,80/255,1], "cheese", 1025);
 
  	var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
 	floor.attachTexture(images[2]);
@@ -372,11 +373,10 @@ window.onload = function(){
 
 		var pixels = new Uint8Array(4);
 		gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-		console.log(pixels);
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);  // render back to canvas
 
-		return pixels;
+		return pixels[0] + pixels[1] * 256 + pixels[2] * 256 * 256;
 	}
 
 	////////////////////// Render Loop /////////////////
