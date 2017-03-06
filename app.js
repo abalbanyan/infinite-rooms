@@ -66,6 +66,7 @@ window.onload = function(){
 	var worldMatrix = new Float32Array(16);
 	var viewMatrix = new Float32Array(16);
 	var projMatrix = new Float32Array(16);
+	var pickProjMatrix = new Float32Array(16); // We use a reduced frustum for picking in order to limit pick distance.
 
 	var cameraWorldMatrix = new Float32Array(16);
 	var cameraWorldNormalMatrixHelper = new Float32Array(16);
@@ -73,8 +74,10 @@ window.onload = function(){
 	var textureTransform = new Float32Array(9);
 
 	var fovY = 50;
+	var pickDistance = 55.0;
 	mat4.lookAt(viewMatrix, [0, 30, -50], [0,30,0], [0,1,0]); // Eye, Point, Up. The camera is initialized using lookAt. I promise I don't use it anywhere else!
- 	mat4.perspective(projMatrix, glMatrix.toRadian(fovY), canvas.width / canvas.height, 0.1, 1000.0); // fovy, aspect ratio, near, far
+ 	mat4.perspective(projMatrix, glMatrix.toRadian(fovY), canvas.width / canvas.height, 0.1, 500.0); // fovy, aspect ratio, near, far
+	mat4.perspective(pickProjMatrix, glMatrix.toRadian(fovY), canvas.width / canvas.height, 0.1, pickDistance);
 
 	gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
 	gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
@@ -127,8 +130,6 @@ window.onload = function(){
 
 	////////////////////// Control ///////////////////////
 
-	mat4.perspective(projMatrix, glMatrix.toRadian(fovY), canvas.width / canvas.height, 0.1, 1000.0); // fovy, aspect ratio, near, far
-	gl.uniformMatrix4fv(mProjLoc, gl.FALSE, projMatrix);
 	var heading = 0; // Degrees
 	var pitch = 0;
 	var N = 1;
@@ -381,7 +382,6 @@ window.onload = function(){
 	}
 
 	////////////////////// Interaction /////////////////
-
 	var eating_audio = new Audio('sound/eating.mp3');
 	function interact(){
 		var itemID = handlePick(canvas.width/2, canvas.height/2);
@@ -391,7 +391,6 @@ window.onload = function(){
 			if(objects[i].shape.pickID == itemID){
 				var itemType = objects[i].itemType;
 				var object = objects[i];
-
 				if(itemType == "food"){
 					objects[i].delete();
 					eating_audio.play();
@@ -419,39 +418,8 @@ window.onload = function(){
 		mat4.invert(curViewMatrix, viewMatrix);
 		gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
 
-		// Draw to the frame buffer for picking.
-		gl.bindFramebuffer(gl.FRAMEBUFFER, pickBuffer); // Comment this to draw the pickColors to the screen.
-		gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-		gl.uniform1i(use_ambience_loc, 0); // Turn off ambience before drawing to ensure fixed colors.
-		objects.forEach(function(object){
-			// Begin transformations.
-			mat4.identity(worldMatrix);
-			mat4.scale(scalingMatrix, identityMatrix, object.scale);
-			mat4.rotate(rotationMatrix, identityMatrix, object.rotation, object.axis);
-			mat4.translate(translationMatrix, identityMatrix, object.translation);
-
-			mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
-			mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
-			mat4.mul(worldMatrix, translationMatrix, worldMatrix);
-
-			if(object.texture_scale != null){
-				mat3.identity(textureTransform);
-				mat3.scale(textureTransform, textureTransform, object.texture_scale);
-				gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, textureTransform);
-			} else {
-				gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, mat3.identity(textureTransform));
-			}
-
-			gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
-			
-			if(object.isDrawn)
-				object.shape.drawForPicking();
-
-		});
-		gl.uniform1i(use_ambience_loc, 1);
-
-		// Draw normally.
+		// Draw normally onto the screen.
+		gl.uniformMatrix4fv(mProjLoc, gl.FALSE, projMatrix);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -490,6 +458,39 @@ window.onload = function(){
 			if(object.isDrawn)
 				object.draw();
 		});
+
+		// Draw to the frame buffer for picking.
+		gl.uniformMatrix4fv(mProjLoc, gl.FALSE, pickProjMatrix);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, pickBuffer); // Comment this to draw the pickColors to the screen.
+		gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		gl.uniform1i(use_ambience_loc, 0); // Turn off ambience before drawing to ensure fixed colors.
+		objects.forEach(function(object){
+			// Begin transformations.
+			mat4.identity(worldMatrix);
+			mat4.scale(scalingMatrix, identityMatrix, object.scale);
+			mat4.rotate(rotationMatrix, identityMatrix, object.rotation, object.axis);
+			mat4.translate(translationMatrix, identityMatrix, object.translation);
+
+			mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
+			mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
+			mat4.mul(worldMatrix, translationMatrix, worldMatrix);
+
+			if(object.texture_scale != null){
+				mat3.identity(textureTransform);
+				mat3.scale(textureTransform, textureTransform, object.texture_scale);
+				gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, textureTransform);
+			} else {
+				gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, mat3.identity(textureTransform));
+			}
+
+			gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
+			
+			if(object.isDrawn)
+				object.shape.drawForPicking();
+
+		});
+		gl.uniform1i(use_ambience_loc, 1);
 		requestAnimationFrame(loop);
 	}
 
