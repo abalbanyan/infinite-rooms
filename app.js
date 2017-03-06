@@ -41,6 +41,46 @@ window.onload = function(){
 	gl.useProgram(program);
 	gl.enable(gl.DEPTH_TEST);
 
+	// Set up the Shadow Map Program
+	var shadowMapVertexShader = gl.createShader(gl.VERTEX_SHADER);
+	var shadowMapFragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+	gl.shaderSource(shadowMapVertexShader, shadowMapVertexShaderText);
+	gl.shaderSource(shadowMapFragmentShader, shadowMapFragmentShaderText);
+	gl.compileShader(shadowMapVertexShader);
+	if(!gl.getShaderParameter(shadowMapVertexShader, gl.COMPILE_STATUS)){
+		console.error("ERROR compiling shadow map vertex shader.", gl.getShaderInfoLog(shadowMapVertexShader));
+	}
+	gl.compileShader(shadowMapFragmentShader);
+	if(!gl.getShaderParameter(shadowMapFragmentShader, gl.COMPILE_STATUS)){
+		console.error("ERROR compiling fragment shader.", gl.getShaderInfoLog(shadowMapFragmentShader));
+	}
+
+	var shadowMapProgram = gl.createProgram();
+	gl.attachShader(shadowMapProgram, shadowMapVertexShader);
+	gl.attachShader(shadowMapProgram, shadowMapFragmentShader);
+	gl.linkProgram(shadowMapProgram);
+	gl.enable(gl.DEPTH_TEST);
+
+	// Set up the Shadow program
+	var shadowVertexShader = gl.createShader(gl.VERTEX_SHADER);
+	var shadowFragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+	gl.shaderSource(shadowVertexShader, shadowVertexShaderText);
+	gl.shaderSource(shadowFragmentShader, shadowFragmentShaderText);
+	gl.compileShader(shadowVertexShader);
+	if(!gl.getShaderParameter(shadowVertexShader, gl.COMPILE_STATUS)){
+		console.error("ERROR compiling shadow map vertex shader.", gl.getShaderInfoLog(shadowVertexShader));
+	}
+	gl.compileShader(shadowFragmentShader);
+	if(!gl.getShaderParameter(shadowFragmentShader, gl.COMPILE_STATUS)){
+		console.error("ERROR compiling fragment shader.", gl.getShaderInfoLog(shadowFragmentShader));
+	}
+
+	var shadowProgram = gl.createProgram();
+	gl.attachShader(shadowProgram, shadowVertexShader);
+	gl.attachShader(shadowProgram, shadowFragmentShader);
+	gl.linkProgram(shadowProgram);
+	gl.enable(gl.DEPTH_TEST);
+
     ////////////////// Create Buffers /////////////////
 
 	// Chunks of memory on GPU that are ready to use.
@@ -51,6 +91,23 @@ window.onload = function(){
 	var texCoordBuffer = gl.createBuffer();
 	var buffers = {vertexBuffer:vertexBuffer, indexBuffer:indexBuffer, normalBuffer:normalBuffer,
 					indexNormalBuffer:indexNormalBuffer, texCoordBuffer:texCoordBuffer};
+	//
+	// Create Framebuffers and Textures
+	//
+	var shadowMapFrameBuffer = gl.createFramebuffer();
+	var shadowMapRenderBuffer = gl.createRenderbuffer();
+
+	gl.bindFramebuffer(gl.FRAMEBUFFER, shadowMapFrameBuffer);
+
+	gl.bindRenderbuffer(gl.RENDERBUFFER, shadowMapRenderBuffer);
+	gl.renderbufferStorage(
+		gl.RENDERBUFFER, gl.DEPTH_COMPONENT16,
+		textureSize, textureSize
+	);
+
+	gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+	gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
 	/////////////////// Initialize Matrices ///////////
 
@@ -281,7 +338,7 @@ window.onload = function(){
 		            vertices = mesh.vertices;
 		            normals = mesh.normals;
 		            textureCoords = [].concat.apply([], mesh.texturecoords);
-		            shape = new Shape(vertices, indices, normals, textureCoords, gl, program, buffers);
+		            shape = new Shape(vertices, indices, normals, textureCoords, lightPositions, gl, program, shadowMapProgram, shadowProgram, buffers);
 		            if(textureCoords.length && texture != null) shape.attachTexture(texture); // First check if the mesh component has a texture.
 		            else if(color != null) shape.setColor(color);
 		            else shape.setColor([0,1,0,1]); // Set color to red if both of the above fail.
@@ -305,25 +362,25 @@ window.onload = function(){
 
 	// object(shape, translation, scale, rotation, axis, ...)
 
- 	var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
+ 	var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, lightPositions, gl, program, shadowMapProgram, shadowProgram, buffers);
 	floor.attachTexture(images[2]);
 	objects.push(new Object(floor, [0,0,0], [100,1,100], 0, [0,1,0], [4,4]));
 
 	var ceilingHeight = 55;
-	var ceiling = new Shape(ceilingMesh.vertices, ceilingMesh.indices, ceilingMesh.normals, ceilingMesh.textureCoords, gl, program, buffers);
+	var ceiling = new Shape(ceilingMesh.vertices, ceilingMesh.indices, ceilingMesh.normals, ceilingMesh.textureCoords, lightPositions, gl, program, shadowMapProgram, shadowProgram, buffers);
 	ceiling.attachTexture("textures/crate.png");
 	objects.push(new Object(ceiling, [0,ceilingHeight,0], [100,1,100], 0, [1,0,0], [8,8]));
 
 	// Generate 4 walls.
 	// Note that the wallMesh vertices vary slightly from the floorMesh. The z vertices are not set equal to 0, which means the walls will scale as if they were faces of a cube.
 	for(var i = 0; i < 4; i++){
-		var wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, buffers);
+		var wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, lightPositions, gl, program, shadowMapProgram, shadowProgram, buffers);
 		wall.attachTexture("textures/wallpaper1.png");
 		objects.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(i*90), [0,1,0], [8,4]))
 	}
 	// TODO: Make Objects use the .draw() method, not shapes?
 	// TODO: Add support for model trees.
-	// TODO: Add some general functionality for modifying room parameters like roomSize, roomHeight, roomType, etc. A Room class might be needed. 
+	// TODO: Add some general functionality for modifying room parameters like roomSize, roomHeight, roomType, etc. A Room class might be needed.
 	// TODO: Load different rooms?
 
 	////////////////////// Render Loop /////////////////
