@@ -117,6 +117,9 @@ void main(){
 	else {
 		gl_FragColor = vec4(shapeColor.xyz * (USE_AMBIENCE? ambient : 1.0), shapeColor.w);
 	}
+	if(!USE_AMBIENCE){
+		return;
+	}
 
 	for( int i = 0; i < N_LIGHTS; i++ ){
 		float attenuation_multiplier = 1.0 / (1.0 + attenuation_factor[i] * (dist[i] * dist[i]));
