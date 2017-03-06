@@ -1,17 +1,22 @@
 // The shape of an object, along with its state within the world (i.e, translations, rotations, scales) is stored here.
 class Object{
-	constructor(shape, translation, scale, rotation, axis = [0,1,0], texture_scale = null, name = null){
+	constructor(shape, translation, scale, rotation, axis = [0,1,0], texture_scale = null, itemType = null){
 		this.shape = shape;
 		this.translation = translation;
 		this.scale = scale;
 		this.rotation = rotation;
 		this.axis = axis;
 		this.texture_scale = texture_scale; // This will determine how many times a texture will repeat.
-		this.name = name;
+		this.itemType = itemType;
+		this.isDrawn = true;
 	}
 
 	draw(){
 		this.shape.draw();
+	}
+
+	delete(){
+		this.isDrawn = false;
 	}
 }
 
@@ -33,6 +38,7 @@ class Shape{
 		this.shapeColor = null;
 		this.use_texture = false;
 		this.pickColor = null;
+		this.pickID = null;
 		this.texture = gl.createTexture()
 
 		this.positionAttribLocation = gl.getAttribLocation(program, 'vertPosition');
@@ -67,11 +73,16 @@ class Shape{
 	}
 
 	makePickable(pickID){
-		var r = (pickID & 0x000000FF) >>  0;
-		var g = (pickID & 0x0000FF00) >>  8;
-		var b = (pickID & 0x00FF0000) >> 16;
+		// var r = (pickID & 0x000000FF) >>  0;
+		// var g = (pickID & 0x0000FF00) >>  8;
+		// var b = (pickID & 0x00FF0000) >> 16;
 
-		this.pickColor = [r/255,g/255,b/255,1];
+		// this.pickID = pickID;
+		// this.pickColor = [r/255,g/255,b/255,1];
+		// Really buggy for some reason...
+
+		this.pickColor = [pickID/255, 1,1,1];
+		this.pickID = pickID;
 	}
 
 	// Use this when no texture is attached.

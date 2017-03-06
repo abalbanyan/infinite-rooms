@@ -215,8 +215,7 @@ window.onload = function(){
 			case 57:
 				N = e.keyCode-48; break;
 			case 80:
-				var color = handlePick();
-				console.log(handlePick());
+				interact();
 				break;
 		}
 	}
@@ -255,7 +254,7 @@ window.onload = function(){
 
 		// Buttons
 		if(gamepad.buttons[0].pressed){ // A
-			movePlayer(0,-1,0);
+			interact();
 		}
 		if(gamepad.buttons[1].pressed){ // B
 			movePlayer(0, 1,0);
@@ -273,7 +272,7 @@ window.onload = function(){
 	var objects = [];
 	var pickableObjects = [];
 
-	function addObjectFromJSON(jsonfile, translation, scale, rotation, axis, texture, color = null, name = null, pickID = null)
+	function addObjectFromJSON(jsonfile, translation, scale, rotation, axis, texture, color = null, itemType = null, pickID = null)
 	{
 	    var rawFile = new XMLHttpRequest();
 	    var rotation = glMatrix.toRadian(rotation);
@@ -299,11 +298,11 @@ window.onload = function(){
 					if(pickID != null) 
 						object.shape.makePickable(pickID);
 		    
-					if(name == "bulb"){
+					if(itemType == "bulb"){
 						console.log("test");
 					}
 
-			  		object.name = name; // kinda hacky...
+			  		object.itemType = itemType; // kinda hacky...
 		            objects.push(object);
 	        	}
 	        }
@@ -312,14 +311,15 @@ window.onload = function(){
 	}
 
 	// first room
-	// Pass in pickID as the last parameter to addObjectFromJSON if the object is pickable. 
-	addObjectFromJSON("meshes/bed.json", 			[75,0,65], [0.75,0.75,0.75],   180, [0,1,0], "textures/bedwood.png", [0.8,1,1,1], "bed");
-	addObjectFromJSON("meshes/bedside-table.json", 	[35,0,88], [1,1,1], 		   -90, [0,1,0], "textures/bedwood.png", [1,1,1,1],   "table");
-	addObjectFromJSON("meshes/window1.json", 		[-100,10,0], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1],   "window1");
-	addObjectFromJSON("meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], null,					 [90/255,67/255,80/255,1],   "window2");
-	addObjectFromJSON("meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], "textures/wood2.png",   [90/255,67/255,80/255,1], "desk");
-	addObjectFromJSON("meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1], "bulb", 22222);
-	addObjectFromJSON("meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], "textures/cheese.png",  [90/255,67/255,80/255,1], "cheese", 1025);
+	// Pass in pickID as the last parameter to addObjectFromJSON if the object is pickable. The pickID can be any value between 0 and 255.
+	// pickID should be unique, itemType does not need to be.
+	addObjectFromJSON("meshes/bed.json", 			[75,0,65], [0.75,0.75,0.75],   180, [0,1,0], "textures/bedwood.png", [0.8,1,1,1], "bed", 1);
+	addObjectFromJSON("meshes/bedside-table.json", 	[35,0,88], [1,1,1], 		   -90, [0,1,0], "textures/bedwood.png", [1,1,1,1]  );
+	addObjectFromJSON("meshes/window1.json", 		[-100,10,0], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]);
+	addObjectFromJSON("meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]);
+	addObjectFromJSON("meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], "textures/wood2.png",   [90/255,67/255,80/255,1]);
+	addObjectFromJSON("meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]);
+	addObjectFromJSON("meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], "textures/cheese.png",  [90/255,67/255,80/255,1], "food", 255);
 
  	var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
 	floor.attachTexture(images[2]);
@@ -368,15 +368,40 @@ window.onload = function(){
 	gl.bindRenderbuffer( gl.RENDERBUFFER, null );
 	gl.bindFramebuffer( gl.FRAMEBUFFER, null );
 
-	function handlePick(){
+	function handlePick(x,y){
 		gl.bindFramebuffer(gl.FRAMEBUFFER, pickBuffer);
-
 		var pixels = new Uint8Array(4);
-		gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-
+		gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);  // render back to canvas
+		
+		if(pixels[1] == 0) return null;
+		var ID = pixels[0] //+ pixels[1] * 256 + pixels[2] * 256 * 256
+		console.log(ID);
+		return ID;
+	}
 
-		return pixels[0] + pixels[1] * 256 + pixels[2] * 256 * 256;
+	////////////////////// Interaction /////////////////
+
+	var eating_audio = new Audio('sound/eating.mp3');
+	function interact(){
+		var itemID = handlePick(canvas.width/2, canvas.height/2);
+		if(itemID == null) return;
+
+		for(var i = 0; i < objects.length; i++){
+			if(objects[i].shape.pickID == itemID){
+				var itemType = objects[i].itemType;
+				var object = objects[i];
+
+				if(itemType == "food"){
+					objects[i].delete();
+					eating_audio.play();
+				} 
+				else if(itemType == "bed"){
+					console.log("zzz");
+				}
+			
+			}
+		}
 	}
 
 	////////////////////// Render Loop /////////////////
@@ -420,8 +445,8 @@ window.onload = function(){
 
 			gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
 			
-			
-			object.shape.drawForPicking();
+			if(object.isDrawn)
+				object.shape.drawForPicking();
 
 		});
 		gl.uniform1i(use_ambience_loc, 1);
@@ -461,8 +486,9 @@ window.onload = function(){
 			
 			// Set color if a color was specified.
 			if(object.shapeColor != null) gl.uniform4fv(shapeColorLoc, object.shapeColor);
-
-			object.draw();
+			
+			if(object.isDrawn)
+				object.draw();
 		});
 		requestAnimationFrame(loop);
 	}
