@@ -1,19 +1,26 @@
+// The shape of an object, along with its state within the world (i.e, translations, rotations, scales) is stored here.
 class Object{
-	constructor(shape, translation, scale, rotation, axis = [0,1,0], texture_scale = null, name = null){
+	constructor(shape, translation, scale, rotation, axis = [0,1,0], texture_scale = null, itemType = null){
 		this.shape = shape;
 		this.translation = translation;
 		this.scale = scale;
 		this.rotation = rotation;
 		this.axis = axis;
 		this.texture_scale = texture_scale; // This will determine how many times a texture will repeat.
-		this.name = name;
+		this.itemType = itemType;
+		this.isDrawn = true;
 	}
 
 	draw(){
 		this.shape.draw();
 	}
+
+	delete(){
+		this.isDrawn = false;
+	}
 }
 
+// The properties of an object are stored here, like vertices, color, texture, etc.
 class Shape{
 	constructor(vertices, indices, normals, textureCoords, gl, program, buffers){
 		this.vertices = vertices;
@@ -30,6 +37,8 @@ class Shape{
 
 		this.shapeColor = null;
 		this.use_texture = false;
+		this.pickColor = null;
+		this.pickID = null;
 		this.texture = gl.createTexture()
 
 		this.positionAttribLocation = gl.getAttribLocation(program, 'vertPosition');
@@ -63,13 +72,32 @@ class Shape{
 		img.src = source;
 	}
 
+	makePickable(pickID){
+		// var r = (pickID & 0x000000FF) >>  0;
+		// var g = (pickID & 0x0000FF00) >>  8;
+		// var b = (pickID & 0x00FF0000) >> 16;
+
+		// this.pickID = pickID;
+		// this.pickColor = [r/255,g/255,b/255,1];
+		// Really buggy for some reason...
+
+		this.pickColor = [pickID/255, 1,1,1];
+		this.pickID = pickID;
+	}
+
 	// Use this when no texture is attached.
 	setColor(color){
 		this.shapeColor = color;
 	}
+	getColor(){
+		return this.shapeColor;
+	}
 
 	disableTexture(){
 		this.use_texture = false;
+	}
+	enableTexture(){
+		this.use_texture = true;
 	}
 
 	setMaterialProperties(new_diffusivity, new_smoothness, new_shininess){
@@ -77,6 +105,44 @@ class Shape{
 		this.material.smoothness = new_smoothness;
 		this.material.shininess = new_shininess;
 	}
+
+	drawForPicking(){
+		if(this.pickColor == null) return;
+
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.vertexBuffer); // The active buffer is now an ARRAY_BUFFER, vertexBuffer.
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.vertices), this.gl.STATIC_DRAW); 	// This uses whatever buffer is active. Float32Array is needed because webGL only uses 32 bit floats.  gl.STATIC_DRAW means we are sending the information once and not changing it.
+
+		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.buffers.indexBuffer);
+		this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), this.gl.STATIC_DRAW);
+
+		this.gl.vertexAttribPointer( this.positionAttribLocation,	
+		3, // Number of elements per attribute
+		this.gl.FLOAT, // Type of elements
+		this.gl.FALSE, // Normalization?
+		3 * Float32Array.BYTES_PER_ELEMENT, // Size of individual vertex in bytes.
+		0 // Offset from beginning of single vertex to this attribute.
+		);
+		this.gl.enableVertexAttribArray( this.positionAttribLocation);
+
+		//////////////////////////////////////////////////////////////////////
+		// There is no actual lighting, but these values still must be set with the current implementation of the shader.
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.normalBuffer);
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.normals), this.gl.STATIC_DRAW);
+		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.buffers.indexNormalBuffer);
+		this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), this.gl.STATIC_DRAW);
+		this.gl.vertexAttribPointer(this.normalAttribLocation,	3, this.gl.FLOAT, this.gl.FALSE, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
+		this.gl.enableVertexAttribArray(this.normalAttribLocation);
+		this.gl.uniform1f(this.diffusivityLocation, this.material.diffusivity);
+		this.gl.uniform1f(this.smoothnessLocation, this.material.smoothness);
+		this.gl.uniform1f(this.shininessLocation, this.material.shininess);
+		///////////////////////////////////////////////////////////////////////
+
+		this.gl.uniform4fv(this.shapeColorLocation, this.pickColor); // Draw each object using their pickColor.
+
+		this.gl.uniform1i(this.useTextureLocation, 0);
+		this.gl.drawElements(this.gl.TRIANGLES, this.indices.length, this.gl.UNSIGNED_SHORT, 0);
+	}
+
 
 	// Binds and buffers data, then draws the shape.
 	draw(){
@@ -114,9 +180,8 @@ class Shape{
 		this.gl.uniform1f(this.diffusivityLocation, this.material.diffusivity);
 		this.gl.uniform1f(this.smoothnessLocation, this.material.smoothness);
 		this.gl.uniform1f(this.shininessLocation, this.material.shininess);
-
-		// Set color if a color was specified.
 		if(this.shapeColor != null) this.gl.uniform4fv(this.shapeColorLocation, this.shapeColor);
+
 
 		if(this.use_texture){
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.texCoordBuffer);

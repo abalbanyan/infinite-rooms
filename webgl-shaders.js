@@ -98,6 +98,7 @@ uniform vec4 shapeColor;  // Should really be called "shapeColor"...
 uniform bool GOURAUD; // Note that GOURAUD supercedes USE_TEXTURE.
 uniform bool USE_TEXTURE;
 uniform bool COLOR_NORMALS;
+uniform bool USE_AMBIENCE;
 
 
 void main(){
@@ -111,10 +112,10 @@ void main(){
 	}
 
 	if(USE_TEXTURE){
-		gl_FragColor = vec4(tex_color.xyz * ambient, tex_color.w);
+		gl_FragColor = vec4(tex_color.xyz * (USE_AMBIENCE? ambient : 1.0), tex_color.w);
 	} 
 	else {
-		gl_FragColor = vec4(shapeColor.xyz * ambient, shapeColor.w);
+		gl_FragColor = vec4(shapeColor.xyz * (USE_AMBIENCE? ambient : 1.0), shapeColor.w);
 	}
 
 	for( int i = 0; i < N_LIGHTS; i++ ){
