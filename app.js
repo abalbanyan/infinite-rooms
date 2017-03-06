@@ -4,8 +4,8 @@ window.onload = function(){
 
 	console.log("Starting.")
 	var canvas = document.getElementById('webgl-canvas');
-	canvas.width  = 500//960 * 1.1//window.innerWidth - 250;
-	canvas.height = 500//540 * 1.1//window.innerHeight - 250;
+	canvas.width  = 960 * 1.1//window.innerWidth - 250;
+	canvas.height = 540 * 1.1//window.innerHeight - 250;
 
 	//var gl = canvas.getContext('webgl'); // For Chrome and Firefox, all that's needed.
 	var gl = canvas.getContext("experimental-webgl", {preserveDrawingBuffer: true});
@@ -118,6 +118,9 @@ window.onload = function(){
 	var color_normals_loc = gl.getUniformLocation(program, 'COLOR_NORMALS');
 	var color_vertices_loc = gl.getUniformLocation(program, 'COLOR_VERTICES');
 
+	var use_ambience_loc = gl.getUniformLocation(program, 'USE_AMBIENCE');
+	
+	gl.uniform1i(use_ambience_loc, 1);
 	gl.uniform1i(gouraud_loc, 0);
 	gl.uniform1i(color_normals_loc, 0);
 	gl.uniform1i(color_vertices_loc, 0);
@@ -212,10 +215,7 @@ window.onload = function(){
 			case 57:
 				N = e.keyCode-48; break;
 			case 80:
-					var pixels = new Uint8Array(4);
-		gl.readPixels(canvas.width/2, canvas.height/2, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-		console.log(pixels);
-				//handlePick();
+				handlePick();
 				break;
 		}
 	}
@@ -311,12 +311,13 @@ window.onload = function(){
 	}
 
 	// first room
+	// Pass in pickColor as the last parameter - this color corresponds to the ID returned by handlePick().
 	addObjectFromJSON("meshes/bed.json", 			[75,0,65], [0.75,0.75,0.75],   180, [0,1,0], "textures/bedwood.png", [0.8,1,1,1], "bed");
 	addObjectFromJSON("meshes/bedside-table.json", 	[35,0,88], [1,1,1], 		   -90, [0,1,0], "textures/bedwood.png", [1,1,1,1],   "table");
 	addObjectFromJSON("meshes/window1.json", 		[-100,10,0], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1],   "window1");
 	addObjectFromJSON("meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], null,					 [90/255,67/255,80/255,1],   "window2");
 	addObjectFromJSON("meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], "textures/wood2.png",   [90/255,67/255,80/255,1], "desk");
-	addObjectFromJSON("meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1], "bulb");
+	addObjectFromJSON("meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1], "bulb", [1,0,0,1]);
 	addObjectFromJSON("meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], "textures/cheese.png",  [90/255,67/255,80/255,1], "cheese", [1,0,1,1]);
 
  	var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
@@ -333,62 +334,55 @@ window.onload = function(){
 		wall.attachTexture("textures/wallpaper1.png");
 		objects.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(i*90), [0,1,0], [8,4]))
 	}
+
 	// TODO: Make Objects use the .draw() method, not shapes?
 	// TODO: Add support for model trees.
 	// TODO: Add some general functionality for modifying room parameters like roomSize, roomHeight, roomType, etc. A Room class might be needed. 
 	// TODO: Load different rooms?
 
 	/////////// Picking ////////////////////
+	
+	//Creates texture
+	var pickBuffer = gl.createFramebuffer();
+	gl.bindFramebuffer( gl.FRAMEBUFFER, pickBuffer );
+	pickBuffer.width = canvas.width; // These should match your canvas
+	pickBuffer.height = canvas.height;
+
+	pickTexture = gl.createTexture();
+	gl.bindTexture( gl.TEXTURE_2D, pickTexture );
+	gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR );
+	gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR );
+	gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGBA, pickBuffer.width,
+	pickBuffer.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null );
+	
+	var depthBuffer = gl.createRenderbuffer();
+	gl.bindRenderbuffer( gl.RENDERBUFFER, depthBuffer );
+	gl.renderbufferStorage( gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, pickBuffer.width, pickBuffer.height );
+	
+	gl.framebufferTexture2D( gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, pickTexture, 0 );
+	gl.framebufferRenderbuffer( gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer );
+	
+	// Reset for normal rendering
+	gl.bindTexture( gl.TEXTURE_2D, null );
+	gl.bindRenderbuffer( gl.RENDERBUFFER, null );
+	gl.bindFramebuffer( gl.FRAMEBUFFER, null );
 
 	function handlePick(){
-		gl.clearColor(1, 1, 1, 1.0); // R G B A
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, pickBuffer);
 
-		gl.uniformMatrix4fv(mViewLoc, gl.FALSE, testViewMatrix);
-		objects.forEach(function(object){
-			if(object.shape.pickColor == null) return;
-
-			// Begin transformations.
-			mat4.identity(worldMatrix);
-			mat4.scale(scalingMatrix, identityMatrix, object.scale);
-			mat4.rotate(rotationMatrix, identityMatrix, object.rotation, object.axis);
-			mat4.translate(translationMatrix, identityMatrix, object.translation);
-
-			mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
-			mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
-			mat4.mul(worldMatrix, translationMatrix, worldMatrix);
-
-			// This is needed for lighting.
-			mat4.mul(cameraWorldMatrix, viewMatrix, worldMatrix);
-			mat4.invert(cameraWorldMatrix, cameraWorldMatrix);
-			mat4.transpose(cameraWorldMatrix, cameraWorldMatrix);
-			mat3.fromMat4(cameraWorldNormalMatrix, cameraWorldMatrix);
-			gl.uniformMatrix3fv(mWorldNormalLoc, gl.FALSE, cameraWorldNormalMatrix);
-
-			gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
-			
-			var color = object.shape.shapeColor; // Save the old color.
-			object.shape.shapeColor = object.shape.pickColor;
-			object.shape.disableTexture();
-			object.draw();
-			//object.shape.enableTexture();
-			//object.shape.shapeColor = color; // Set the color back.
-
-	
-		});
 		var pixels = new Uint8Array(4);
-		gl.readPixels(canvas.width/2, canvas.height/2, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+		gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
 		console.log(pixels);
-	}
 
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);  // render back to canvas
+
+		return pixels;
+	}
 
 	////////////////////// Render Loop /////////////////
 	var loop = function(){
 
 		handleInput();
-
-		gl.clearColor(0.9, 0.9, 1, 1.0); // R G B A
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		theta = performance.now() / 1000 / 6 *  2 * Math.PI;
 
 		// Adjust view. The order of the rotation ensures that the camera rotates heading around the world's Y axis.
@@ -400,6 +394,11 @@ window.onload = function(){
 		mat4.invert(curViewMatrix, viewMatrix);
 		gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
 
+		// Draw to the frame buffer for picking.
+		gl.bindFramebuffer(gl.FRAMEBUFFER, pickBuffer); // Comment this to draw the pickColors to the screen.
+		gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		gl.uniform1i(use_ambience_loc, 0); // Turn off ambience before drawing to ensure fixed colors.
 		objects.forEach(function(object){
 			// Begin transformations.
 			mat4.identity(worldMatrix);
@@ -419,6 +418,36 @@ window.onload = function(){
 				gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, mat3.identity(textureTransform));
 			}
 
+			gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
+			
+			
+			object.shape.drawForPicking();
+
+		});
+		gl.uniform1i(use_ambience_loc, 1);
+
+		// Draw normally.
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		objects.forEach(function(object){
+			// Begin transformations.
+			mat4.identity(worldMatrix);
+			mat4.scale(scalingMatrix, identityMatrix, object.scale);
+			mat4.rotate(rotationMatrix, identityMatrix, object.rotation, object.axis);
+			mat4.translate(translationMatrix, identityMatrix, object.translation);
+
+			mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
+			mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
+			mat4.mul(worldMatrix, translationMatrix, worldMatrix);
+
+			if(object.texture_scale != null){
+				mat3.identity(textureTransform);
+				mat3.scale(textureTransform, textureTransform, object.texture_scale);
+				gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, textureTransform);
+			} else {
+				gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, mat3.identity(textureTransform));
+			}
 			// This is needed for lighting.
 			mat4.mul(cameraWorldMatrix, viewMatrix, worldMatrix);
 			mat4.invert(cameraWorldMatrix, cameraWorldMatrix);
@@ -434,9 +463,6 @@ window.onload = function(){
 			if(object.shapeColor != null) gl.uniform4fv(shapeColorLoc, object.shapeColor);
 
 			object.draw();
-
-			setHealth(100 - healthleft);
-
 		});
 		requestAnimationFrame(loop);
 	}

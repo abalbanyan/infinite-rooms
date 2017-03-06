@@ -91,6 +91,44 @@ class Shape{
 		this.material.shininess = new_shininess;
 	}
 
+	drawForPicking(){
+		if(this.pickColor == null) return;
+
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.vertexBuffer); // The active buffer is now an ARRAY_BUFFER, vertexBuffer.
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.vertices), this.gl.STATIC_DRAW); 	// This uses whatever buffer is active. Float32Array is needed because webGL only uses 32 bit floats.  gl.STATIC_DRAW means we are sending the information once and not changing it.
+
+		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.buffers.indexBuffer);
+		this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), this.gl.STATIC_DRAW);
+
+		this.gl.vertexAttribPointer( this.positionAttribLocation,	
+		3, // Number of elements per attribute
+		this.gl.FLOAT, // Type of elements
+		this.gl.FALSE, // Normalization?
+		3 * Float32Array.BYTES_PER_ELEMENT, // Size of individual vertex in bytes.
+		0 // Offset from beginning of single vertex to this attribute.
+		);
+		this.gl.enableVertexAttribArray( this.positionAttribLocation);
+
+		//////////////////////////////////////////////////////////////////////
+		// There is no actual lighting, but these values still must be set with the current implementation of the shader.
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.normalBuffer);
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.normals), this.gl.STATIC_DRAW);
+		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.buffers.indexNormalBuffer);
+		this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), this.gl.STATIC_DRAW);
+		this.gl.vertexAttribPointer(this.normalAttribLocation,	3, this.gl.FLOAT, this.gl.FALSE, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
+		this.gl.enableVertexAttribArray(this.normalAttribLocation);
+		this.gl.uniform1f(this.diffusivityLocation, this.material.diffusivity);
+		this.gl.uniform1f(this.smoothnessLocation, this.material.smoothness);
+		this.gl.uniform1f(this.shininessLocation, this.material.shininess);
+		///////////////////////////////////////////////////////////////////////
+
+		this.gl.uniform4fv(this.shapeColorLocation, this.pickColor); // Draw each object using their pickColor.
+
+		this.gl.uniform1i(this.useTextureLocation, 0);
+		this.gl.drawElements(this.gl.TRIANGLES, this.indices.length, this.gl.UNSIGNED_SHORT, 0);
+	}
+
+
 	// Binds and buffers data, then draws the shape.
 	draw(){
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.vertexBuffer); // The active buffer is now an ARRAY_BUFFER, vertexBuffer.
