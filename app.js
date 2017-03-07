@@ -13,12 +13,13 @@ window.onload = function(){
 
 	////////////////// Health /////////////////////////
 	// how much health is left
-	var healthleft = 40;
+	var healthleft = 30;
 	// sets health bar to whatever percentage
-	var setHealth = function(percent){
-		var newpct = percent + "%"
-		document.getElementById("health").style.width = newpct;
+	var setHealth = function(percent = healthleft){
+		document.getElementById("health").style.width = percent + "%";
+		console.log(percent);
 	}
+	setHealth();
 
     ////////////////// Compile Shaders ////////////////
 
@@ -327,7 +328,7 @@ window.onload = function(){
 	var door_textures = ["textures/bedwood.png","textures/doorhandle1.png","textures/hardwood.png","textures/bedwood.png","textures/bedwood.png",
 						"textures/bedwood.png","textures/bedwood.png","textures/bedwood.png","textures/doorhandle1.png","textures/bedwood.png"]
 	var door_material = {diffusivity: 1, shininess: 0.4, smoothness: 40};
-	addObjectFromJSON("meshes/door.json",			[0,-1,-100], [5,5,5], 			90,  [0,1,0], door_textures, [1,1,1,1], "closed_door_south", 220, door_material)
+	addObjectFromJSON("meshes/door.json",			[0,-1,-100], [6,6,6], 			90,  [0,1,0], door_textures, [1,1,1,1], "closed_door_south", 220, door_material)
 	addObjectFromJSON("meshes/umbreon.json",		[40,20,84], [3.2,3.2,3.2], 		-125,  [0,1,0], ["textures/umbreon.png","textures/umbreon2.png"], [1,1,1,1]);
 
 
@@ -403,19 +404,24 @@ window.onload = function(){
 				if(itemType == "food"){
 					objects[i].delete();
 					eating_audio.play();
+					healthleft = Math.min(100, healthleft + 10);
+					setHealth(healthleft);
 				} 
 				else if(itemType == "bed"){
 					console.log("zzz");
 				}
 				else if(itemType == "closed_door_south"){
 					objects[i].translation[0] = objects[i].translation[0] + 1.0;
-					objects[i].translation[2] = objects[i].translation[2] + 0.6;
+					objects[i].translation[2] = objects[i].translation[2] + 0.78;
 					objects[i].rotation = objects[i].rotation + glMatrix.toRadian(100);
 					objects[i].itemType = "open_door"
 					door_audio.play();
 				}
 				else if(itemType == "open_door"){
 					status.innerHTML = "A mysterious force seems to hold the door open."
+					setTimeout(function(){
+						status.innerHTML = "";
+					}, 15000);
 				}
 			
 			}
