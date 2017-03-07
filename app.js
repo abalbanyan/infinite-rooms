@@ -18,7 +18,7 @@ window.onload = function(){
 		document.getElementById("health").style.width = newpct;
 	}
 
-    ////////////////// Compile Shaders ////////////////
+  ////////////////// Compile Shaders ////////////////
 
 	// Send the shaders to the gpu and compile them.
 	var vertexShader = gl.createShader(gl.VERTEX_SHADER);
@@ -52,7 +52,7 @@ window.onload = function(){
 	}
 	gl.compileShader(shadowMapFragmentShader);
 	if(!gl.getShaderParameter(shadowMapFragmentShader, gl.COMPILE_STATUS)){
-		console.error("ERROR compiling fragment shader.", gl.getShaderInfoLog(shadowMapFragmentShader));
+		console.error("ERROR compiling shadow map fragment shader.", gl.getShaderInfoLog(shadowMapFragmentShader));
 	}
 
 	var shadowMapProgram = gl.createProgram();
@@ -68,11 +68,11 @@ window.onload = function(){
 	gl.shaderSource(shadowFragmentShader, shadowFragmentShaderText);
 	gl.compileShader(shadowVertexShader);
 	if(!gl.getShaderParameter(shadowVertexShader, gl.COMPILE_STATUS)){
-		console.error("ERROR compiling shadow map vertex shader.", gl.getShaderInfoLog(shadowVertexShader));
+		console.error("ERROR compiling shadow vertex shader.", gl.getShaderInfoLog(shadowVertexShader));
 	}
 	gl.compileShader(shadowFragmentShader);
 	if(!gl.getShaderParameter(shadowFragmentShader, gl.COMPILE_STATUS)){
-		console.error("ERROR compiling fragment shader.", gl.getShaderInfoLog(shadowFragmentShader));
+		console.error("ERROR compiling shadow fragment shader.", gl.getShaderInfoLog(shadowFragmentShader));
 	}
 
 	var shadowProgram = gl.createProgram();
@@ -91,23 +91,7 @@ window.onload = function(){
 	var texCoordBuffer = gl.createBuffer();
 	var buffers = {vertexBuffer:vertexBuffer, indexBuffer:indexBuffer, normalBuffer:normalBuffer,
 					indexNormalBuffer:indexNormalBuffer, texCoordBuffer:texCoordBuffer};
-	//
-	// Create Framebuffers and Textures
-	//
-	var shadowMapFrameBuffer = gl.createFramebuffer();
-	var shadowMapRenderBuffer = gl.createRenderbuffer();
 
-	gl.bindFramebuffer(gl.FRAMEBUFFER, shadowMapFrameBuffer);
-
-	gl.bindRenderbuffer(gl.RENDERBUFFER, shadowMapRenderBuffer);
-	gl.renderbufferStorage(
-		gl.RENDERBUFFER, gl.DEPTH_COMPONENT16,
-		textureSize, textureSize
-	);
-
-	gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
-	gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
 	/////////////////// Initialize Matrices ///////////
 
@@ -177,6 +161,135 @@ window.onload = function(){
 	gl.uniform1i(gouraud_loc, 0);
 	gl.uniform1i(color_normals_loc, 0);
 	gl.uniform1i(color_vertices_loc, 0);
+
+	////////////////////// Shadows ///////////////////////
+
+	// Create Framebuffers and Textures
+	var shadowMapCube = gl.createTexture();
+	gl.bindTexture(gl.TEXTURE_CUBE_MAP, shadowMapCube);
+	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+	for (var i = 0; i < 6; i++) {
+		gl.texImage2D(
+			gl.TEXTURE_CUBE_MAP_POSITIVE_X + i,
+			0, gl.RGBA,
+			textureSize, textureSize,
+			0, gl.RGBA,
+			gl.UNSIGNED_BYTE, null
+		);
+	}
+
+	var shadowMapFrameBuffer = gl.createFramebuffer();
+	var shadowMapRenderBuffer = gl.createRenderbuffer();
+
+	gl.bindFramebuffer(gl.FRAMEBUFFER, shadowMapFrameBuffer);
+
+	gl.bindRenderbuffer(gl.RENDERBUFFER, shadowMapRenderBuffer);
+	gl.renderbufferStorage(
+		gl.RENDERBUFFER, gl.DEPTH_COMPONENT16,
+		textureSize, textureSize
+	);
+
+	//gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+	gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+	// Shadow Map Cameras
+	//TODO: get rid of Positive Y (on the ceiling)
+	var shadowMapCameras = [
+	// Positive X
+	new Camera(
+		lightPositions,
+		vec3.add(vec3.create(), lightPositions, vec3.fromValues(1, 0, 0)),
+		vec3.fromValues(0, -1, 0)
+	),
+	// Negative X
+	new Camera(
+		lightPositions,
+		vec3.add(vec3.create(), lightPositions, vec3.fromValues(-1, 0, 0)),
+		vec3.fromValues(0, -1, 0)
+	),
+	// Positive Y
+	new Camera(
+		lightPositions,
+		vec3.add(vec3.create(), lightPositions, vec3.fromValues(0, 1, 0)),
+		vec3.fromValues(0, 0, 1)
+	),
+	// Negative Y
+	new Camera(
+		lightPositions,
+		vec3.add(vec3.create(), lightPositions, vec3.fromValues(0, -1, 0)),
+		vec3.fromValues(0, 0, -1)
+	),
+	// Positive Z
+	new Camera(
+		lightPositions,
+		vec3.add(vec3.create(), lightPositions, vec3.fromValues(0, 0, 1)),
+		vec3.fromValues(0, -1, 0)
+	),
+	// Negative Z
+	new Camera(
+		lightPositions,
+		vec3.add(vec3.create(), lightPositions, vec3.fromValues(0, 0, -1)),
+		vec3.fromValues(0, -1, 0)
+	),
+	];
+	var shadowMapViewMatrices = [
+		mat4.create(),
+		mat4.create(),
+		mat4.create(),
+		mat4.create(),
+		mat4.create(),
+		mat4.create()
+	];
+	var shadowMapProj = mat4.create();
+	var shadowClipNearFar = vec2.fromValues(0.05, 15.0);
+	mat4.perspective(
+		shadowMapProj,
+		glMatrix.toRadian(90),
+		1.0,
+		shadowClipNearFar[0],
+		shadowClipNearFar[1]
+	);
+
+	var shadowMapUniforms = {
+			pointLightPosition: gl.getUniformLocation(shadowMapProgram, 'pointLightPosition'),
+			shadowClipNearFar: gl.getUniformLocation(shadowMapProgram, 'shadowClipNearFar'),
+			shadowMapWorld: gl.getUniformLocation(shadowMapProgram, 'mWorld'),
+			shadowMapProj: gl.getUniformLocation(shadowMapProgram, 'mProj'),
+			shadowMapView: gl.getUniformLocation(shadowMapProgram, 'mView')
+		};
+	var shadowMapAttribs = {
+			positionAttribLocation: gl.getAttribLocation(shadowMapProgram, 'vertPosition')
+	};
+
+	var shadowUniforms = {
+		shapeColor: gl.getUniformLocation(shadowProgram, 'shapeColor'),
+		mWorld: gl.getUniformLocation(shadowProgram, 'mWorld'),
+		mView: gl.getUniformLocation(shadowProgram, 'mView'),
+		mProj: gl.getUniformLocation(shadowProgram, 'mProj'),
+		textureTransform: gl.getUniformLocation(shadowProgram, 'textureTransform'),
+		mWorldNormal: gl.getUniformLocation(shadowProgram, 'mWorldNormal'),
+		lightPosition: gl.getUniformLocation(shadowProgram, 'lightPosition'),
+		lightColor: gl.getUniformLocation(shadowProgram, 'lightColor'),
+		ambient: gl.getUniformLocation(shadowProgram, 'ambient'),
+		diffusivity: gl.getUniformLocation(shadowProgram, 'diffusivity'),
+		shininess: gl.getUniformLocation(shadowProgram, 'shininess'),
+		smoothness: gl.getUniformLocation(shadowProgram, 'smoothness'),
+		attenuation_factor: gl.getUniformLocation(shadowProgram, 'attenuation_factor'),
+		lightShadowMap: gl.getUniformLocation(shadowProgram, 'lightShadowMap'),
+		shadowClipNearFar: gl.getUniformLocation(shadowProgram, 'shadowClipNearFar'),
+		USE_TEXTURE_Location: gl.getUniformLocation(shadowProgram, 'USE_TEXTURE'),
+		texture: gl.getUniformLocation(shadowProgram, 'texture'),
+		sampler: gl.getUniformLocation(shadowProgram, 'sampler')
+	};
+	var shadowAttributes = {
+		vertPosition: gl.getAttribLocation(shadowProgram, 'vertPosition'),
+		vertNormal: gl.getAttribLocation(shadowProgram, 'vertNormal'),
+		texCoord: gl.getAttribLocation(shadowProgram, 'texCoord')
+	};
 
 	////////////////////// Control ///////////////////////
 
@@ -338,7 +451,7 @@ window.onload = function(){
 		            vertices = mesh.vertices;
 		            normals = mesh.normals;
 		            textureCoords = [].concat.apply([], mesh.texturecoords);
-		            shape = new Shape(vertices, indices, normals, textureCoords, lightPositions, gl, program, shadowMapProgram, shadowProgram, buffers);
+		            shape = new Shape(vertices, indices, normals, textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 		            if(textureCoords.length && texture != null) shape.attachTexture(texture); // First check if the mesh component has a texture.
 		            else if(color != null) shape.setColor(color);
 		            else shape.setColor([0,1,0,1]); // Set color to red if both of the above fail.
@@ -360,21 +473,21 @@ window.onload = function(){
 	addObjectFromJSON("meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 		180,[1,0,0],null, [1,0.85,0,1], "bulb");
 	addObjectFromJSON("meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0],"textures/cheese.png", [90/255,67/255,80/255,1], "desk");
 
-	// object(shape, translation, scale, rotation, axis, ...)
+	//object(shape, translation, scale, rotation, axis, ...)
 
- 	var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, lightPositions, gl, program, shadowMapProgram, shadowProgram, buffers);
+ 	var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 	floor.attachTexture(images[2]);
 	objects.push(new Object(floor, [0,0,0], [100,1,100], 0, [0,1,0], [4,4]));
 
 	var ceilingHeight = 55;
-	var ceiling = new Shape(ceilingMesh.vertices, ceilingMesh.indices, ceilingMesh.normals, ceilingMesh.textureCoords, lightPositions, gl, program, shadowMapProgram, shadowProgram, buffers);
+	var ceiling = new Shape(ceilingMesh.vertices, ceilingMesh.indices, ceilingMesh.normals, ceilingMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 	ceiling.attachTexture("textures/crate.png");
 	objects.push(new Object(ceiling, [0,ceilingHeight,0], [100,1,100], 0, [1,0,0], [8,8]));
 
 	// Generate 4 walls.
 	// Note that the wallMesh vertices vary slightly from the floorMesh. The z vertices are not set equal to 0, which means the walls will scale as if they were faces of a cube.
 	for(var i = 0; i < 4; i++){
-		var wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, lightPositions, gl, program, shadowMapProgram, shadowProgram, buffers);
+		var wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 		wall.attachTexture("textures/wallpaper1.png");
 		objects.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(i*90), [0,1,0], [8,4]))
 	}
@@ -384,8 +497,7 @@ window.onload = function(){
 	// TODO: Load different rooms?
 
 	////////////////////// Render Loop /////////////////
-	var isAttached = 0;
-	var distance = 4;
+	var shadows = 1;
 	var loop = function(){
 
 		handleInput();
@@ -394,50 +506,184 @@ window.onload = function(){
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		theta = performance.now() / 1000 / 6 *  2 * Math.PI;
 
-		// Adjust view. The order of the rotation ensures that the camera rotates heading around the world's Y axis.
-		mat4.mul(viewMatrix, testViewMatrix, identityMatrix);
-		mat4.rotate(rotationMatrix1, identityMatrix, glMatrix.toRadian(heading), [0,1,0]); // Adjust heading.
-		mat4.rotate(rotationMatrix2, identityMatrix, glMatrix.toRadian(pitch), [1,0,0]); // Adjust pitch.
-		mat4.mul(viewMatrix, rotationMatrix1, viewMatrix);
-		mat4.mul(viewMatrix, rotationMatrix2, viewMatrix);
-		mat4.invert(curViewMatrix, viewMatrix);
-		gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
+		// Draw Shadow map //
+		// Set GL state status
+		gl.useProgram(shadowMapProgram);
+		gl.bindTexture(gl.TEXTURE_CUBE_MAP, shadowMapCube);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, shadowMapFrameBuffer);
+		gl.bindRenderbuffer(gl.RENDERBUFFER, shadowMapRenderBuffer);
 
-		objects.forEach(function(object){
-			// Begin transformations.
-			mat4.identity(worldMatrix);
-			mat4.scale(scalingMatrix, identityMatrix, object.scale);
-			mat4.rotate(rotationMatrix, identityMatrix, object.rotation, object.axis);
-			mat4.translate(translationMatrix, identityMatrix, object.translation);
+		gl.viewport(0, 0, textureSize, textureSize);
+		gl.enable(gl.DEPTH_TEST);
+		//gl.enable(gl.CULL_FACE);
 
-			mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
-			mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
-			mat4.mul(worldMatrix, translationMatrix, worldMatrix);
+		// Set per-frame uniforms
+		gl.uniform2fv(
+			shadowMapUniforms.shadowClipNearFar,
+			shadowClipNearFar
+		);
+		gl.uniform4fv(
+			shadowMapUniforms.pointLightPosition,
+			lightPositions
+		);
+		gl.uniformMatrix4fv(
+			shadowMapUniforms.shadowMapProj,
+			gl.FALSE,
+			shadowMapProj
+		);
 
-			if(object.texture_scale != null){
-				mat3.identity(textureTransform);
-				mat3.scale(textureTransform, textureTransform, object.texture_scale);
-				gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, textureTransform);
-			} else {
-				gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, mat3.identity(textureTransform));
-			}
+		for (var i = 0; i < shadowMapCameras.length; i++) {
+			// Set per light uniforms
+			gl.uniformMatrix4fv(
+				shadowMapProgram.shadowMapView,
+				gl.FALSE,
+				shadowMapCameras[i].GetViewMatrix(shadowMapViewMatrices[i])
+			);
 
-			// This is needed for lighting.
-			mat4.mul(cameraWorldMatrix, viewMatrix, worldMatrix);
-			mat4.invert(cameraWorldMatrix, cameraWorldMatrix);
-			mat4.transpose(cameraWorldMatrix, cameraWorldMatrix);
-			mat3.fromMat4(cameraWorldNormalMatrix, cameraWorldMatrix);
-			gl.uniformMatrix3fv(mWorldNormalLoc, gl.FALSE, cameraWorldNormalMatrix);
+			// Set framebuffer destination
+			gl.framebufferTexture2D(
+				gl.FRAMEBUFFER,
+				gl.COLOR_ATTACHMENT0,
+				gl.TEXTURE_CUBE_MAP_POSITIVE_X + i,
+				shadowMapCube,
+				0
+			);
+			gl.framebufferRenderbuffer(
+				gl.FRAMEBUFFER,
+				gl.DEPTH_ATTACHMENT,
+				gl.RENDERBUFFER,
+				shadowMapRenderBuffer
+			);
 
-			//mat4.mul(worldMatrix, navigationMatrix, worldMatrix);
-			gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
-			gl.uniform4fv(shapeColorLoc, [1,1,1,1]);
+			gl.clearColor(0, 0, 0, 1);
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-			object.draw();
+			objects.forEach(function(object){
+				// Begin transformations.
+				mat4.identity(worldMatrix);
+				mat4.scale(scalingMatrix, identityMatrix, object.scale);
+				mat4.rotate(rotationMatrix, identityMatrix, object.rotation, object.axis);
+				mat4.translate(translationMatrix, identityMatrix, object.translation);
 
-			setHealth(100 - healthleft);
+				mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
+				mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
+				mat4.mul(worldMatrix, translationMatrix, worldMatrix);
 
-		});
+				gl.uniformMatrix4fv(shadowMapUniforms.shadowMapWorld, gl.FALSE, worldMatrix);
+
+				object.shadowMapDraw();
+			});
+		}
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+		gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+
+		if (!shadows){
+			gl.useProgram(program);
+			// Adjust view. The order of the rotation ensures that the camera rotates heading around the world's Y axis.
+			mat4.mul(viewMatrix, testViewMatrix, identityMatrix);
+			mat4.rotate(rotationMatrix1, identityMatrix, glMatrix.toRadian(heading), [0,1,0]); // Adjust heading.
+			mat4.rotate(rotationMatrix2, identityMatrix, glMatrix.toRadian(pitch), [1,0,0]); // Adjust pitch.
+			mat4.mul(viewMatrix, rotationMatrix1, viewMatrix);
+			mat4.mul(viewMatrix, rotationMatrix2, viewMatrix);
+			mat4.invert(curViewMatrix, viewMatrix);
+			gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
+
+			// Draw normally onto the screen.
+			gl.uniformMatrix4fv(mProjLoc, gl.FALSE, projMatrix);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+			objects.forEach(function(object){
+				// Begin transformations.
+				mat4.identity(worldMatrix);
+				mat4.scale(scalingMatrix, identityMatrix, object.scale);
+				mat4.rotate(rotationMatrix, identityMatrix, object.rotation, object.axis);
+				mat4.translate(translationMatrix, identityMatrix, object.translation);
+
+				mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
+				mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
+				mat4.mul(worldMatrix, translationMatrix, worldMatrix);
+
+				if(object.texture_scale != null){
+					mat3.identity(textureTransform);
+					mat3.scale(textureTransform, textureTransform, object.texture_scale);
+					gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, textureTransform);
+				} else {
+					gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, mat3.identity(textureTransform));
+				}
+
+				// This is needed for lighting.
+				mat4.mul(cameraWorldMatrix, viewMatrix, worldMatrix);
+				mat4.invert(cameraWorldMatrix, cameraWorldMatrix);
+				mat4.transpose(cameraWorldMatrix, cameraWorldMatrix);
+				mat3.fromMat4(cameraWorldNormalMatrix, cameraWorldMatrix);
+				gl.uniformMatrix3fv(mWorldNormalLoc, gl.FALSE, cameraWorldNormalMatrix);
+
+				//mat4.mul(worldMatrix, navigationMatrix, worldMatrix);
+				gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
+				gl.uniform4fv(shapeColorLoc, [1,1,1,1]);
+
+				object.draw();
+
+				setHealth(100 - healthleft);
+
+		});}
+		else {
+			gl.useProgram(shadowProgram);
+			gl.uniform1i(shadowUniforms.lightShadowMap, 1);
+			gl.uniform2fv(shadowUniforms.shadowClipNearFar, shadowClipNearFar);
+			// Adjust view. The order of the rotation ensures that the camera rotates heading around the world's Y axis.
+			mat4.mul(viewMatrix, testViewMatrix, identityMatrix);
+			mat4.rotate(rotationMatrix1, identityMatrix, glMatrix.toRadian(heading), [0,1,0]); // Adjust heading.
+			mat4.rotate(rotationMatrix2, identityMatrix, glMatrix.toRadian(pitch), [1,0,0]); // Adjust pitch.
+			mat4.mul(viewMatrix, rotationMatrix1, viewMatrix);
+			mat4.mul(viewMatrix, rotationMatrix2, viewMatrix);
+			mat4.invert(curViewMatrix, viewMatrix);
+			gl.uniformMatrix4fv(shadowUniforms.mView, gl.FALSE, viewMatrix);
+
+			// Draw normally onto the screen.
+			gl.uniformMatrix4fv(shadowUniforms.mProj, gl.FALSE, projMatrix);
+			//gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+			gl.activeTexture(gl.TEXTURE1);
+			gl.bindTexture(gl.TEXTURE_CUBE_MAP, shadowMapCube);
+			//console.log(shadowMapCube);
+			objects.forEach(function(object){
+				// Begin transformations.
+				mat4.identity(worldMatrix);
+				mat4.scale(scalingMatrix, identityMatrix, object.scale);
+				mat4.rotate(rotationMatrix, identityMatrix, object.rotation, object.axis);
+				mat4.translate(translationMatrix, identityMatrix, object.translation);
+
+				mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
+				mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
+				mat4.mul(worldMatrix, translationMatrix, worldMatrix);
+
+				if(object.texture_scale != null){
+					mat3.identity(textureTransform);
+					mat3.scale(textureTransform, textureTransform, object.texture_scale);
+					gl.uniformMatrix3fv(shadowUniforms.textureTransform, gl.FALSE, textureTransform);
+				} else {
+					gl.uniformMatrix3fv(shadowUniforms.textureTransform, gl.FALSE, mat3.identity(textureTransform));
+				}
+
+				// This is needed for lighting.
+				mat4.mul(cameraWorldMatrix, viewMatrix, worldMatrix);
+				mat4.invert(cameraWorldMatrix, cameraWorldMatrix);
+				mat4.transpose(cameraWorldMatrix, cameraWorldMatrix);
+				mat3.fromMat4(cameraWorldNormalMatrix, cameraWorldMatrix);
+				gl.uniformMatrix3fv(shadowUniforms.mWorldNormal, gl.FALSE, cameraWorldNormalMatrix);
+
+				//mat4.mul(worldMatrix, navigationMatrix, worldMatrix);
+				gl.uniformMatrix4fv(shadowUniforms.mWorld, gl.FALSE, worldMatrix);
+				gl.uniform4fv(shadowUniforms.shapeColor, [1,1,1,1]);
+
+				object.shadowDraw(shadowUniforms, shadowAttributes);
+
+				setHealth(100 - healthleft);
+		});}
 		requestAnimationFrame(loop);
 	}
 

@@ -1,54 +1,119 @@
 var shadowVertexShaderText = `
 precision mediump float;
 
-uniform mat4 mProj;
-uniform mat4 mView;
+const int N_LIGHTS = 1;
+
+attribute vec3 vertPosition;
+attribute vec3 vertNormal;
+attribute vec2 texCoord; // TODO: bind something random to this when there is no texture.
+
+uniform vec4 shapeColor;
+
 uniform mat4 mWorld;
+uniform mat4 mView;
+uniform mat4 mProj;
+uniform mat3 textureTransform;
 
-attribute vec3 vPos;
-attribute vec3 vNorm;
+uniform mat3 mWorldNormal;
 
-varying vec3 fPos;
-varying vec3 fNorm;
+uniform vec4 lightPosition[N_LIGHTS], lightColor[N_LIGHTS];
+uniform float ambient, diffusivity, shininess, smoothness, attenuation_factor[N_LIGHTS];
 
-void main()
-{
-	fPos = (mWorld * vec4(vPos, 1.0)).xyz;
-	fNorm = (mWorld * vec4(vNorm, 0.0)).xyz;
+varying vec4 VERTEX_COLOR;
+varying vec3 N, E, pos;
+varying vec3 L[N_LIGHTS], H[N_LIGHTS];
+varying float dist[N_LIGHTS];
+varying vec2 fragTexCoord;
+varying vec3 fragPos;
+varying vec3 fragNorm;
 
-	gl_Position = mProj * mView * vec4(fPos, 1.0);
+void main(){
+	N = normalize( mWorldNormal * vertNormal);
+
+	vec4 object_space_pos = vec4(vertPosition, 1.0);
+	gl_Position = mProj * mView * mWorld * object_space_pos;
+
+	vec3 texCoord_transformed = textureTransform * vec3(texCoord, 1.0);
+	fragTexCoord = texCoord_transformed.xy;
+
+	pos = (mView * mWorld * object_space_pos).xyz;
+	E = normalize(-pos);
+
+	for(int i = 0; i < N_LIGHTS; i++){
+        L[i] = normalize((mView * lightPosition[i]).xyz - lightPosition[i].w * pos);
+		H[i] = normalize(L[i] + E);
+
+        dist[i]  = lightPosition[i].w > 0.0 ? distance((mView * lightPosition[i]).xyz, pos) : distance( attenuation_factor[i] * -lightPosition[i].xyz, object_space_pos.xyz );
+	}
+
+	fragPos = (mWorld * vec4(vertPosition, 1.0)).xyz;
+	fragNorm = (mWorld * vec4(vertNormal, 0.0)).xyz;
 }
 `;
 
-// update to garrett's code later
 var shadowFragmentShaderText = `
 precision mediump float;
 
-uniform vec3 pointLightPosition;
-uniform vec4 meshColor;
+const int N_LIGHTS = 1;
 
 uniform samplerCube lightShadowMap;
 uniform vec2 shadowClipNearFar;
 
-varying vec3 fPos;
-varying vec3 fNorm;
+varying vec3 fragPos;
+varying vec3 fragNorm;
 
-void main()
-{
-	vec3 toLightNormal = normalize(pointLightPosition - fPos);
+uniform vec4 lightPosition[N_LIGHTS], lightColor[N_LIGHTS];
+
+varying vec4 VERTEX_COLOR; // VERTEX_COLOR
+varying vec3 N, E, pos;
+varying vec3 L[N_LIGHTS], H[N_LIGHTS];
+varying float dist[N_LIGHTS];
+uniform float ambient, diffusivity, shininess, smoothness, attenuation_factor[N_LIGHTS];
+
+uniform sampler2D texture;
+varying vec2 fragTexCoord;
+
+uniform vec4 shapeColor;
+
+// Control Flags
+uniform bool USE_TEXTURE;
+
+void main(){
+	vec3 vec3LightPosition = lightPosition[0].xyz;
+	vec3 toLightNormal = normalize(vec3LightPosition - fragPos);
 
 	float fromLightToFrag =
-		(length(fPos - pointLightPosition) - shadowClipNearFar.x)
+		(length(fragPos - vec3LightPosition) - shadowClipNearFar.x)
 		/
 		(shadowClipNearFar.y - shadowClipNearFar.x);
 
 	float shadowMapValue = textureCube(lightShadowMap, -toLightNormal).r;
 
-	float lightIntensity = 0.6;
-	if ((shadowMapValue + 0.003) >= fromLightToFrag) {
-		lightIntensity += 0.4 * max(dot(fNorm, toLightNormal), 0.0);
+	vec4 tex_color;
+	if(USE_TEXTURE){
+	 	tex_color = texture2D(texture, fragTexCoord); // this line is the issue
 	}
 
-	gl_FragColor = vec4(meshColor.rgb * lightIntensity, meshColor.a);
+	//if(USE_TEXTURE){
+	//	gl_FragColor = vec4(tex_color.xyz * ambient, tex_color.w);
+	//}
+	//else {
+		//gl_FragColor = vec4(shapeColor.xyz * ambient, shapeColor.w);
+	//}
+
+	for( int i = 0; i < N_LIGHTS; i++ ){
+		float attenuation_multiplier = 1.0 / (1.0 + attenuation_factor[i] * (dist[i] * dist[i]));
+		float diffuse  = max(dot(L[i], N), 0.0);
+		float specular = pow(max(dot(H[i], N), 0.0), smoothness);
+
+	//if ((shadowMapValue + 0.003) >= fromLightToFrag) { // 0.003 is for the shadow acne ajust accordingly
+		//	if(USE_TEXTURE)
+			//	gl_FragColor.xyz += attenuation_multiplier * (tex_color.xyz * diffusivity * diffuse + lightColor[i].xyz * shininess * specular );
+			//else
+				//gl_FragColor.xyz += attenuation_multiplier * (shapeColor.xyz * diffusivity * diffuse + lightColor[i].xyz * shininess * specular );
+	//}
+	}
+	gl_FragColor.a = gl_FragColor.w;
+	gl_FragColor = vec4(1,1,1,1);
 }
 `;
