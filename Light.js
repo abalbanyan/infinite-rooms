@@ -12,5 +12,12 @@ class Light{
 		gl.uniform4fv(this.lightColorLocation, lightColor);
 		gl.uniform1f(this.lightAttenuationLocation, lightAttenuation);
 		gl.uniform1f(this.ambientLocation, lightAmbience);
+
+		this.ambience = lightAmbience; 
+	}
+
+	setAmbience(ambience){
+		this.ambience = ambience;
+		this.gl.uniform1f(this.ambientLocation, ambience);
 	}
 };
