@@ -75,7 +75,7 @@ window.onload = function(){
 
 	var fovY = 50;
 	var pickDistance = 55.0;
-	mat4.lookAt(viewMatrix, [0, 30, -50], [0,30,0], [0,1,0]); // Eye, Point, Up. The camera is initialized using lookAt. I promise I don't use it anywhere else!
+	mat4.lookAt(viewMatrix, [0, 30, -10], [0,30,0], [0,1,0]); // Eye, Point, Up. The camera is initialized using lookAt. I promise I don't use it anywhere else!
  	mat4.perspective(projMatrix, glMatrix.toRadian(fovY), canvas.width / canvas.height, 0.1, 500.0); // fovy, aspect ratio, near, far
 	mat4.perspective(pickProjMatrix, glMatrix.toRadian(fovY), canvas.width / canvas.height, 0.1, pickDistance);
 
@@ -273,7 +273,7 @@ window.onload = function(){
 	var objects = [];
 	var pickableObjects = [];
 
-	function addObjectFromJSON(jsonfile, translation, scale, rotation, axis, texture, color = null, itemType = null, pickID = null)
+	function addObjectFromJSON(jsonfile, translation, scale, rotation, axis, texture, color = null, itemType = null, pickID = null, material = null)
 	{
 	    var rawFile = new XMLHttpRequest();
 	    var rotation = glMatrix.toRadian(rotation);
@@ -296,10 +296,10 @@ window.onload = function(){
 		            if(textureCoords.length && texture != null) { // First check if the mesh component has a texture.
 						shape.attachTexture(texture[texIterator]);
 						if(texIterator < texture.length - 1) texIterator++; 
-						else texIterator = 0;
 					}
 		            else if(color != null) shape.setColor(color);
 		            else shape.setColor([0,1,0,1]); // Set color to red if both of the above fail.
+		            if(material != null) shape.setMaterialProperties(material.diffusivity, material.smoothness, material.shininess);
 		      		var object = new Object(shape, translation, scale, rotation, axis);
 
 					if(pickID != null) 
@@ -323,7 +323,10 @@ window.onload = function(){
 	addObjectFromJSON("meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], ["textures/wood2.png"],   [90/255,67/255,80/255,1]);
 	addObjectFromJSON("meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]);
 	addObjectFromJSON("meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/cheese.png"],  [90/255,67/255,80/255,1], "food", 255);
-	addObjectFromJSON("meshes/door.json",			[0,0,-99], [5,5,5], 			90,  [0,1,0], ["textures/door2.png"], [1,1,1,1], "door", 220)
+	var door_textures = ["textures/bedwood.png","textures/doorhandle1.png","textures/hardwood.png","textures/bedwood.png","textures/bedwood.png",
+						"textures/bedwood.png","textures/bedwood.png","textures/bedwood.png","textures/doorhandle1.png","textures/bedwood.png"]
+	var door_material = {diffusivity: 1, shininess: 0.4, smoothness: 40};
+	addObjectFromJSON("meshes/door.json",			[0,-1,-100], [5,5,5], 			90,  [0,1,0], door_textures, [1,1,1,1], "closed_door_south", 220, door_material)
 	addObjectFromJSON("meshes/umbreon.json",		[40,20,84], [3.2,3.2,3.2], 		-125,  [0,1,0], ["textures/umbreon.png","textures/umbreon2.png"], [1,1,1,1]);
 
 
@@ -395,13 +398,18 @@ window.onload = function(){
 		for(var i = 0; i < objects.length; i++){
 			if(objects[i].shape.pickID == itemID){
 				var itemType = objects[i].itemType;
-				var object = objects[i];
 				if(itemType == "food"){
 					objects[i].delete();
 					eating_audio.play();
 				} 
 				else if(itemType == "bed"){
 					console.log("zzz");
+				}
+				else if(itemType == "closed_door_south"){
+					objects[i].translation[0] = objects[i].translation[0] + 1.0;
+					objects[i].translation[2] = objects[i].translation[2] + 0.6;
+					objects[i].rotation = objects[i].rotation + glMatrix.toRadian(100);
+					objects[i].itemType = "open_door"
 				}
 			
 			}
