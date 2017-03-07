@@ -391,6 +391,7 @@ window.onload = function(){
 
 	////////////////////// Interaction /////////////////
 	var eating_audio = new Audio('sound/eating.mp3');
+	var door_audio = new Audio('sound/door_open.m4a');
 	function interact(){
 		var itemID = handlePick(canvas.width/2, canvas.height/2);
 		if(itemID == null) return;
@@ -410,6 +411,7 @@ window.onload = function(){
 					objects[i].translation[2] = objects[i].translation[2] + 0.6;
 					objects[i].rotation = objects[i].rotation + glMatrix.toRadian(100);
 					objects[i].itemType = "open_door"
+					door_audio.play();
 				}
 			
 			}
