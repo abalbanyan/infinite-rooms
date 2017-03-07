@@ -6,10 +6,11 @@ window.onload = function(){
 	var canvas = document.getElementById('webgl-canvas');
 	canvas.width  = 960 * 1.1//window.innerWidth - 250;
 	canvas.height = 540 * 1.1//window.innerHeight - 250;
-
+	
 	//var gl = canvas.getContext('webgl'); // For Chrome and Firefox, all that's needed.
 	var gl = canvas.getContext("experimental-webgl", {preserveDrawingBuffer: true});
-	
+	var status = document.getElementById('status');
+
 	////////////////// Health /////////////////////////
 	// how much health is left
 	var healthleft = 40;
@@ -412,6 +413,9 @@ window.onload = function(){
 					objects[i].rotation = objects[i].rotation + glMatrix.toRadian(100);
 					objects[i].itemType = "open_door"
 					door_audio.play();
+				}
+				else if(itemType == "open_door"){
+					status.innerHTML = "A mysterious force seems to hold the door open."
 				}
 			
 			}
