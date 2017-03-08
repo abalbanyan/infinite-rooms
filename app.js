@@ -183,6 +183,7 @@ window.onload = function(){
 		heading = 0; pitch = 0;
 	}
 
+	var testKeys = 0;
 	document.onkeydown = function(e){
 		e = e || window.event;
 		switch(e.keyCode){
@@ -221,6 +222,9 @@ window.onload = function(){
 			case 80:
 				interact();
 				break;
+
+			case 75:
+				testKeys = ~testKeys;
 		}
 	}
 
@@ -442,7 +446,7 @@ window.onload = function(){
 					console.log("zzz");
 				}
 				else if(itemType == "closed_door_south"){
-					if(false /*!holdingKey*/){ // TODO: Re-enable keys before demo.
+					if(testKeys && !holdingKey){ // TODO: Re-enable keys before demo.
 						status.innerHTML = "The door seems to be locked."
 						setTimeout(function(){
 							status.innerHTML = "";
