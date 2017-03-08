@@ -149,6 +149,7 @@ window.onload = function(){
 	//////////////// Lighting /////////////////////////////
 
 	var lightPositions = [0.0, 45.0, 0.0, 1.0];
+	var vec3LightPositions = vec3.fromValues(0.0, 45.0, 0.0);
 	var lightColors = [1,0.3,0.1,1];
 	var lightAttenuations = [2.0/10000.0];
 	var ambience = 0.3
@@ -165,7 +166,7 @@ window.onload = function(){
 	////////////////////// Shadows ///////////////////////
 
 	// Create Framebuffers and Textures
-	var shadowMapCube = gl.createTexture();
+	shadowMapCube = gl.createTexture();
 	gl.bindTexture(gl.TEXTURE_CUBE_MAP, shadowMapCube);
 	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -181,18 +182,17 @@ window.onload = function(){
 		);
 	}
 
-	var shadowMapFrameBuffer = gl.createFramebuffer();
-	var shadowMapRenderBuffer = gl.createRenderbuffer();
-
+	shadowMapFrameBuffer = gl.createFramebuffer();
 	gl.bindFramebuffer(gl.FRAMEBUFFER, shadowMapFrameBuffer);
-
+	shadowMapRenderBuffer = gl.createRenderbuffer();
 	gl.bindRenderbuffer(gl.RENDERBUFFER, shadowMapRenderBuffer);
+
 	gl.renderbufferStorage(
 		gl.RENDERBUFFER, gl.DEPTH_COMPONENT16,
 		textureSize, textureSize
 	);
 
-	//gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+	gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
 	gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -201,38 +201,38 @@ window.onload = function(){
 	var shadowMapCameras = [
 	// Positive X
 	new Camera(
-		lightPositions,
-		vec3.add(vec3.create(), lightPositions, vec3.fromValues(1, 0, 0)),
+		vec3LightPositions,
+		vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(1, 0, 0)),
 		vec3.fromValues(0, -1, 0)
 	),
 	// Negative X
 	new Camera(
-		lightPositions,
-		vec3.add(vec3.create(), lightPositions, vec3.fromValues(-1, 0, 0)),
+		vec3LightPositions,
+		vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(-1, 0, 0)),
 		vec3.fromValues(0, -1, 0)
 	),
 	// Positive Y
 	new Camera(
-		lightPositions,
-		vec3.add(vec3.create(), lightPositions, vec3.fromValues(0, 1, 0)),
+		vec3LightPositions,
+		vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(0, 1, 0)),
 		vec3.fromValues(0, 0, 1)
 	),
 	// Negative Y
 	new Camera(
-		lightPositions,
-		vec3.add(vec3.create(), lightPositions, vec3.fromValues(0, -1, 0)),
+		vec3LightPositions,
+		vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(0, -1, 0)),
 		vec3.fromValues(0, 0, -1)
 	),
 	// Positive Z
 	new Camera(
-		lightPositions,
-		vec3.add(vec3.create(), lightPositions, vec3.fromValues(0, 0, 1)),
+		vec3LightPositions,
+		vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(0, 0, 1)),
 		vec3.fromValues(0, -1, 0)
 	),
 	// Negative Z
 	new Camera(
-		lightPositions,
-		vec3.add(vec3.create(), lightPositions, vec3.fromValues(0, 0, -1)),
+		vec3LightPositions,
+		vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(0, 0, -1)),
 		vec3.fromValues(0, -1, 0)
 	),
 	];
@@ -539,7 +539,6 @@ window.onload = function(){
 				gl.FALSE,
 				shadowMapCameras[i].GetViewMatrix(shadowMapViewMatrices[i])
 			);
-
 			// Set framebuffer destination
 			gl.framebufferTexture2D(
 				gl.FRAMEBUFFER,
@@ -580,6 +579,7 @@ window.onload = function(){
 
 		if (!shadows){
 			gl.useProgram(program);
+			light.changeProgram(program);
 			// Adjust view. The order of the rotation ensures that the camera rotates heading around the world's Y axis.
 			mat4.mul(viewMatrix, testViewMatrix, identityMatrix);
 			mat4.rotate(rotationMatrix1, identityMatrix, glMatrix.toRadian(heading), [0,1,0]); // Adjust heading.
@@ -631,6 +631,7 @@ window.onload = function(){
 		});}
 		else {
 			gl.useProgram(shadowProgram);
+			light.changeProgram(shadowProgram);
 			gl.uniform1i(shadowUniforms.lightShadowMap, 1);
 			gl.uniform2fv(shadowUniforms.shadowClipNearFar, shadowClipNearFar);
 			// Adjust view. The order of the rotation ensures that the camera rotates heading around the world's Y axis.
@@ -644,12 +645,11 @@ window.onload = function(){
 
 			// Draw normally onto the screen.
 			gl.uniformMatrix4fv(shadowUniforms.mProj, gl.FALSE, projMatrix);
-			//gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 			gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
 			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 			gl.activeTexture(gl.TEXTURE1);
 			gl.bindTexture(gl.TEXTURE_CUBE_MAP, shadowMapCube);
-			//console.log(shadowMapCube);
 			objects.forEach(function(object){
 				// Begin transformations.
 				mat4.identity(worldMatrix);

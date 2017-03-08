@@ -281,6 +281,8 @@ class Shape{
 
 			this.gl.activeTexture(this.gl.TEXTURE0);
 			this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
+			this.textureLocation = this.gl.getUniformLocation(this.shadowProgram, 'texture');
+			this.gl.uniform1i(this.textureLocation, 0);
 			this.gl.uniform1i(shadowUniforms.sampler, 0);
 			this.gl.uniform1i(shadowUniforms.USE_TEXTURE_Location, 1);
 

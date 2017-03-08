@@ -26,6 +26,7 @@ varying float dist[N_LIGHTS];
 varying vec2 fragTexCoord;
 varying vec3 fragPos;
 varying vec3 fragNorm;
+varying vec4 lightPos;
 
 void main(){
 	N = normalize( mWorldNormal * vertNormal);
@@ -45,11 +46,10 @@ void main(){
 
         dist[i]  = lightPosition[i].w > 0.0 ? distance((mView * lightPosition[i]).xyz, pos) : distance( attenuation_factor[i] * -lightPosition[i].xyz, object_space_pos.xyz );
 	}
-
 	fragPos = (mWorld * vec4(vertPosition, 1.0)).xyz;
 	fragNorm = (mWorld * vec4(vertNormal, 0.0)).xyz;
-}
-`;
+	lightPos = lightPosition[0];
+}`;
 
 var shadowFragmentShaderText = `
 precision mediump float;
@@ -58,11 +58,10 @@ const int N_LIGHTS = 1;
 
 uniform samplerCube lightShadowMap;
 uniform vec2 shadowClipNearFar;
-
 varying vec3 fragPos;
 varying vec3 fragNorm;
-
-uniform vec4 lightPosition[N_LIGHTS], lightColor[N_LIGHTS];
+varying vec4 lightPos;
+uniform vec4 lightColor[N_LIGHTS];
 
 varying vec4 VERTEX_COLOR; // VERTEX_COLOR
 varying vec3 N, E, pos;
@@ -73,17 +72,17 @@ uniform float ambient, diffusivity, shininess, smoothness, attenuation_factor[N_
 uniform sampler2D texture;
 varying vec2 fragTexCoord;
 
-uniform vec4 shapeColor;
+uniform vec4 shapeColor;  // Should really be called "shapeColor"...
 
 // Control Flags
 uniform bool USE_TEXTURE;
 
 void main(){
-	vec3 vec3LightPosition = lightPosition[0].xyz;
-	vec3 toLightNormal = normalize(vec3LightPosition - fragPos);
+	vec3 vec3LightPos = lightPos.xyz;
+	vec3 toLightNormal = normalize(vec3LightPos - fragPos);
 
 	float fromLightToFrag =
-		(length(fragPos - vec3LightPosition) - shadowClipNearFar.x)
+		(length(fragPos - vec3LightPos) - shadowClipNearFar.x)
 		/
 		(shadowClipNearFar.y - shadowClipNearFar.x);
 
@@ -91,29 +90,27 @@ void main(){
 
 	vec4 tex_color;
 	if(USE_TEXTURE){
-	 	tex_color = texture2D(texture, fragTexCoord); // this line is the issue
+	 	tex_color = texture2D(texture, fragTexCoord);
 	}
 
-	//if(USE_TEXTURE){
-	//	gl_FragColor = vec4(tex_color.xyz * ambient, tex_color.w);
-	//}
-	//else {
-		//gl_FragColor = vec4(shapeColor.xyz * ambient, shapeColor.w);
-	//}
+	if(USE_TEXTURE){
+		gl_FragColor = vec4(tex_color.xyz * ambient, tex_color.w);
+	}
+	else {
+		gl_FragColor = vec4(shapeColor.xyz * ambient, shapeColor.w);
+	}
 
 	for( int i = 0; i < N_LIGHTS; i++ ){
 		float attenuation_multiplier = 1.0 / (1.0 + attenuation_factor[i] * (dist[i] * dist[i]));
 		float diffuse  = max(dot(L[i], N), 0.0);
 		float specular = pow(max(dot(H[i], N), 0.0), smoothness);
 
-	//if ((shadowMapValue + 0.003) >= fromLightToFrag) { // 0.003 is for the shadow acne ajust accordingly
-		//	if(USE_TEXTURE)
-			//	gl_FragColor.xyz += attenuation_multiplier * (tex_color.xyz * diffusivity * diffuse + lightColor[i].xyz * shininess * specular );
-			//else
-				//gl_FragColor.xyz += attenuation_multiplier * (shapeColor.xyz * diffusivity * diffuse + lightColor[i].xyz * shininess * specular );
-	//}
+		if ((shadowMapValue + 0.001) >= fromLightToFrag){
+			if(USE_TEXTURE)
+				gl_FragColor.xyz += attenuation_multiplier * (tex_color.xyz * diffusivity * diffuse + lightColor[i].xyz * shininess * specular );
+			else
+				gl_FragColor.xyz += attenuation_multiplier * (shapeColor.xyz * diffusivity * diffuse + lightColor[i].xyz * shininess * specular );
+		}
 	}
 	gl_FragColor.a = gl_FragColor.w;
-	gl_FragColor = vec4(1,1,1,1);
-}
-`;
+}`;
