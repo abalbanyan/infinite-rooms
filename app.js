@@ -177,46 +177,10 @@ window.onload = function(){
 		gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
 		heading = 0; pitch = 0;
 	}
-
-	document.onkeydown = function(e){
-		e = e || window.event;
-		switch(e.keyCode){
-			case 37: // left
-				rotateCamera(-N, 0);
-				break;
-			case 39: // right
-				rotateCamera(N, 0);
-				break;
-			case 38: // up
-				rotateCamera(0, -N);
-				break;
-			case 40: // down
-				rotateCamera(0, N);
-				break;
-			case 32: // space - move in
-				movePlayer(0,0,N);
-				break;
-			case 82: // r - reset
-				resetCamera();
-				break;
-			case 187:
-				ambience += 0.1;
-				light.setAmbience(ambience);
-				break;
-			case 189:
-				ambience -= 0.1;
-				light.setAmbience(ambience);
-				break;
-			case 192:
-				swimMode = ~swimMode;
-				break;
-			case 49:
-			case 57:
-				N = e.keyCode-48; break;
-			case 80:
-				interact();
-				break;
-		}
+	var map = {}; // You could also use an array
+	document.onkeydown = document.onkeyup = function(e){
+		e = e || event; // to deal with IE
+		map[e.keyCode] = e.type == 'keydown';
 	}
 
 	// This section of Control is responsible for gamepad functionality.
@@ -303,11 +267,10 @@ window.onload = function(){
 			jsonObjects.push(["meshes/sink.json", [65 - offset, 10, 93], [.5, .5, .5], 180, [0, 1, 0], ["textures/steel.png"], [1, 1, 1, 1]]);
 			var mirror = new Shape( floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
 			mirror.attachTexture("textures/obama.png");
-			otherObjects[otherObjects.length] = new Object(mirror, [65 - offset, 35, 100], [5, 1, 7 ], glMatrix.toRadian(90), [1, 0, 0], [1, 1]);
-		}
+			otherObjects.push(new Object(mirror, [65 - offset, 35, 100], [5, 1, 7 ], glMatrix.toRadian(90), [1, 0, 0], [1, 1]));
+			console.log(otherObjects)
+		};
 		
-		var boxObjects = loadBox(["textures/bathroomfloor.png","textures/bathroomfloor.png","textures/bathroomfloor.png"])
-		otherObjects = boxObjects;
 		Rooms.push(new Room(gl, program, buffers, jsonObjects, otherObjects, coords));
 	}
 	loadBedroom([0, 1]);
@@ -413,6 +376,25 @@ window.onload = function(){
 
 	////////////////////// Render Loop /////////////////
 	var loop = function(){
+		//handle keyboard input
+		if(map[37]) rotateCamera(-N, 0);
+		if(map[39]) rotateCamera(N, 0);
+		if(map[38]) rotateCamera(0, -N);
+		if(map[40]) rotateCamera(0, N);
+		if(map[32]) movePlayer(0,0,N);
+		if(map[82]) resetCamera();
+		if(map[187]){
+			ambience += 0.1;
+			light.setAmbience(ambience);
+		}
+		if(map[89]){
+			ambience -= 0.1;
+			light.setAmbience(ambience);
+		}
+		if(map[192]) swimMode = ~swimMode;
+		if(map[49]) N = 1;
+		if(map[57]) N = 9;
+		if(map[80]) interact();
 
 		handleInput();
 		theta = performance.now() / 1000 / 6 *  2 * Math.PI;
