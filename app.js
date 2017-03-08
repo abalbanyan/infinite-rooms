@@ -225,6 +225,8 @@ window.onload = function(){
 	}
 
 	// This section of Control is responsible for gamepad functionality.
+	var prevcrouch = 0;
+	var crouch = 0;
 	var footsteps_audio = new Audio('sound/footsteps.wav');
 	var gamepads;
 	var playerSpeed = 0.8;
@@ -260,23 +262,33 @@ window.onload = function(){
 		if(gamepad.buttons[0].pressed){ // A
 			interact();
 		}
-		if(gamepad.buttons[1].pressed){ // B
-			movePlayer(0, 1,0);
+
+		if(gamepad.buttons[2].pressed){ // X
+			crouch = 1;
 		}
+		else{
+			crouch = 0;
+		}
+		if(crouch && crouch != prevcrouch){ // When crouch is pressed.
+			movePlayer(0, -20, 0);
+		} else if (!crouch && prevcrouch){ // When crouch is released.
+			movePlayer(0, 20, 0);
+		} 
+		prevcrouch = crouch;
+
+
 		if(gamepad.buttons[3].pressed){ // Y
 			resetCamera();
 		}
 
-		playerSpeed = gamepad.buttons[2].pressed? 1.2 : 0.8;
+		playerSpeed = gamepad.buttons[1].pressed? 1.2 : 0.8; // B
 	}
 
 	rotateCamera(180, 0); // Initialize camera facing door. TODO: remove
 
 	////////////////////// Objects /////////////////////
 
-	var images = ["textures/dirt.png", "textures/crate.png", "textures/hardwood.png", "textures/space.png"];
 	var objects = [];
-	var pickableObjects = [];
 
 	function addObjectFromJSON(jsonfile, translation, scale, rotation, axis, texture, color = null, itemType = null, pickID = null, material = null)
 	{
@@ -336,7 +348,7 @@ window.onload = function(){
 
 
  	var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
-	floor.attachTexture(images[2]);
+	floor.attachTexture( "textures/hardwood.png");
 	objects.push(new Object(floor, [0,-2,0], [100,1,100], 0, [0,1,0], [4,4]));
 
 	var ceilingHeight = 55;
