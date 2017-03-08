@@ -1,5 +1,3 @@
-
-
 window.onload = function(){
 
 	console.log("Starting.")
@@ -188,51 +186,13 @@ window.onload = function(){
 		gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
 		heading = 0; pitch = 0;
 	}
-
-	var testKeys = 0;
-	document.onkeydown = function(e){
-		e = e || window.event;
-		switch(e.keyCode){
-			case 37: // left
-				rotateCamera(-N, 0);
-				break;
-			case 39: // right
-				rotateCamera(N, 0);
-				break;
-			case 38: // up
-				rotateCamera(0, -N);
-				break;
-			case 40: // down
-				rotateCamera(0, N);
-				break;
-			case 32: // space - move in
-				movePlayer(0,0,N);
-				break;
-			case 82: // r - reset
-				resetCamera();
-				break;
-			case 187:
-				ambience += 0.1;
-				light.setAmbience(ambience);
-				break;
-			case 189:
-				ambience -= 0.1;
-				light.setAmbience(ambience);
-				break;
-			case 192:
-				swimMode = ~swimMode;
-				break;
-			case 49:
-			case 57:
-				N = e.keyCode-48; break;
-			case 80:
-				interact();
-				break;
-
-			case 75:
-				testKeys = ~testKeys;
-		}
+  
+	var map = {}; // You could also use an array
+	document.onkeydown = document.onkeyup = function(e){
+		e = e || event; // to deal with IE
+		map[e.keyCode] = e.type == 'keydown';
 	}
+	var testKeys = 0;
 
 	// This section of Control is responsible for gamepad functionality.
 	var prevcrouch = 0;
@@ -297,94 +257,81 @@ window.onload = function(){
 	//rotateCamera(180, 0); // Initialize camera facing door. TODO: remove
 
 	////////////////////// Objects /////////////////////
-
-	var objects = [];
-
-	function addObjectFromJSON(jsonfile, translation, scale, rotation, axis, texture, color = null, itemType = null, pickID = null, material = null)
-	{
-	    var rawFile = new XMLHttpRequest();
-	    var rotation = glMatrix.toRadian(rotation);
-	    rawFile.open("GET", jsonfile, true);
-	    rawFile.onreadystatechange = function ()
-	    {
-	        if(rawFile.readyState === 4)
-	        {
-	            var meshJSON = JSON.parse(rawFile.responseText);
-	            var mesh, indices, vertices, normals, textureCoords, shape;
-				var texIterator = 0;
-				if(itemType == "door") console.log(meshJSON.meshes.length);
-	          	for(var i = 0; i < meshJSON.meshes.length; i++){
-	          		mesh = meshJSON.meshes[i];
-		            indices = [].concat.apply([], mesh.faces);
-		            vertices = mesh.vertices;
-		            normals = mesh.normals;
-		            textureCoords = [].concat.apply([], mesh.texturecoords);
-		            shape = new Shape(vertices, indices, normals, textureCoords, gl, program, buffers);
-		            if(textureCoords.length && texture != null) { // First check if the mesh component has a texture.
-						shape.attachTexture(texture[texIterator]);
-						if(texIterator < texture.length - 1) texIterator++; 
-					}
-		            else if(color != null) shape.setColor(color);
-		            else shape.setColor([0,1,0,1]); // Set color to red if both of the above fail.
-		            if(material != null) shape.setMaterialProperties(material.diffusivity, material.smoothness, material.shininess);
-		      		var object = new Object(shape, translation, scale, rotation, axis);
-
-					if(pickID != null) 
-						object.shape.makePickable(pickID);
-		    
-			  		object.itemType = itemType; 
-		            objects.push(object);
-	        	}
-	        }
-	    }
-	    rawFile.send();
-	}
-
-	// first room
-	// Pass in pickID as the last parameter to addObjectFromJSON if the object is pickable. The pickID can be any value between 0 and 255.
-	// pickID should be unique, itemType does not need to be.
-	// material format: {diffusivity: 1, shininess: 0.4, smoothness: 40}
-
+	var Rooms = []
+  
+  
 	var ID = -1;
 	function getID(){
 		ID++;
 		return ID;
 	}
+	
 
-	addObjectFromJSON("meshes/bed.json", 			[75,0,65], [0.75,0.75,0.75],   180, [0,1,0], ["textures/bedwood.png"], [0.8,1,1,1], "bed", getID());
-	addObjectFromJSON("meshes/bedside-table.json", 	[35,0,88], [1,1,1], 		   -90, [0,1,0], ["textures/bedwood.png"], [1,1,1,1]  );
-	addObjectFromJSON("meshes/window1.json", 		[-100,10,0], [0.6,0.6,0.6],    -90,	[0,1,0], ["textures/door1.png"],[90/255,67/255,80/255,1], null, null, {diffusivity: 0.2, shininess: 0.1, smoothness: 40});
-	addObjectFromJSON("meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], ["textures/door1.png"], [90/255,67/255,80/255,1], null, null, {diffusivity: 0.2, shininess: 0.1, smoothness: 40});
-	addObjectFromJSON("meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], ["textures/wood2.png"],   [90/255,67/255,80/255,1]);
-	addObjectFromJSON("meshes/bulb.json",			[0,59,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]);
-	addObjectFromJSON("meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/cheese.png"],  [90/255,67/255,80/255,1], "food", getID());
-	addObjectFromJSON("meshes/umbreon.json",		[40,20,84], [3.2,3.2,3.2], 		-125,  [0,1,0], ["textures/umbreon.png","textures/umbreon2.png"], [1,1,1,1]);
-	addObjectFromJSON("meshes/key.json",		[58,0,50], [11,11,11], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40});
+	// rooms return the range of indices in objects that contain their components. These will be accessed at a later time to 
+	// translate the entire room
+	function loadBedroom(coords)
+	{
+		var images = ["textures/dirt.png", "textures/crate.png", "textures/hardwood.png", "textures/space.png"];
+		var door_textures = ["textures/bedwood.png","textures/doorhandle1.png","textures/hardwood.png","textures/bedwood.png","textures/bedwood.png",
+							"textures/bedwood.png","textures/bedwood.png","textures/bedwood.png","textures/doorhandle1.png","textures/bedwood.png"]
+		var door_material = {diffusivity: 1, shininess: 0.4, smoothness: 40};
 
-	var ceilingHeight = 55;
-	var door_textures = ["textures/bedwood.png","textures/doorhandle1.png","textures/hardwood.png","textures/bedwood.png","textures/bedwood.png",
-						"textures/bedwood.png","textures/bedwood.png","textures/bedwood.png","textures/doorhandle1.png","textures/bedwood.png"]
-	var door_material = {diffusivity: 1, shininess: 0.4, smoothness: 40};
-	addObjectFromJSON("meshes/door.json",			[0,-1,-100], [6 * ceilingHeight/55 ,6 * ceilingHeight/55,6], 			90,  [0,1,0], door_textures, [1,1,1,1], "closed_door_south", getID(), door_material)
+		// first room
+		var jsonObjects = [["meshes/bed.json", 			[75,10,65], [18,20,18],   180, [0,1,0], ["textures/bed.png"], null, "bed", getID()],
+					["meshes/bedside-table.json", 	[35,0,88], [1,1,1], 		   -90, [0,1,0], ["textures/bedwood.png"], [1,1,1,1]],
+					["meshes/window1.json", 		[-100,10,0], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]],
+					["meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]],
+					["meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], ["textures/wood2.png"],   [90/255,67/255,80/255,1]],
+					["meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]],
+					["meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/cheese.png"],  [90/255,67/255,80/255,1], "food", getID()],
+					["meshes/door.json",			[0,-1,-100], [5,5,5], 			90,  [0,1,0], door_textures, [1,1,1,1], "closed_door_south", 220, door_material],
+					["meshes/umbreon.json",		[40,20,84], [3.2,3.2,3.2], 		-125,  [0,1,0], ["textures/umbreon.png","textures/umbreon2.png"], [1,1,1,1]]];
+		var otherObjects = loadBox([images[2], images[1], "textures/wallpaper1.png"]);
 
- 	var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
-	floor.attachTexture( "textures/hardwood.png");
-	objects.push(new Object(floor, [0,-2,0], [100,1,100], 0, [0,1,0], [4,4]));
-
-	var ceiling = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
-	ceiling.attachTexture("textures/crate.png");
-	objects.push(new Object(ceiling, [0,ceilingHeight + 2,0], [100,1,100], glMatrix.toRadian(180), [0,0,1], [8,8]));
-
-	for(var i = 0; i < 4; i++){
-		var wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, buffers);
-		wall.attachTexture("textures/wallpaper1.png");
-		if(i == 2){
-			var doorway = new Shape(doorWayMesh.vertices, doorWayMesh.indices, doorWayMesh.normals, doorWayMesh.textureCoords, gl, program, buffers);
-			doorway.attachTexture("textures/wallpaper1.png");
-			objects.push(new Object(doorway, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(i*90), [0,1,0], [8,4]));
-		} else 
-		objects.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(i*90), [0,1,0], [8,4]));
+		Rooms.push(new Room(gl, program, buffers, jsonObjects, otherObjects, coords));
 	}
+
+	function loadBathroom(coords)
+	{
+		var jsonObjects = []
+		var boxObjects = loadBox(["textures/bathroomfloor.png","textures/bathroomfloor.png","textures/bathroomfloor.png"])
+		otherObjects = boxObjects;
+		for (var i = 0; i < 5; i++){
+			var offset = i*20;
+			jsonObjects.push(["meshes/toilet.json", [85, 0, offset], [.25, .25, .25], -120, [1, 1, 1], ["textures/porcelain.png"], [0, 0, 0, 0, 0], "toilet"]);
+			jsonObjects.push(["meshes/sink.json", [offset, 20, 93], [20, 20, 20], 0, [1, 0, 0], ["textures/steel.png"], [1, 1, 1, 1]]);
+			var mirror = new Shape( wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, buffers);
+			mirror.attachTexture("textures/obama.png");
+			otherObjects.push(new Object(mirror, [offset, 30, 105], [4, 6, 6], glMatrix.toRadian(180), [1, 0, 0], [1, 1]));
+			console.log(otherObjects)
+		};
+		
+		Rooms.push(new Room(gl, program, buffers, jsonObjects, otherObjects, coords));
+	}
+	loadBedroom([0, 1]);
+	loadBathroom([0, 0]);
+
+	// load walls, ceiling, floor. Textures should be paths to textures in the following order: ceiling, floor, north wall, east wall, south wall, west wall.
+	function loadBox(textures){
+		var roomBox = [];
+
+		var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
+		floor.attachTexture(textures[0]);
+		roomBox.push(new Object(floor, [0,0,0], [100,1,100], 0, [0,1,0], [4,4]));
+
+		var ceilingHeight = 85;
+		var ceiling = new Shape(ceilingMesh.vertices, ceilingMesh.indices, ceilingMesh.normals, ceilingMesh.textureCoords, gl, program, buffers);
+		ceiling.attachTexture(textures[1]);
+		roomBox.push(new Object(ceiling, [0,ceilingHeight,0], [100,1,100], 0, [1,0,0], [8,8]));
+
+		for(var j = 0; j < 4; j++){
+			var wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, buffers);
+			if(textures[2+j]) wall.attachTexture(textures[2+j]);
+			else wall.attachTexture(textures[2]);
+			roomBox.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(j*90), [0,1,0], [8,4]));
+		}
+		return roomBox;
+  }
 
 	// TODO: Make Objects use the .draw() method, not shapes?
 	// TODO: Add support for model trees.
@@ -438,56 +385,78 @@ window.onload = function(){
 	function interact(){
 		var itemID = handlePick(canvas.width/2, canvas.height/2);
 		if(itemID == null) return;
+    
+		Rooms.forEach(function(room){
+      for(var i = 0; i < room.objects.length; i++){
+        if(room.objects[i].shape.pickID == itemID){
+          var itemType = room.objects[i].itemType;
+          if(itemType == "food"){
+            room.objects[i].delete();
+            eating_audio.play();
+            healthleft = Math.min(100, healthleft + 10);
+            setHealth(healthleft);
+          } 
+          else if(itemType == "bed"){
+            console.log("zzz");
+          }
+          else if(itemType == "closed_door_south"){
+            if(testKeys && !holdingKey){ // TODO: Re-enable keys before demo.
+              status.innerHTML = "The door seems to be locked."
+              setTimeout(function(){
+                status.innerHTML = "";
+              }, 5000);	
+            } else {
+              room.objects[i].translation[0] = room.objects[i].translation[0] + 1.0;
+              room.objects[i].translation[2] = room.objects[i].translation[2] + 0.78;
+              room.objects[i].rotation = room.objects[i].rotation + glMatrix.toRadian(100);
+              room.objects[i].itemType = "open_door"
+              door_audio.play();
+              setTimeout(function(){ // This is necessary because the door is composed of multiple pickable meshes.
+                holdingKey = 0;
+                toggleKeyIcon(0);
+              }, 100);
+            }
+          }
+          else if(itemType == "open_door"){
+            status.innerHTML = "A mysterious force seems to hold the door open."
+            setTimeout(function(){
+              status.innerHTML = "";
+            }, 15000);
+          }
+          else if(itemType == "key"){
+            holdingKey = 1;
+            toggleKeyIcon(1);
+            key_audio.play();
+            objects[i].delete();
 
-		for(var i = 0; i < objects.length; i++){
-			if(objects[i].shape.pickID == itemID){
-				var itemType = objects[i].itemType;
-				if(itemType == "food"){
-					objects[i].delete();
-					eating_audio.play();
-					healthleft = Math.min(100, healthleft + 10);
-					setHealth(healthleft);
-				} 
-				else if(itemType == "bed"){
-					console.log("zzz");
-				}
-				else if(itemType == "closed_door_south"){
-					if(testKeys && !holdingKey){ // TODO: Re-enable keys before demo.
-						status.innerHTML = "The door seems to be locked."
-						setTimeout(function(){
-							status.innerHTML = "";
-						}, 5000);	
-					} else {
-						objects[i].translation[0] = objects[i].translation[0] + 1.0;
-						objects[i].translation[2] = objects[i].translation[2] + 0.78;
-						objects[i].rotation = objects[i].rotation + glMatrix.toRadian(100);
-						objects[i].itemType = "open_door"
-						door_audio.play();
-						setTimeout(function(){ // This is necessary because the door is composed of multiple pickable meshes.
-							holdingKey = 0;
-							toggleKeyIcon(0);
-						}, 100);
-					}
-				}
-				else if(itemType == "open_door"){
-					status.innerHTML = "A mysterious force seems to hold the door open."
-					setTimeout(function(){
-						status.innerHTML = "";
-					}, 15000);
-				}
-				else if(itemType == "key"){
-					holdingKey = 1;
-					toggleKeyIcon(1);
-					key_audio.play();
-					objects[i].delete();
-				}
-			
-			}
-		}
+          }
+        }
+      }
+    });
 	}
 
 	////////////////////// Render Loop /////////////////
 	var loop = function(){
+		//handle keyboard input
+		if(map[37]) rotateCamera(-N, 0);
+		if(map[39]) rotateCamera(N, 0);
+		if(map[38]) rotateCamera(0, -N);
+		if(map[40]) rotateCamera(0, N);
+		if(map[32]) movePlayer(0,0,N);
+		if(map[82]) resetCamera();
+		if(map[187]){
+			ambience += 0.1;
+			light.setAmbience(ambience);
+		}
+		if(map[89]){
+			ambience -= 0.1;
+			light.setAmbience(ambience);
+		}
+		if(map[192]) swimMode = ~swimMode;
+		if(map[49]) N = 1;
+		if(map[57]) N = 9;
+		if(map[80]) interact();
+		if(map[75]) testKeys = ~testKeys;
 
 		handleInput();
 		theta = performance.now() / 1000 / 6 *  2 * Math.PI;
@@ -506,40 +475,42 @@ window.onload = function(){
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-		objects.forEach(function(object){
-			// Begin transformations.
-			mat4.identity(worldMatrix);
-			mat4.scale(scalingMatrix, identityMatrix, object.scale);
-			mat4.rotate(rotationMatrix, identityMatrix, object.rotation, object.axis);
-			mat4.translate(translationMatrix, identityMatrix, object.translation);
+		Rooms.forEach(function(room){
+			room.objects.forEach(function(object){
+				// Begin transformations.
+				mat4.identity(worldMatrix);
+				mat4.scale(scalingMatrix, identityMatrix, object.scale);
+				mat4.rotate(rotationMatrix, identityMatrix, object.rotation, object.axis);
+				mat4.translate(translationMatrix, identityMatrix, object.translation);
 
-			mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
-			mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
-			mat4.mul(worldMatrix, translationMatrix, worldMatrix);
+				mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
+				mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
+				mat4.mul(worldMatrix, translationMatrix, worldMatrix);
 
-			if(object.texture_scale != null){
-				mat3.identity(textureTransform);
-				mat3.scale(textureTransform, textureTransform, object.texture_scale);
-				gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, textureTransform);
-			} else {
-				gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, mat3.identity(textureTransform));
-			}
-			// This is needed for lighting.
-			mat4.mul(cameraWorldMatrix, viewMatrix, worldMatrix);
-			mat4.invert(cameraWorldMatrix, cameraWorldMatrix);
-			mat4.transpose(cameraWorldMatrix, cameraWorldMatrix);
-			mat3.fromMat4(cameraWorldNormalMatrix, cameraWorldMatrix);
-			gl.uniformMatrix3fv(mWorldNormalLoc, gl.FALSE, cameraWorldNormalMatrix);
+				if(object.texture_scale != null){
+					mat3.identity(textureTransform);
+					mat3.scale(textureTransform, textureTransform, object.texture_scale);
+					gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, textureTransform);
+				} else {
+					gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, mat3.identity(textureTransform));
+				}
+				// This is needed for lighting.
+				mat4.mul(cameraWorldMatrix, viewMatrix, worldMatrix);
+				mat4.invert(cameraWorldMatrix, cameraWorldMatrix);
+				mat4.transpose(cameraWorldMatrix, cameraWorldMatrix);
+				mat3.fromMat4(cameraWorldNormalMatrix, cameraWorldMatrix);
+				gl.uniformMatrix3fv(mWorldNormalLoc, gl.FALSE, cameraWorldNormalMatrix);
 
-			//mat4.mul(worldMatrix, navigationMatrix, worldMatrix);
-			gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
-			//gl.uniform4fv(shapeColorLoc, [1,1,1,1]);
-			
-			// Set color if a color was specified.
-			if(object.shapeColor != null) gl.uniform4fv(shapeColorLoc, object.shapeColor);
-			
-			if(object.isDrawn)
-				object.draw();
+				//mat4.mul(worldMatrix, navigationMatrix, worldMatrix);
+				gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
+				//gl.uniform4fv(shapeColorLoc, [1,1,1,1]);
+				
+				// Set color if a color was specified.
+				if(object.shapeColor != null) gl.uniform4fv(shapeColorLoc, object.shapeColor);
+				
+				if(object.isDrawn)
+					object.draw();
+			});
 		});
 
 		// Draw to the frame buffer for picking.
@@ -548,30 +519,32 @@ window.onload = function(){
 		gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		gl.uniform1i(use_ambience_loc, 0); // Turn off ambience before drawing to ensure fixed colors.
-		objects.forEach(function(object){
-			// Begin transformations.
-			mat4.identity(worldMatrix);
-			mat4.scale(scalingMatrix, identityMatrix, object.scale);
-			mat4.rotate(rotationMatrix, identityMatrix, object.rotation, object.axis);
-			mat4.translate(translationMatrix, identityMatrix, object.translation);
+		Rooms.forEach(function(room){
+			room.objects.forEach(function(object){
+				// Begin transformations.
+				mat4.identity(worldMatrix);
+				mat4.scale(scalingMatrix, identityMatrix, object.scale);
+				mat4.rotate(rotationMatrix, identityMatrix, object.rotation, object.axis);
+				mat4.translate(translationMatrix, identityMatrix, object.translation);
 
-			mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
-			mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
-			mat4.mul(worldMatrix, translationMatrix, worldMatrix);
+				mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
+				mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
+				mat4.mul(worldMatrix, translationMatrix, worldMatrix);
 
-			if(object.texture_scale != null){
-				mat3.identity(textureTransform);
-				mat3.scale(textureTransform, textureTransform, object.texture_scale);
-				gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, textureTransform);
-			} else {
-				gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, mat3.identity(textureTransform));
-			}
+				if(object.texture_scale != null){
+					mat3.identity(textureTransform);
+					mat3.scale(textureTransform, textureTransform, object.texture_scale);
+					gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, textureTransform);
+				} else {
+					gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, mat3.identity(textureTransform));
+				}
 
-			gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
-			
-			if(object.isDrawn)
-				object.shape.drawForPicking();
+				gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
+				
+				if(object.isDrawn)
+					object.shape.drawForPicking();
 
+			})
 		});
 		gl.uniform1i(use_ambience_loc, 1);
 		requestAnimationFrame(loop);
