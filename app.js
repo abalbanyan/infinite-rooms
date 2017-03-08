@@ -4,18 +4,26 @@ window.onload = function(){
 	var canvas = document.getElementById('webgl-canvas');
 	canvas.width  = 960 * 1.1//window.innerWidth - 250;
 	canvas.height = 540 * 1.1//window.innerHeight - 250;
-
+	
 	//var gl = canvas.getContext('webgl'); // For Chrome and Firefox, all that's needed.
 	var gl = canvas.getContext("experimental-webgl", {preserveDrawingBuffer: true});
-	
-	////////////////// Health /////////////////////////
+
+	////////////////// HUD /////////////////////////
 	// how much health is left
-	var healthleft = 40;
+	var healthleft = 30;
 	// sets health bar to whatever percentage
-	var setHealth = function(percent){
-		var newpct = percent + "%"
-		document.getElementById("health").style.width = newpct;
+	var setHealth = function(percent = healthleft){
+		document.getElementById("health").style.width = percent + "%";
+		console.log(percent);
 	}
+	setHealth();
+
+	var key_icon = document.getElementById("key_icon");
+	var toggleKeyIcon = function(bool){
+		key_icon.style.opacity = bool;
+	}
+
+	var status = document.getElementById('status');
 
     ////////////////// Compile Shaders ////////////////
 
@@ -39,6 +47,7 @@ window.onload = function(){
 	gl.linkProgram(program);
 	gl.useProgram(program);
 	gl.enable(gl.DEPTH_TEST);
+//	gl.enable(gl.CULL_FACE);
 
     ////////////////// Create Buffers /////////////////
 
@@ -177,6 +186,7 @@ window.onload = function(){
 		gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
 		heading = 0; pitch = 0;
 	}
+  
 	var map = {}; // You could also use an array
 	document.onkeydown = document.onkeyup = function(e){
 		e = e || event; // to deal with IE
@@ -184,6 +194,8 @@ window.onload = function(){
 	}
 
 	// This section of Control is responsible for gamepad functionality.
+	var prevcrouch = 0;
+	var crouch = 0;
 	var footsteps_audio = new Audio('sound/footsteps.wav');
 	var gamepads;
 	var playerSpeed = 0.8;
@@ -219,18 +231,40 @@ window.onload = function(){
 		if(gamepad.buttons[0].pressed){ // A
 			interact();
 		}
-		if(gamepad.buttons[1].pressed){ // B
-			movePlayer(0, 1,0);
+
+		if(gamepad.buttons[2].pressed){ // X
+			crouch = 1;
 		}
+		else{
+			crouch = 0;
+		}
+		if(crouch && crouch != prevcrouch){ // When crouch is pressed.
+			movePlayer(0, -20, 0);
+		} else if (!crouch && prevcrouch){ // When crouch is released.
+			movePlayer(0, 20, 0);
+		} 
+		prevcrouch = crouch;
+
+
 		if(gamepad.buttons[3].pressed){ // Y
 			resetCamera();
 		}
 
-		playerSpeed = gamepad.buttons[2].pressed? 1.2 : 0.8;
+		playerSpeed = gamepad.buttons[1].pressed? 1.2 : 0.8; // B
 	}
+
+	//rotateCamera(180, 0); // Initialize camera facing door. TODO: remove
 
 	////////////////////// Objects /////////////////////
 	var Rooms = []
+  
+  
+	var ID = -1;
+	function getID(){
+		ID++;
+		return ID;
+	}
+	
 
 	// rooms return the range of indices in objects that contain their components. These will be accessed at a later time to 
 	// translate the entire room
@@ -242,13 +276,13 @@ window.onload = function(){
 		var door_material = {diffusivity: 1, shininess: 0.4, smoothness: 40};
 
 		// first room
-		var jsonObjects = [["meshes/bed.json", 			[75,10,65], [18,20,18],   180, [0,1,0], ["textures/bed.png"], null, "bed", 1],
+		var jsonObjects = [["meshes/bed.json", 			[75,10,65], [18,20,18],   180, [0,1,0], ["textures/bed.png"], null, "bed", getID()],
 					["meshes/bedside-table.json", 	[35,0,88], [1,1,1], 		   -90, [0,1,0], ["textures/bedwood.png"], [1,1,1,1]],
 					["meshes/window1.json", 		[-100,10,0], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]],
 					["meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]],
 					["meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], ["textures/wood2.png"],   [90/255,67/255,80/255,1]],
 					["meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]],
-					["meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/cheese.png"],  [90/255,67/255,80/255,1], "food", 255],
+					["meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/cheese.png"],  [90/255,67/255,80/255,1], "food", getID()],
 					["meshes/door.json",			[0,-1,-100], [5,5,5], 			90,  [0,1,0], door_textures, [1,1,1,1], "closed_door_south", 220, door_material],
 					["meshes/umbreon.json",		[40,20,84], [3.2,3.2,3.2], 		-125,  [0,1,0], ["textures/umbreon.png","textures/umbreon2.png"], [1,1,1,1]]];
 		var otherObjects = loadBox([images[2], images[1], "textures/wallpaper1.png"]);
@@ -275,7 +309,6 @@ window.onload = function(){
 	}
 	loadBedroom([0, 1]);
 	loadBathroom([0, 0]);
-	console.log(Rooms)
 
 	// load walls, ceiling, floor. Textures should be paths to textures in the following order: ceiling, floor, north wall, east wall, south wall, west wall.
 	function loadBox(textures){
@@ -296,9 +329,8 @@ window.onload = function(){
 			else wall.attachTexture(textures[2]);
 			roomBox.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(j*90), [0,1,0], [8,4]));
 		}
-
 		return roomBox;
-	}
+  }
 
 	// TODO: Make Objects use the .draw() method, not shapes?
 	// TODO: Add support for model trees.
@@ -347,31 +379,59 @@ window.onload = function(){
 	////////////////////// Interaction /////////////////
 	var eating_audio = new Audio('sound/eating.mp3');
 	var door_audio = new Audio('sound/door_open.m4a');
+	var key_audio = new Audio('sound/key2.m4a');
+	var holdingKey = 0;
 	function interact(){
 		var itemID = handlePick(canvas.width/2, canvas.height/2);
 		if(itemID == null) return;
+    
 		Rooms.forEach(function(room){
-			for(var i = 0; i < room.objects.length; i++){
-				if(room.objects[i].shape.pickID == itemID){
-					var itemType = room.objects[i].itemType;
-					if(itemType == "food"){
-						room.objects[i].delete();
-						eating_audio.play();
-					} 
-					else if(itemType == "bed"){
-						console.log("zzz");
-					}
-					else if(itemType == "closed_door_south"){
-						room.objects[i].translation[0] = room.objects[i].translation[0] + 1.0;
-						room.objects[i].translation[2] = room.objects[i].translation[2] + 0.6;
-						room.objects[i].rotation = room.objects[i].rotation + glMatrix.toRadian(100);
-						room.objects[i].itemType = "open_door"
-						door_audio.play();
-					}
-				
-				}
-			}
-		});
+      for(var i = 0; i < room.objects.length; i++){
+        if(room.objects[i].shape.pickID == itemID){
+          var itemType = room.objects[i].itemType;
+          if(itemType == "food"){
+            room.objects[i].delete();
+            eating_audio.play();
+            healthleft = Math.min(100, healthleft + 10);
+            setHealth(healthleft);
+          } 
+          else if(itemType == "bed"){
+            console.log("zzz");
+          }
+          else if(itemType == "closed_door_south"){
+            if(testKeys && !holdingKey){ // TODO: Re-enable keys before demo.
+              status.innerHTML = "The door seems to be locked."
+              setTimeout(function(){
+                status.innerHTML = "";
+              }, 5000);	
+            } else {
+              room.objects[i].translation[0] = room.objects[i].translation[0] + 1.0;
+              room.objects[i].translation[2] = room.objects[i].translation[2] + 0.78;
+              room.objects[i].rotation = room.objects[i].rotation + glMatrix.toRadian(100);
+              room.objects[i].itemType = "open_door"
+              door_audio.play();
+              setTimeout(function(){ // This is necessary because the door is composed of multiple pickable meshes.
+                holdingKey = 0;
+                toggleKeyIcon(0);
+              }, 100);
+            }
+          }
+          else if(itemType == "open_door"){
+            status.innerHTML = "A mysterious force seems to hold the door open."
+            setTimeout(function(){
+              status.innerHTML = "";
+            }, 15000);
+          }
+          else if(itemType == "key"){
+            holdingKey = 1;
+            toggleKeyIcon(1);
+            key_audio.play();
+            objects[i].delete();
+
+          }
+        }
+      }
+    });
 	}
 
 	////////////////////// Render Loop /////////////////

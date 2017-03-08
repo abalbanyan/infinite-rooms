@@ -152,22 +152,29 @@ var cubeMesh = new Mesh(
 var floorMesh = new Mesh(
 	// vertices:
 	[
-		-1, -1, -1,  
-		-1, -1, 1,  
-		1, -1, 1,    
-		1, -1, -1 
+		-1.0 ,1.0 ,1.0
+		,1.0 ,1.0 ,1.0
+		,1.0 ,1.0 ,-1.0
+		,-1.0,1.0 ,-1.0
 	],
 	// indices:
 	[
-		1,0,2,
-		3,2,0
+		0,1,2,0,2,3
 	],
 	// normals:
 	[
-		-cubeSize, cubeSize, -cubeSize,  
-		-cubeSize, cubeSize, cubeSize,    
-		cubeSize, cubeSize, cubeSize,    
-		cubeSize, cubeSize, -cubeSize
+		 0
+		,1
+		,0
+		,0
+		,1
+		,0
+		,0
+		,1
+		,0
+		,0
+		,1
+		,0
 	],
 	// texuture coords:
 	[
@@ -181,22 +188,22 @@ var floorMesh = new Mesh(
 var ceilingMesh = new Mesh(
 	// vertices:
 	[
-		-cubeSize, cubeSize, -cubeSize,  
-		-cubeSize, cubeSize, cubeSize,    
-		cubeSize, cubeSize, cubeSize,    
-		cubeSize, cubeSize, -cubeSize
+		1.0,1.0, -1.0, 
+		-1.0, 1.0,-1.0, 
+		-1.0,1.0, 1.0,
+		1.0,1.0, 1.0
 	],
 	// indices:
 	[
-		1,0,2,
-		3,2,0
+		0,1,2,
+		0,2,3
 	],
 	// normals:
 	[
-		-cubeSize, -cubeSize, -cubeSize,  
-		-cubeSize, -cubeSize, cubeSize,  
-		cubeSize, -cubeSize, cubeSize,    
-		cubeSize, -cubeSize, -cubeSize
+		0.0,1.0, 0.0, 
+		0.0, 1.0,0.0, 
+		0.0,1.0, 0.0,
+		0.0,1.0, 0.0
 	],
 	// texuture coords:
 	[
@@ -207,33 +214,82 @@ var ceilingMesh = new Mesh(
 	]
 )
 
+var doorWayMesh = new Mesh(
+	// vertices:
+	[
+		-0.12, -1.0, 1.0,
+		-1.0, -1.0, 1.0,
+		-1.0,  1.0, 1.0,
+		-0.12, 1.0, 1.0,
+		1.0, -1.0, 1.0,
+		0.12, -1.0, 1.0,
+		0.12, 1.0, 1.0,
+		1.0, 1.0, 1.0,
+		0.12, 0.65, 1.0,
+		-0.12, 0.65, 1.0
+	],
+	// indices:
+	[
+		0,1,2,0,2,3,
+		4,5,6,4,6,7,
+		8,9,3,8,3,6
+	],
+	// normals:
+	[
+		-0.1, -1.0, -1.0,
+		-1.0, -1.0, -1.0,
+		-1.0,  1.0, -1.0,
+		-0.1, 1.0, -1.0,
+		1.0, -1.0, -1.0,
+		0.1, -1.0, -1.0,
+		0.1, 1.0, -1.0,
+		1.0, 1.0, -1.0,
+		0.1, 0.5, -1.0,
+		-0.1, 0.5, -1.0
+	],
+	// texturecoords:
+	[
+		0.44,0,
+		0,0,
+		0,1,
+		0.44,1,  // 3
+		1,0,
+		0.56,0,
+		0.56,1,  // 6
+		1,1,
+		0.56,0.825,
+		0.44,0.825
+	]
 
+
+
+)
 
 var wallMesh = new Mesh(
 	// vertices:
 	[
-		1.0, 1.0, 1.0,
 		1.0, -1.0, 1.0,
 		-1.0, -1.0, 1.0,
-		-1.0, 1.0, 1.0
+		-1.0, 1.0, 1.0,
+		1.0, 1.0, 1.0
 	],
 	// indices:
 	[
-		1,0,2,3,2,0
+		0,1,2,0,2,3
 	],
 	// normals:
 	[
-		1, 1, -1,    
-		1, -1, -1,  
-		-1, -1, -1,  
-		-1, 1, -1,    
+		1.0, -1.0, -1.0,
+		-1.0, -1.0, -1.0,
+		-1.0,  1.0, -1.0,
+		1.0, 1.0, -1.0,  
 	],
 	// texuture coords:
 	[
+		1,0,
 		0,0,
 		0,1,
-		1,1,
-		1,0
+		1,1
 	]
 )
 
