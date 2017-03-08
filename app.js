@@ -9,9 +9,8 @@ window.onload = function(){
 	
 	//var gl = canvas.getContext('webgl'); // For Chrome and Firefox, all that's needed.
 	var gl = canvas.getContext("experimental-webgl", {preserveDrawingBuffer: true});
-	var status = document.getElementById('status');
 
-	////////////////// Health /////////////////////////
+	////////////////// HUD /////////////////////////
 	// how much health is left
 	var healthleft = 30;
 	// sets health bar to whatever percentage
@@ -20,6 +19,13 @@ window.onload = function(){
 		console.log(percent);
 	}
 	setHealth();
+
+	var key_icon = document.getElementById("key_icon");
+	var toggleKeyIcon = function(bool){
+		key_icon.style.opacity = bool;
+	}
+
+	var status = document.getElementById('status');
 
     ////////////////// Compile Shaders ////////////////
 
@@ -459,6 +465,7 @@ window.onload = function(){
 						door_audio.play();
 						setTimeout(function(){ // This is necessary because the door is composed of multiple pickable meshes.
 							holdingKey = 0;
+							toggleKeyIcon(0);
 						}, 100);
 					}
 				}
@@ -470,6 +477,7 @@ window.onload = function(){
 				}
 				else if(itemType == "key"){
 					holdingKey = 1;
+					toggleKeyIcon(1);
 					key_audio.play();
 					objects[i].delete();
 				}
