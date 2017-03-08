@@ -9,9 +9,8 @@ window.onload = function(){
 	
 	//var gl = canvas.getContext('webgl'); // For Chrome and Firefox, all that's needed.
 	var gl = canvas.getContext("experimental-webgl", {preserveDrawingBuffer: true});
-	var status = document.getElementById('status');
 
-	////////////////// Health /////////////////////////
+	////////////////// HUD /////////////////////////
 	// how much health is left
 	var healthleft = 30;
 	// sets health bar to whatever percentage
@@ -20,6 +19,13 @@ window.onload = function(){
 		console.log(percent);
 	}
 	setHealth();
+
+	var key_icon = document.getElementById("key_icon");
+	var toggleKeyIcon = function(bool){
+		key_icon.style.opacity = bool;
+	}
+
+	var status = document.getElementById('status');
 
     ////////////////// Compile Shaders ////////////////
 
@@ -183,6 +189,7 @@ window.onload = function(){
 		heading = 0; pitch = 0;
 	}
 
+	var testKeys = 0;
 	document.onkeydown = function(e){
 		e = e || window.event;
 		switch(e.keyCode){
@@ -221,10 +228,15 @@ window.onload = function(){
 			case 80:
 				interact();
 				break;
+
+			case 75:
+				testKeys = ~testKeys;
 		}
 	}
 
 	// This section of Control is responsible for gamepad functionality.
+	var prevcrouch = 0;
+	var crouch = 0;
 	var footsteps_audio = new Audio('sound/footsteps.wav');
 	var gamepads;
 	var playerSpeed = 0.8;
@@ -260,23 +272,33 @@ window.onload = function(){
 		if(gamepad.buttons[0].pressed){ // A
 			interact();
 		}
-		if(gamepad.buttons[1].pressed){ // B
-			movePlayer(0, 1,0);
+
+		if(gamepad.buttons[2].pressed){ // X
+			crouch = 1;
 		}
+		else{
+			crouch = 0;
+		}
+		if(crouch && crouch != prevcrouch){ // When crouch is pressed.
+			movePlayer(0, -20, 0);
+		} else if (!crouch && prevcrouch){ // When crouch is released.
+			movePlayer(0, 20, 0);
+		} 
+		prevcrouch = crouch;
+
+
 		if(gamepad.buttons[3].pressed){ // Y
 			resetCamera();
 		}
 
-		playerSpeed = gamepad.buttons[2].pressed? 1.2 : 0.8;
+		playerSpeed = gamepad.buttons[1].pressed? 1.2 : 0.8; // B
 	}
 
-	rotateCamera(180, 0); // Initialize camera facing door. TODO: remove
+	//rotateCamera(180, 0); // Initialize camera facing door. TODO: remove
 
 	////////////////////// Objects /////////////////////
 
-	var images = ["textures/dirt.png", "textures/crate.png", "textures/hardwood.png", "textures/space.png"];
 	var objects = [];
-	var pickableObjects = [];
 
 	function addObjectFromJSON(jsonfile, translation, scale, rotation, axis, texture, color = null, itemType = null, pickID = null, material = null)
 	{
@@ -321,28 +343,37 @@ window.onload = function(){
 	// first room
 	// Pass in pickID as the last parameter to addObjectFromJSON if the object is pickable. The pickID can be any value between 0 and 255.
 	// pickID should be unique, itemType does not need to be.
-	addObjectFromJSON("meshes/bed.json", 			[75,0,65], [0.75,0.75,0.75],   180, [0,1,0], ["textures/bedwood.png"], [0.8,1,1,1], "bed", 1);
+	// material format: {diffusivity: 1, shininess: 0.4, smoothness: 40}
+
+	var ID = -1;
+	function getID(){
+		ID++;
+		return ID;
+	}
+
+	addObjectFromJSON("meshes/bed.json", 			[75,0,65], [0.75,0.75,0.75],   180, [0,1,0], ["textures/bedwood.png"], [0.8,1,1,1], "bed", getID());
 	addObjectFromJSON("meshes/bedside-table.json", 	[35,0,88], [1,1,1], 		   -90, [0,1,0], ["textures/bedwood.png"], [1,1,1,1]  );
-	addObjectFromJSON("meshes/window1.json", 		[-100,10,0], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]);
-	addObjectFromJSON("meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]);
+	addObjectFromJSON("meshes/window1.json", 		[-100,10,0], [0.6,0.6,0.6],    -90,	[0,1,0], ["textures/door1.png"],[90/255,67/255,80/255,1], null, null, {diffusivity: 0.2, shininess: 0.1, smoothness: 40});
+	addObjectFromJSON("meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], ["textures/door1.png"], [90/255,67/255,80/255,1], null, null, {diffusivity: 0.2, shininess: 0.1, smoothness: 40});
 	addObjectFromJSON("meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], ["textures/wood2.png"],   [90/255,67/255,80/255,1]);
-	addObjectFromJSON("meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]);
-	addObjectFromJSON("meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/cheese.png"],  [90/255,67/255,80/255,1], "food", 255);
+	addObjectFromJSON("meshes/bulb.json",			[0,59,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]);
+	addObjectFromJSON("meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/cheese.png"],  [90/255,67/255,80/255,1], "food", getID());
+	addObjectFromJSON("meshes/umbreon.json",		[40,20,84], [3.2,3.2,3.2], 		-125,  [0,1,0], ["textures/umbreon.png","textures/umbreon2.png"], [1,1,1,1]);
+	addObjectFromJSON("meshes/key.json",		[58,0,50], [11,11,11], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40});
+
+	var ceilingHeight = 55;
 	var door_textures = ["textures/bedwood.png","textures/doorhandle1.png","textures/hardwood.png","textures/bedwood.png","textures/bedwood.png",
 						"textures/bedwood.png","textures/bedwood.png","textures/bedwood.png","textures/doorhandle1.png","textures/bedwood.png"]
 	var door_material = {diffusivity: 1, shininess: 0.4, smoothness: 40};
-	addObjectFromJSON("meshes/door.json",			[0,-1,-100], [6,6,6], 			90,  [0,1,0], door_textures, [1,1,1,1], "closed_door_south", 220, door_material)
-	addObjectFromJSON("meshes/umbreon.json",		[40,20,84], [3.2,3.2,3.2], 		-125,  [0,1,0], ["textures/umbreon.png","textures/umbreon2.png"], [1,1,1,1]);
-
+	addObjectFromJSON("meshes/door.json",			[0,-1,-100], [6 * ceilingHeight/55 ,6 * ceilingHeight/55,6], 			90,  [0,1,0], door_textures, [1,1,1,1], "closed_door_south", getID(), door_material)
 
  	var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
-	floor.attachTexture(images[2]);
-	objects.push(new Object(floor, [0,0,0], [100,1,100], 0, [0,1,0], [4,4]));
+	floor.attachTexture( "textures/hardwood.png");
+	objects.push(new Object(floor, [0,-2,0], [100,1,100], 0, [0,1,0], [4,4]));
 
-	var ceilingHeight = 55;
-	var ceiling = new Shape(ceilingMesh.vertices, ceilingMesh.indices, ceilingMesh.normals, ceilingMesh.textureCoords, gl, program, buffers);
+	var ceiling = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
 	ceiling.attachTexture("textures/crate.png");
-	objects.push(new Object(ceiling, [0,ceilingHeight,0], [100,1,100], 0, [1,0,0], [8,8]));
+	objects.push(new Object(ceiling, [0,ceilingHeight + 2,0], [100,1,100], glMatrix.toRadian(180), [0,0,1], [8,8]));
 
 	for(var i = 0; i < 4; i++){
 		var wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, buffers);
@@ -402,6 +433,8 @@ window.onload = function(){
 	////////////////////// Interaction /////////////////
 	var eating_audio = new Audio('sound/eating.mp3');
 	var door_audio = new Audio('sound/door_open.m4a');
+	var key_audio = new Audio('sound/key2.m4a');
+	var holdingKey = 0;
 	function interact(){
 		var itemID = handlePick(canvas.width/2, canvas.height/2);
 		if(itemID == null) return;
@@ -419,17 +452,34 @@ window.onload = function(){
 					console.log("zzz");
 				}
 				else if(itemType == "closed_door_south"){
-					objects[i].translation[0] = objects[i].translation[0] + 1.0;
-					objects[i].translation[2] = objects[i].translation[2] + 0.78;
-					objects[i].rotation = objects[i].rotation + glMatrix.toRadian(100);
-					objects[i].itemType = "open_door"
-					door_audio.play();
+					if(testKeys && !holdingKey){ // TODO: Re-enable keys before demo.
+						status.innerHTML = "The door seems to be locked."
+						setTimeout(function(){
+							status.innerHTML = "";
+						}, 5000);	
+					} else {
+						objects[i].translation[0] = objects[i].translation[0] + 1.0;
+						objects[i].translation[2] = objects[i].translation[2] + 0.78;
+						objects[i].rotation = objects[i].rotation + glMatrix.toRadian(100);
+						objects[i].itemType = "open_door"
+						door_audio.play();
+						setTimeout(function(){ // This is necessary because the door is composed of multiple pickable meshes.
+							holdingKey = 0;
+							toggleKeyIcon(0);
+						}, 100);
+					}
 				}
 				else if(itemType == "open_door"){
 					status.innerHTML = "A mysterious force seems to hold the door open."
 					setTimeout(function(){
 						status.innerHTML = "";
 					}, 15000);
+				}
+				else if(itemType == "key"){
+					holdingKey = 1;
+					toggleKeyIcon(1);
+					key_audio.play();
+					objects[i].delete();
 				}
 			
 			}
