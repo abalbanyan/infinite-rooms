@@ -442,7 +442,7 @@ window.onload = function(){
 					console.log("zzz");
 				}
 				else if(itemType == "closed_door_south"){
-					if(!holdingKey){
+					if(false /*!holdingKey*/){ // TODO: Re-enable keys before demo.
 						status.innerHTML = "The door seems to be locked."
 						setTimeout(function(){
 							status.innerHTML = "";
