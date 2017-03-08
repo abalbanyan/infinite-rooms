@@ -6,18 +6,20 @@ window.onload = function(){
 	var canvas = document.getElementById('webgl-canvas');
 	canvas.width  = 960 * 1.1//window.innerWidth - 250;
 	canvas.height = 540 * 1.1//window.innerHeight - 250;
-
+	
 	//var gl = canvas.getContext('webgl'); // For Chrome and Firefox, all that's needed.
 	var gl = canvas.getContext("experimental-webgl", {preserveDrawingBuffer: true});
-	
+	var status = document.getElementById('status');
+
 	////////////////// Health /////////////////////////
 	// how much health is left
-	var healthleft = 40;
+	var healthleft = 30;
 	// sets health bar to whatever percentage
-	var setHealth = function(percent){
-		var newpct = percent + "%"
-		document.getElementById("health").style.width = newpct;
+	var setHealth = function(percent = healthleft){
+		document.getElementById("health").style.width = percent + "%";
+		console.log(percent);
 	}
+	setHealth();
 
     ////////////////// Compile Shaders ////////////////
 
@@ -41,6 +43,7 @@ window.onload = function(){
 	gl.linkProgram(program);
 	gl.useProgram(program);
 	gl.enable(gl.DEPTH_TEST);
+//	gl.enable(gl.CULL_FACE);
 
     ////////////////// Create Buffers /////////////////
 
@@ -267,6 +270,8 @@ window.onload = function(){
 		playerSpeed = gamepad.buttons[2].pressed? 1.2 : 0.8;
 	}
 
+	rotateCamera(180, 0); // Initialize camera facing door. TODO: remove
+
 	////////////////////// Objects /////////////////////
 
 	var images = ["textures/dirt.png", "textures/crate.png", "textures/hardwood.png", "textures/space.png"];
@@ -326,7 +331,7 @@ window.onload = function(){
 	var door_textures = ["textures/bedwood.png","textures/doorhandle1.png","textures/hardwood.png","textures/bedwood.png","textures/bedwood.png",
 						"textures/bedwood.png","textures/bedwood.png","textures/bedwood.png","textures/doorhandle1.png","textures/bedwood.png"]
 	var door_material = {diffusivity: 1, shininess: 0.4, smoothness: 40};
-	addObjectFromJSON("meshes/door.json",			[0,-1,-100], [5,5,5], 			90,  [0,1,0], door_textures, [1,1,1,1], "closed_door_south", 220, door_material)
+	addObjectFromJSON("meshes/door.json",			[0,-1,-100], [6,6,6], 			90,  [0,1,0], door_textures, [1,1,1,1], "closed_door_south", 220, door_material)
 	addObjectFromJSON("meshes/umbreon.json",		[40,20,84], [3.2,3.2,3.2], 		-125,  [0,1,0], ["textures/umbreon.png","textures/umbreon2.png"], [1,1,1,1]);
 
 
@@ -342,7 +347,12 @@ window.onload = function(){
 	for(var i = 0; i < 4; i++){
 		var wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, buffers);
 		wall.attachTexture("textures/wallpaper1.png");
-		objects.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(i*90), [0,1,0], [8,4]))
+		if(i == 2){
+			var doorway = new Shape(doorWayMesh.vertices, doorWayMesh.indices, doorWayMesh.normals, doorWayMesh.textureCoords, gl, program, buffers);
+			doorway.attachTexture("textures/wallpaper1.png");
+			objects.push(new Object(doorway, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(i*90), [0,1,0], [8,4]));
+		} else 
+		objects.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(i*90), [0,1,0], [8,4]));
 	}
 
 	// TODO: Make Objects use the .draw() method, not shapes?
@@ -402,16 +412,24 @@ window.onload = function(){
 				if(itemType == "food"){
 					objects[i].delete();
 					eating_audio.play();
+					healthleft = Math.min(100, healthleft + 10);
+					setHealth(healthleft);
 				} 
 				else if(itemType == "bed"){
 					console.log("zzz");
 				}
 				else if(itemType == "closed_door_south"){
 					objects[i].translation[0] = objects[i].translation[0] + 1.0;
-					objects[i].translation[2] = objects[i].translation[2] + 0.6;
+					objects[i].translation[2] = objects[i].translation[2] + 0.78;
 					objects[i].rotation = objects[i].rotation + glMatrix.toRadian(100);
 					objects[i].itemType = "open_door"
 					door_audio.play();
+				}
+				else if(itemType == "open_door"){
+					status.innerHTML = "A mysterious force seems to hold the door open."
+					setTimeout(function(){
+						status.innerHTML = "";
+					}, 15000);
 				}
 			
 			}
