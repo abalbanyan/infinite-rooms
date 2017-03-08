@@ -296,7 +296,7 @@ window.onload = function(){
 						if(texIterator < texture.length - 1) texIterator++; 
 					}
 		            else if(color != null) shape.setColor(color);
-		            else shape.setColor([0,1,0,1]); // Set color to red if both of the above fail.
+		            else shape.setColor([0,1,0,1]); // Set color to green if both of the above fail.
 		            if(material != null) shape.setMaterialProperties(material.diffusivity, material.smoothness, material.shininess);
 		      		var object = new Object(shape, translation, scale, rotation, axis);
 
@@ -310,84 +310,85 @@ window.onload = function(){
 	    }
 	    rawFile.send();
 	}
+
+	// rooms return the range of indices in objects that contain their components. These will be accessed at a later time to 
+	// translate the entire room
 	function loadBedroom()
 	{
+		var objectIndStart = objects.length;
 		var images = ["textures/dirt.png", "textures/crate.png", "textures/hardwood.png", "textures/space.png"];
-
-		addObjectFromJSON("meshes/bed.json", 			[75,0,65], [0.75,0.75,0.75],   180, [0,1,0], "textures/bedwood.png", [0.8,1,1,1], "bed");
-		addObjectFromJSON("meshes/bedside-table.json", 	[35,0,88], [1,1,1], 		   -90, [0,1,0],"textures/bedwood.png", [1,1,1,1],   "table");
-		addObjectFromJSON("meshes/window1.json", 		[-100,10,0], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1],   "window1");
-		addObjectFromJSON("meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0],  null,					 [90/255,67/255,80/255,1],   "window2");
-		addObjectFromJSON("meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 	90, [0,1,0],"textures/wood2.png", [90/255,67/255,80/255,1], "desk");
-		addObjectFromJSON("meshes/bulb.json",			[0,52,0], [0.05,0.05,0.05], 		180,[1,0,0],null, [1,0.85,0,1], "bulb");
-		addObjectFromJSON("meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0],"textures/cheese.png", [90/255,67/255,80/255,1], "desk");
-
-
-		var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
-		floor.attachTexture(images[2]);
-		objects.push(new Object(floor, [0,0,0], [100,100,100], 0, [0,1,0], [4,4]));
-
-		var ceiling = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
-		ceiling.attachTexture("textures/crate.png");
-		objects.push(new Object(ceiling, [0,80,0], [100,100,100], 0, [0,1,0], [8,8]));
+		// first room
+		// Pass in pickID as the last parameter to addObjectFromJSON if the object is pickable. The pickID can be any value between 0 and 255.
+		// pickID should be unique, itemType does not need to be.
+		addObjectFromJSON("meshes/bed.json", 			[75,10,65], [18,20,18],   180, [0,1,0], ["textures/bed.png"], null, "bed", 1);
+		addObjectFromJSON("meshes/bedside-table.json", 	[35,0,88], [1,1,1], 		   -90, [0,1,0], ["textures/bedwood.png"], [1,1,1,1]  );
+		addObjectFromJSON("meshes/window1.json", 		[-100,10,0], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]);
+		addObjectFromJSON("meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]);
+		addObjectFromJSON("meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], ["textures/wood2.png"],   [90/255,67/255,80/255,1]);
+		addObjectFromJSON("meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]);
+		addObjectFromJSON("meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/cheese.png"],  [90/255,67/255,80/255,1], "food", 255);
+		var door_textures = ["textures/bedwood.png","textures/doorhandle1.png","textures/hardwood.png","textures/bedwood.png","textures/bedwood.png",
+							"textures/bedwood.png","textures/bedwood.png","textures/bedwood.png","textures/doorhandle1.png","textures/bedwood.png"]
+		var door_material = {diffusivity: 1, shininess: 0.4, smoothness: 40};
+		addObjectFromJSON("meshes/door.json",			[0,-1,-100], [5,5,5], 			90,  [0,1,0], door_textures, [1,1,1,1], "closed_door_south", 220, door_material)
+		addObjectFromJSON("meshes/umbreon.json",		[40,20,84], [3.2,3.2,3.2], 		-125,  [0,1,0], ["textures/umbreon.png","textures/umbreon2.png"], [1,1,1,1]);
+		loadBox([images[2], images[1], "textures/wallpaper1.png"])
+		var objectIndEnd = objects.length;
+		return [objectIndStart, objectIndEnd]
 	}
 
-<<<<<<< HEAD
 	function loadBathroom()
 	{
-		var images = ["textures/dirt.png", "textures/crate.png", "textures/hardwood.png", "textures/space.png"];
-=======
-	// first room
-	// Pass in pickID as the last parameter to addObjectFromJSON if the object is pickable. The pickID can be any value between 0 and 255.
-	// pickID should be unique, itemType does not need to be.
-	addObjectFromJSON("meshes/bed.json", 			[75,0,65], [0.75,0.75,0.75],   180, [0,1,0], ["textures/bedwood.png"], [0.8,1,1,1], "bed", 1);
-	addObjectFromJSON("meshes/bedside-table.json", 	[35,0,88], [1,1,1], 		   -90, [0,1,0], ["textures/bedwood.png"], [1,1,1,1]  );
-	addObjectFromJSON("meshes/window1.json", 		[-100,10,0], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]);
-	addObjectFromJSON("meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]);
-	addObjectFromJSON("meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], ["textures/wood2.png"],   [90/255,67/255,80/255,1]);
-	addObjectFromJSON("meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]);
-	addObjectFromJSON("meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/cheese.png"],  [90/255,67/255,80/255,1], "food", 255);
-	var door_textures = ["textures/bedwood.png","textures/doorhandle1.png","textures/hardwood.png","textures/bedwood.png","textures/bedwood.png",
-						"textures/bedwood.png","textures/bedwood.png","textures/bedwood.png","textures/doorhandle1.png","textures/bedwood.png"]
-	var door_material = {diffusivity: 1, shininess: 0.4, smoothness: 40};
-	addObjectFromJSON("meshes/door.json",			[0,-1,-100], [5,5,5], 			90,  [0,1,0], door_textures, [1,1,1,1], "closed_door_south", 220, door_material)
-	addObjectFromJSON("meshes/umbreon.json",		[40,20,84], [3.2,3.2,3.2], 		-125,  [0,1,0], ["textures/umbreon.png","textures/umbreon2.png"], [1,1,1,1]);
->>>>>>> 829d7ea9b960c33325b573b62d9e5d9f054ed06f
-
-		addObjectFromJSON("meshes/toilet.json", [0, 0, 0], [.25, .25, .25], -90, [1, 0, 0], "textures/porcelain.png", [0, 0, 0, 0, 0], "toilet");
+		var objectIndStart = objects.length;
+		for (var i = 0; i < 8; i++){
+			addObjectFromJSON("meshes/toilet.json", [85, 0, i*20 - 70], [.25, .25, .25], -120, [1, 1, 1], ["textures/porcelain.png"], [0, 0, 0, 0, 0], "toilet");
+			addObjectFromJSON("meshes/sink.json", [65 - i*20, 15, 93], [.5, .5, .5], 180, [0, 1, 0], ["textures/steel.png"], [1, 1, 1, 1]);
+			var mirror = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
+			mirror.attachTexture("textures/obama.png");
+			objects.push(new Object(mirror, [65 - i*20, 35, 100], [5, 1, 7 ], glMatrix.toRadian(90), [1, 0, 0], [1, 1]))
+		}
 		
+		loadBox(["textures/bathroomfloor.png","textures/bathroomfloor.png","textures/bathroomfloor.png"])
+		var objectIndEnd = objects.length;
+		return [objectIndStart, objectIndEnd]
+	}
+	
+	// load walls, ceiling, floor. Textures should be paths to textures in the following order: ceiling, floor, north wall, east wall, south wall, west wall.
+	function loadBox(textures){
 		var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
-		floor.attachTexture(images[2]);
-		objects.push(new Object(floor, [0,0,0], [100,100,100], 0, [0,1,0], [4,4]));
+		floor.attachTexture(textures[0]);
+		objects.push(new Object(floor, [0,0,0], [100,1,100], 0, [0,1,0], [4,4]));
 
-		var ceiling = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
-		ceiling.attachTexture("textures/crate.png");
-		objects.push(new Object(ceiling, [0,80,0], [100,100,100], 0, [0,1,0], [8,8]));
+		var ceilingHeight = 85;
+		var ceiling = new Shape(ceilingMesh.vertices, ceilingMesh.indices, ceilingMesh.normals, ceilingMesh.textureCoords, gl, program, buffers);
+		ceiling.attachTexture(textures[1]);
+		objects.push(new Object(ceiling, [0,ceilingHeight,0], [100,1,100], 0, [1,0,0], [8,8]));
+
+		for(var i = 0; i < 4; i++){
+			var wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, buffers);
+			if(textures[2+i]) wall.attachTexture(textures[2+i])
+			else wall.attachTexture(textures[2])
+			objects.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(i*90), [0,1,0], [8,4]))
+		}
 	}
 
-<<<<<<< HEAD
-	loadBathroom();
+	function loadRoom(indices, coordinates){
+		if (indices.length != 2 || indices[0] > indices[1]) 
+			console.error("first parameter must be a two element array with the first and last index of the room's objects in objects array, respectively.")
+		if (coordinates.length != 2 || coordinates[0] < -1 || coordinates[0] > 1 || coordinates[1] < -1 || coordinates[1] > 1)
+			console.error("second parameter must be a two element array [x, z] denoting the placement of room. x and z should be between -1 and 1")
 
-=======
- 	var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
-	floor.attachTexture(images[2]);
-	objects.push(new Object(floor, [0,0,0], [100,1,100], 0, [0,1,0], [4,4]));
-
-	var ceilingHeight = 55;
-	var ceiling = new Shape(ceilingMesh.vertices, ceilingMesh.indices, ceilingMesh.normals, ceilingMesh.textureCoords, gl, program, buffers);
-	ceiling.attachTexture("textures/crate.png");
-	objects.push(new Object(ceiling, [0,ceilingHeight,0], [100,1,100], 0, [1,0,0], [8,8]));
->>>>>>> 829d7ea9b960c33325b573b62d9e5d9f054ed06f
-
-	for(var i = 0; i < 4; i++){
-		var wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, buffers);
-		wall.attachTexture("textures/wallpaper1.png");
-<<<<<<< HEAD
-		objects.push(new Object(wall, [0,0,0], [100,80,100], glMatrix.toRadian(i*90), [0,1,0], [6,3]))
-=======
-		objects.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(i*90), [0,1,0], [8,4]))
->>>>>>> 829d7ea9b960c33325b573b62d9e5d9f054ed06f
+		for(var i = indices[0]; i < indices[1]; i++){
+			console.log(objects[i].translation)
+			objects[i].translation[0] += coordinates[0]*200;
+			objects[i].translation[2] += coordinates[1]*200;
+						console.log(objects[i].translation)
+		}
 	}
+
+	//draws bedroom at origin, bathroom at 
+	loadRoom(loadBathroom(), [1, 0]);
+	loadRoom(loadBedroom(), [0, 0]);
 
 	// TODO: Make Objects use the .draw() method, not shapes?
 	// TODO: Add support for model trees.
