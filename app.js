@@ -43,6 +43,7 @@ window.onload = function(){
 	gl.linkProgram(program);
 	gl.useProgram(program);
 	gl.enable(gl.DEPTH_TEST);
+//	gl.enable(gl.CULL_FACE);
 
     ////////////////// Create Buffers /////////////////
 
@@ -269,6 +270,8 @@ window.onload = function(){
 		playerSpeed = gamepad.buttons[2].pressed? 1.2 : 0.8;
 	}
 
+	rotateCamera(180, 0); // Initialize camera facing door. TODO: remove
+
 	////////////////////// Objects /////////////////////
 
 	var images = ["textures/dirt.png", "textures/crate.png", "textures/hardwood.png", "textures/space.png"];
@@ -344,7 +347,12 @@ window.onload = function(){
 	for(var i = 0; i < 4; i++){
 		var wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, buffers);
 		wall.attachTexture("textures/wallpaper1.png");
-		objects.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(i*90), [0,1,0], [8,4]))
+		if(i == 2){
+			var doorway = new Shape(doorWayMesh.vertices, doorWayMesh.indices, doorWayMesh.normals, doorWayMesh.textureCoords, gl, program, buffers);
+			doorway.attachTexture("textures/wallpaper1.png");
+			objects.push(new Object(doorway, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(i*90), [0,1,0], [8,4]));
+		} else 
+		objects.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(i*90), [0,1,0], [8,4]));
 	}
 
 	// TODO: Make Objects use the .draw() method, not shapes?
