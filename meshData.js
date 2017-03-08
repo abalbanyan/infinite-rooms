@@ -152,22 +152,29 @@ var cubeMesh = new Mesh(
 var floorMesh = new Mesh(
 	// vertices:
 	[
-		-1, -1, -1,  
-		-1, -1, 1,  
-		1, -1, 1,    
-		1, -1, -1 
+		-1.0 ,1.0 ,1.0
+		,1.0 ,1.0 ,1.0
+		,1.0 ,1.0 ,-1.0
+		,-1.0,1.0 ,-1.0
 	],
 	// indices:
 	[
-		1,0,2,
-		3,2,0
+		0,1,2,0,2,3
 	],
 	// normals:
 	[
-		-cubeSize, cubeSize, -cubeSize,  
-		-cubeSize, cubeSize, cubeSize,    
-		cubeSize, cubeSize, cubeSize,    
-		cubeSize, cubeSize, -cubeSize
+		 0
+		,1
+		,0
+		,0
+		,1
+		,0
+		,0
+		,1
+		,0
+		,0
+		,1
+		,0
 	],
 	// texuture coords:
 	[
@@ -181,22 +188,22 @@ var floorMesh = new Mesh(
 var ceilingMesh = new Mesh(
 	// vertices:
 	[
-		-cubeSize, cubeSize, -cubeSize,  
-		-cubeSize, cubeSize, cubeSize,    
-		cubeSize, cubeSize, cubeSize,    
-		cubeSize, cubeSize, -cubeSize
+		1.0,1.0, -1.0, 
+		-1.0, 1.0,-1.0, 
+		-1.0,1.0, 1.0,
+		1.0,1.0, 1.0
 	],
 	// indices:
 	[
-		1,0,2,
-		3,2,0
+		0,1,2,
+		0,2,3
 	],
 	// normals:
 	[
-		-cubeSize, -cubeSize, -cubeSize,  
-		-cubeSize, -cubeSize, cubeSize,  
-		cubeSize, -cubeSize, cubeSize,    
-		cubeSize, -cubeSize, -cubeSize
+		0.0,1.0, 0.0, 
+		0.0, 1.0,0.0, 
+		0.0,1.0, 0.0,
+		0.0,1.0, 0.0
 	],
 	// texuture coords:
 	[
@@ -261,28 +268,28 @@ var doorWayMesh = new Mesh(
 var wallMesh = new Mesh(
 	// vertices:
 	[
-		1.0, 1.0, 1.0,
 		1.0, -1.0, 1.0,
 		-1.0, -1.0, 1.0,
-		-1.0, 1.0, 1.0
+		-1.0, 1.0, 1.0,
+		1.0, 1.0, 1.0
 	],
 	// indices:
 	[
-		1,0,2,3,2,0
+		0,1,2,0,2,3
 	],
 	// normals:
 	[
-		1, 1, -1,    
-		1, -1, -1,  
-		-1, -1, -1,  
-		-1, 1, -1,    
+		1.0, -1.0, -1.0,
+		-1.0, -1.0, -1.0,
+		-1.0,  1.0, -1.0,
+		1.0, 1.0, -1.0,  
 	],
 	// texuture coords:
 	[
+		1,0,
 		0,0,
 		0,1,
-		1,1,
-		1,0
+		1,1
 	]
 )
 
