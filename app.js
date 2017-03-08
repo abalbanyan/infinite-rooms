@@ -261,13 +261,13 @@ window.onload = function(){
 		var jsonObjects = []
 		var boxObjects = loadBox(["textures/bathroomfloor.png","textures/bathroomfloor.png","textures/bathroomfloor.png"])
 		otherObjects = boxObjects;
-		for (var i = 0; i < 8; i++){
+		for (var i = 0; i < 5; i++){
 			var offset = i*20;
-			jsonObjects.push(["meshes/toilet.json", [85, 0, offset - 70], [.25, .25, .25], -120, [1, 1, 1], ["textures/porcelain.png"], [0, 0, 0, 0, 0], "toilet"]);
-			jsonObjects.push(["meshes/sink.json", [65 - offset, 10, 93], [.5, .5, .5], 180, [0, 1, 0], ["textures/steel.png"], [1, 1, 1, 1]]);
+			jsonObjects.push(["meshes/toilet.json", [85, 0, offset], [.25, .25, .25], -120, [1, 1, 1], ["textures/porcelain.png"], [0, 0, 0, 0, 0], "toilet"]);
+			jsonObjects.push(["meshes/sink.json", [offset, 20, 93], [20, 20, 20], 0, [1, 0, 0], ["textures/steel.png"], [1, 1, 1, 1]]);
 			var mirror = new Shape( floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
 			mirror.attachTexture("textures/obama.png");
-			otherObjects.push(new Object(mirror, [65 - offset, 35, 100], [5, 1, 7 ], glMatrix.toRadian(90), [1, 0, 0], [1, 1]));
+			otherObjects.push(new Object(mirror, [offset, 30, 100], [4, 1, 6 ], glMatrix.toRadian(90), [1, 0, 0], [1, 1]));
 			console.log(otherObjects)
 		};
 		
