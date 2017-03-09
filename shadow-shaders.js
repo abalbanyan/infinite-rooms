@@ -33,7 +33,6 @@ void main(){
 
 	vec4 object_space_pos = vec4(vertPosition, 1.0);
 	gl_Position = mProj * mView * mWorld * object_space_pos;
-
 	vec3 texCoord_transformed = textureTransform * vec3(texCoord, 1.0);
 	fragTexCoord = texCoord_transformed.xy;
 
@@ -105,7 +104,7 @@ void main(){
 		float diffuse  = max(dot(L[i], N), 0.0);
 		float specular = pow(max(dot(H[i], N), 0.0), smoothness);
 
-		if ((shadowMapValue + 0.001) >= fromLightToFrag){
+		if ((shadowMapValue + 0.005) >= fromLightToFrag){
 			if(USE_TEXTURE)
 				gl_FragColor.xyz += attenuation_multiplier * (tex_color.xyz * diffusivity * diffuse + lightColor[i].xyz * shininess * specular );
 			else

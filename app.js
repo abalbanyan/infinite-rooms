@@ -245,7 +245,7 @@ window.onload = function(){
 		mat4.create()
 	];
 	var shadowMapProj = mat4.create();
-	var shadowClipNearFar = vec2.fromValues(0.05, 15.0);
+	var shadowClipNearFar = vec2.fromValues(10, 200);
 	mat4.perspective(
 		shadowMapProj,
 		glMatrix.toRadian(90),
@@ -255,13 +255,13 @@ window.onload = function(){
 	);
 
 	var shadowMapUniforms = {
-			pointLightPosition: gl.getUniformLocation(shadowMapProgram, 'pointLightPosition'),
-			shadowClipNearFar: gl.getUniformLocation(shadowMapProgram, 'shadowClipNearFar'),
-			shadowMapWorld: gl.getUniformLocation(shadowMapProgram, 'mWorld'),
-			shadowMapProj: gl.getUniformLocation(shadowMapProgram, 'mProj'),
-			shadowMapView: gl.getUniformLocation(shadowMapProgram, 'mView')
+			pointLightPositionLoc: gl.getUniformLocation(shadowMapProgram, 'pointLightPosition'),
+			shadowClipNearFarLoc: gl.getUniformLocation(shadowMapProgram, 'shadowClipNearFar'),
+			shadowMapWorldLoc: gl.getUniformLocation(shadowMapProgram, 'mWorld'),
+			shadowMapProjLoc: gl.getUniformLocation(shadowMapProgram, 'mProj'),
+			shadowMapViewLoc: gl.getUniformLocation(shadowMapProgram, 'mView')
 		};
-	var shadowMapAttribs = {
+	var shadowMapAttributes = {
 			positionAttribLocation: gl.getAttribLocation(shadowMapProgram, 'vertPosition')
 	};
 
@@ -498,6 +498,7 @@ window.onload = function(){
 
 	////////////////////// Render Loop /////////////////
 	var shadows = 1;
+
 	var loop = function(){
 
 		handleInput();
@@ -512,22 +513,21 @@ window.onload = function(){
 		gl.bindTexture(gl.TEXTURE_CUBE_MAP, shadowMapCube);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, shadowMapFrameBuffer);
 		gl.bindRenderbuffer(gl.RENDERBUFFER, shadowMapRenderBuffer);
-
 		gl.viewport(0, 0, textureSize, textureSize);
 		gl.enable(gl.DEPTH_TEST);
 		//gl.enable(gl.CULL_FACE);
 
 		// Set per-frame uniforms
 		gl.uniform2fv(
-			shadowMapUniforms.shadowClipNearFar,
+			shadowMapUniforms.shadowClipNearFarLoc,
 			shadowClipNearFar
 		);
 		gl.uniform4fv(
-			shadowMapUniforms.pointLightPosition,
+			shadowMapUniforms.pointLightPositionLoc,
 			lightPositions
 		);
 		gl.uniformMatrix4fv(
-			shadowMapUniforms.shadowMapProj,
+			shadowMapUniforms.shadowMapProjLoc,
 			gl.FALSE,
 			shadowMapProj
 		);
@@ -535,7 +535,7 @@ window.onload = function(){
 		for (var i = 0; i < shadowMapCameras.length; i++) {
 			// Set per light uniforms
 			gl.uniformMatrix4fv(
-				shadowMapProgram.shadowMapView,
+				shadowMapUniforms.shadowMapViewLoc,
 				gl.FALSE,
 				shadowMapCameras[i].GetViewMatrix(shadowMapViewMatrices[i])
 			);
@@ -568,9 +568,9 @@ window.onload = function(){
 				mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
 				mat4.mul(worldMatrix, translationMatrix, worldMatrix);
 
-				gl.uniformMatrix4fv(shadowMapUniforms.shadowMapWorld, gl.FALSE, worldMatrix);
+				gl.uniformMatrix4fv(shadowMapUniforms.shadowMapWorldLoc, gl.FALSE, worldMatrix);
 
-				object.shadowMapDraw();
+				object.shadowMapDraw(shadowMapAttributes);
 			});
 		}
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);

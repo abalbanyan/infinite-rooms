@@ -15,8 +15,8 @@ class Object{
 		this.shape.draw();
 	}
 
-	shadowMapDraw(){
-		this.shape.shadowMapDraw();
+	shadowMapDraw(shadowMapAttributes){
+		this.shape.shadowMapDraw(shadowMapAttributes);
 	}
 
 	shadowDraw(shadowUniforms, shadowAttributes){
@@ -58,8 +58,6 @@ class Shape{
 		this.smoothnessLocation = gl.getUniformLocation(program, 'smoothness');
 		this.shininessLocation = gl.getUniformLocation(program, 'shininess');
 		this.shapeColorLocation = gl.getUniformLocation(program, 'shapeColor');
-
-		this.shadowMapAttribs = {positionAttribLocation: gl.getAttribLocation(shadowMapProgram, 'vertPosition')};
 	}
 
 	// This function causes the shape to display a texture when it is drawn.
@@ -153,21 +151,21 @@ class Shape{
 		this.gl.drawElements(this.gl.TRIANGLES, this.indices.length, this.gl.UNSIGNED_SHORT, 0);
 	}
 
-	shadowMapDraw(){
+	shadowMapDraw(shadowMapAttributes){
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.vertexBuffer); // The active buffer is now an ARRAY_BUFFER, vertexBuffer.
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.vertices), this.gl.STATIC_DRAW); 	// This uses whatever buffer is active. Float32Array is needed because webGL only uses 32 bit floats.  gl.STATIC_DRAW means we are sending the information once and not changing it.
 
 		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.buffers.indexBuffer);
 		this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), this.gl.STATIC_DRAW);
 
-		this.gl.vertexAttribPointer( this.shadowMapAttribs.positionAttribLocation,
+		this.gl.vertexAttribPointer( shadowMapAttributes.positionAttribLocation,
 		3, // Number of elements per attribute
 		this.gl.FLOAT, // Type of elements
 		this.gl.FALSE, // Normalization?
 		3 * Float32Array.BYTES_PER_ELEMENT, // Size of individual vertex in bytes.
 		0 // Offset from beginning of single vertex to this attribute.
 		);
-		this.gl.enableVertexAttribArray( this.shadowMapAttribs.positionAttribLocation);
+		this.gl.enableVertexAttribArray( shadowMapAttributes.positionAttribLocation);
 		this.gl.drawElements(this.gl.TRIANGLES, this.indices.length, this.gl.UNSIGNED_SHORT, 0);
 	}
 

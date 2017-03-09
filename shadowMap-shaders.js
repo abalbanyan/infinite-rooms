@@ -12,8 +12,8 @@ varying vec3 fPos;
 void main()
 {
 	fPos = (mWorld * vec4(vertPosition, 1.0)).xyz;
-
-	gl_Position = mProj * mView * vec4(fPos, 1.0);
+	vec4 object_space_pos = vec4(vertPosition, 1.0);
+	gl_Position = mProj * mView * mWorld * object_space_pos;
 }`;
 
 var shadowMapFragmentShaderText = `
