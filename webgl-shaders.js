@@ -131,5 +131,5 @@ void main(){
 		else
 			gl_FragColor.xyz += attenuation_multiplier * (shapeColor.xyz * diffusivity * diffuse + lightColor[i].xyz * shininess * specular );
 	}
-	gl_FragColor.a = gl_FragColor.w;
+	//gl_FragColor.a = gl_FragColor.w;
 }`;
