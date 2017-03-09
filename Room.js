@@ -3,8 +3,8 @@ function Room(gl, program, buffers, jsonobjects, otherObjects, coordinates) {
     this.objects = otherObjects;
     this.coords = coordinates;
 
-    var delx = this.coords[0] * 201;
-    var delz = this.coords[1] * 201;
+    var delx = this.coords[0] * 200; // We can set this to 200, since we're using gl.CULL_FACE.
+    var delz = this.coords[1] * 200;
 
     for(var i = 0; i < this.meshes.length; i++){
         this.meshes[i][1][0] += delx;
