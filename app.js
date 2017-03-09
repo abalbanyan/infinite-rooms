@@ -287,7 +287,7 @@ window.onload = function(){
 	////////////////////// Objects /////////////////////
 
 	var Rooms = [];
-	var templates = [loadBedroom, loadBathroom, loadKitchen, loadMeme];
+	var templates = [loadBathroom, loadKitchen, loadMeme];
 
 	var ID = -1;
 	function getID(){
@@ -402,6 +402,7 @@ window.onload = function(){
 	loadBedroom([0, 0], [0,0,1,0], [0,0,1,0]);
 
 	// @entryPoint is the direction of entry from the perspective of the previous room.
+	var prevRoom = -1;
 	function loadNewRoom(entryPoint){ 
 		while(true){
 			var rand1 = Math.random() >= 0.5;		var rand2 = Math.random() >= 0.5;
@@ -410,34 +411,39 @@ window.onload = function(){
 		}
 		var doorways = [0, 0, rand3, rand4]; // north and east won't have doors.
 		var doors = [0, 0, rand3, rand4];
-
-
+		
+		var newRoom=  Math.floor(Math.random() * (templates.length));
+		while(prevRoom == newRoom){
+			newRoom =  Math.floor(Math.random() * (templates.length));
+		}
+		prevRoom = newRoom; // no room should be selected twice in a row.
+		
 		if(entryPoint == "north"){
 			light.translateLight([0,0,200]);
 			currentOrigin.y++;
 			doorways[2] = 1;
 			doors[2] = 0;
-			templates[1]([currentOrigin.x, currentOrigin.y], doors, doorways);
+			templates[newRoom]([currentOrigin.x, currentOrigin.y], doors, doorways);
 		}
 		if(entryPoint == "east"){
 			light.translateLight([-200,0,0]);
 			currentOrigin.x--
 			doorways[3] = 1;
 			doors[3] = 0;
-			templates[1]([currentOrigin.x, currentOrigin.y], doors, doorways);
+			templates[newRoom]([currentOrigin.x, currentOrigin.y], doors, doorways);
 		}
 		if(entryPoint == "south"){
 			light.translateLight([0,0,-200]);
 			currentOrigin.y--;
 			doorways[0] = 1; 
 			doors[0] = 0;
-			templates[1]([currentOrigin.x, currentOrigin.y], doors, doorways);
+			templates[newRoom]([currentOrigin.x, currentOrigin.y], doors, doorways);
 		}else if(entryPoint == "west"){
 			light.translateLight([200,0,0]);
 			currentOrigin.x++;
 			doorways[1] = 1; 		
 			doors[1] = 0;
-			templates[1]([currentOrigin.x, currentOrigin.y], doors, doorways);
+			templates[newRoom]([currentOrigin.x, currentOrigin.y], doors, doorways);
 		}
 		// Unload oldest room.
 		if(Rooms.length > maxRooms){
@@ -678,7 +684,7 @@ window.onload = function(){
 
 
             trip_audio.play();
-            resetCamera();
+            movePlayer(20, 0, -60);
             rotateCamera(0, -30);
           	tripID = setInterval(function(){
 				tripIt++;
