@@ -14,7 +14,6 @@ window.onload = function(){
 	// sets health bar to whatever percentage
 	var setHealth = function(percent = healthleft){
 		document.getElementById("health").style.width = percent + "%";
-		console.log(percent);
 	}
 	setHealth();
 
@@ -285,12 +284,16 @@ window.onload = function(){
 	//rotateCamera(180, 0); // Initialize camera facing door. TODO: remove
 
 	////////////////////// Objects /////////////////////
+
 	var Rooms = [];
+	var templates = [loadBedroom, loadBathroom];
+
 	var ID = -1;
 	function getID(){
 		ID++;
 		return ID;
 	}
+
 	
 	// rooms return the range of indices in objects that contain their components. These will be accessed at a later time to 
 	// translate the entire room
@@ -301,14 +304,14 @@ window.onload = function(){
 	{
 		var jsonObjects = [["meshes/bed.json", 			[75,10,65], [18,20,18],   180, [0,1,0], ["textures/bed.png"], null, "bed", getID()],
 					["meshes/bedside-table.json", 	[35,0,88], [1,1,1], 		   -90, [0,1,0], ["textures/bedwood.png"], [1,1,1,1]],
-					["meshes/window1.json", 		[-100,10,0], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]],
+					["meshes/window1.json", 		[-100,10,-10], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]],
 					["meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]],
 					["meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], ["textures/wood2.png"],   [90/255,67/255,80/255,1]],
 					["meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]],
 					["meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/cheese.png"],  [90/255,67/255,80/255,1], "food", getID()],
 					["meshes/umbreon.json",		[40,20,84], [3.2,3.2,3.2], 		-125,  [0,1,0], ["textures/umbreon.png","textures/umbreon2.png"], [1,1,1,1]],
 					["meshes/key.json",		[58,0,50], [11,11,11], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
-					["meshes/painting.json",		[-85,25,99], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/waifu.png"], [1,1,1,1], null, null, null]];
+					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/waifu.png"], [1,1,1,1], null, null, null]];
 		var otherObjects = loadBox(["textures/hardwood.png", "textures/crate.png", "textures/wallpaper1.png"], doorways);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
@@ -323,34 +326,74 @@ window.onload = function(){
 		var jsonObjects = []
 		var boxObjects = loadBox(["textures/bathroomfloor.png","textures/bathroomfloor.png","textures/bathroomfloor.png"], doorways)
 		otherObjects = boxObjects;
-		for (var i = -4; i < 5; i++){
+		for (var i = -3; i < 4; i++){
 			if(!i || i == 1 || i == -1)  continue;
 			var offset = i*20;
 			jsonObjects.push(["meshes/sink.json", [offset, 20, 92], [38, 38, 38], 0, [1, 0, 0], ["textures/steel.png"], [1, 1, 1, 1]]);
 		};
-		jsonObjects.push(["meshes/toilet.json", [90, 0, -10], [0.8, 0.8, 0.73], -90, [0, 1, 0], ["textures/porcelain.png"], [1, 1, 1, 1]]);
-		jsonObjects.push(["meshes/tp.json", [93, 0, 0], [0.7, 0.7, 0.73], -90, [0, 1, 0], ["textures/wood2.png"], [0.5, 0.5, 0.5, 1]]);
+		jsonObjects.push(["meshes/toilet.json", [90, 0, -30], [0.8, 0.8, 0.73], -90, [0, 1, 0], ["textures/porcelain.png"], [1, 1, 1, 1]]);
+		jsonObjects.push(["meshes/tp.json", [93, 0, -20], [0.7, 0.7, 0.73], -90, [0, 1, 0], ["textures/wood2.png"], [0.5, 0.5, 0.5, 1]]);
 		jsonObjects.push(["meshes/painting.json",		[58,23,99], [1,1.5,1], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/obama.png"], [1,1,1,1], null, null, null]);
 		jsonObjects.push(["meshes/key.json",		[60,16.6,93.1], [11,11,11], 		65,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key_obama", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}])
 		
-		jsonObjects.push(["meshes/board.json",	[-64,30,0], [3.03,1.83,1.8], 90,  [0,0,1], ["textures/wood2.png"], [1,1,1,1], "shower_door_1", getID(), null])
-		jsonObjects.push(["meshes/board.json",	[-64,30,-38 - 38], [3.03,1.83,1.8], 90,  [0,0,1], ["textures/wood2.png"], [1,1,1,1], "shower_door_2", getID(), null])
+		jsonObjects.push(["meshes/board.json",	[-60,30,-38 - 38], [3.03,1.83,1.8], 90,  [0,0,1], ["textures/wood2.png"], [1,1,1,1], "shower_door_2", getID(), null])
 
-		jsonObjects.push(["meshes/cubicle.json",	[-84,-4,-38], [1.43,1.43,1.5], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], null, null, null]);
-		jsonObjects.push(["meshes/cubicle.json",	[-84,-4,-38 + -38], [1.43,1.43,1.5], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], null, null, null]);
-		jsonObjects.push(["meshes/cubicle.json",	[-84,-4, 0], [1.43,1.43,1.5], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], null, null, null]);
+		jsonObjects.push(["meshes/cubicle.json",	[-80,-4,-38], [1.43,1.43,1.5], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], null, null, null]);
+		jsonObjects.push(["meshes/cubicle.json",	[-80,-4,-38 + -38], [1.43,1.43,1.5], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], null, null, null]);
 	
 		jsonObjects.push(["meshes/grate.json",		[0,-3,0], [0.07,0.07,0.14], 0,  [0,1,0], ["textures/stone.png"], [0,1,1,1], null, null, null]);
 
-		jsonObjects.push(["meshes/board.json",	[0,55,0], [0.5,0.5,0.7], 0,  [0,0,1], null, [1,1,1,1], "shower_door_2", getID(), null])
+		jsonObjects.push(["meshes/board.json",	[0,55,0], [0.5,0.5,0.7], 0,  [0,0,1], null, [1,1,1,1], null, null, null])
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
 		Rooms.push(new Room(gl, program, buffers, jsonObjects, otherObjects, coords));
 	}
-	//loadBedroom([0, 0], [0,0,1,0], [0,0,1,0]);
-	loadBathroom([0, -0], [0,0,1,0], [1,0,1,0]);
-	
+
+	var currentOrigin = {x: 0, y: 0};
+	var maxRooms = 2; // The maximum number of rooms that can be loaded at once.
+	loadBedroom([0, 0], [0,0,1,0], [0,0,1,0]);
+	// @entryPoint is the direction of entry from the perspective of the previous room.
+	function loadNewRoom(entryPoint){ 
+		while(true){
+			var rand1 = Math.random() >= 0.5;		var rand2 = Math.random() >= 0.5;
+			var rand3 = Math.random() >= 0.5;		var rand4 = Math.random() >= 0.5;
+			if(rand1 + rand2 + rand3 + rand4 > 2) break;	
+		}
+		var doorways = [0, 0, rand3, rand4]; // north and east won't have doors.
+		var doors = [0, 0, rand3, rand4];
+		if(entryPoint == "north"){
+			light.translateLight([0,0,200]);
+			currentOrigin.y++;
+			doorways[2] = 1;
+			doors[2] = 0;
+			templates[1]([currentOrigin.x, currentOrigin.y], doors, doorways);
+		}
+		if(entryPoint == "east"){
+			light.translateLight([-200,0,0]);
+			currentOrigin.x--
+			doorways[3] = 1;
+			doors[3] = 0;
+			templates[1]([currentOrigin.x, currentOrigin.y], doors, doorways);
+		}
+		if(entryPoint == "south"){
+			light.translateLight([0,0,-200]);
+			currentOrigin.y--;
+			doorways[0] = 1; 
+			doors[0] = 0;
+			templates[1]([currentOrigin.x, currentOrigin.y], doors, doorways);
+		}else if(entryPoint == "west"){
+			light.translateLight([200,0,0]);
+			currentOrigin.x++;
+			doorways[1] = 1; 		
+			doors[1] = 0;
+			templates[1]([currentOrigin.x, currentOrigin.y], doors, doorways);
+		}
+		// Unload oldest room.
+		if(Rooms.length > maxRooms){
+			Rooms.shift();
+		}
+	}
 	
 	function loadDoors(doors, ceilingHeight = 55){
 		var door_textures = ["textures/bedwood.png","textures/doorhandle1.png","textures/hardwood.png","textures/bedwood.png","textures/bedwood.png",
@@ -373,7 +416,7 @@ window.onload = function(){
 				translation = [100,-1, 0];
 				dir = "west";
 			} 
-			doorArray.push(["meshes/door.json",	translation, [6 * adj , 6 * adj, 6 * adj], i * 90 - 90,  [0,1,0], door_textures, [1,1,1,1], "closed_door_" + dir, getID(), door_material]);
+			doorArray.push(["meshes/door.json",	translation, [6 * adj , 6 * adj, 6 * adj], (i) * 90 - 90,  [0,1,0], door_textures, [1,1,1,1], "closed_door_" + dir, getID(), door_material]);
 		}
 		return doorArray;
 	}
@@ -400,7 +443,7 @@ window.onload = function(){
 			 	wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, buffers);
 			if(textures[2+j]) wall.attachTexture(textures[2+j]);
 			else wall.attachTexture(textures[2]);
-			roomBox.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(j*90), [0,1,0], [8,4]));
+			roomBox.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(j*-90), [0,1,0], [8,4]));
 		}
 		return roomBox;
   }
@@ -440,7 +483,6 @@ window.onload = function(){
 		
 		if(pixels[1] == 0) return null;
 		var ID = pixels[0] //+ pixels[1] * 256 + pixels[2] * 256 * 256
-		console.log(ID);
 		return ID;
 	}
 
@@ -449,6 +491,7 @@ window.onload = function(){
 	var door_audio = new Audio('sound/door_open.m4a');
 	var key_audio = new Audio('sound/key2.m4a');
 	var holdingKey = 0;
+	var doorOpened = 0;
 	function setStatus(string, time){
 		status.innerHTML = string;
         setTimeout(function(){
@@ -470,9 +513,6 @@ window.onload = function(){
             healthleft = Math.min(100, healthleft + 10);
             setHealth(healthleft);
           } 
-          else if(itemType == "bed"){
-            console.log("zzz");
-          }
           else if(itemType == "closed_door_south"){
             if(testKeys && !holdingKey){ // TODO: Re-enable keys before demo.
               setStatus("The door seems to be locked.", 5000);	
@@ -484,8 +524,76 @@ window.onload = function(){
               door_audio.play();
               setTimeout(function(){ // This is necessary because the door is composed of multiple pickable meshes.
                 holdingKey = 0;
+				doorOpened = 0;
                 toggleKeyIcon(0);
-              }, 100);
+              }, 200);
+			  if(!doorOpened){
+				console.log("south")
+				loadNewRoom("south");
+			  } 
+			  doorOpened = 1;
+            }
+          }
+		   else if(itemType == "closed_door_north"){
+            if(testKeys && !holdingKey){ // TODO: Re-enable keys before demo.
+              setStatus("The door seems to be locked.", 5000);	
+            } else {
+              room.objects[i].translation[0] = room.objects[i].translation[0] -1.0;
+              room.objects[i].translation[2] = room.objects[i].translation[2] - 0.78;
+              room.objects[i].rotation = room.objects[i].rotation + glMatrix.toRadian(-100);
+              room.objects[i].itemType = "open_door"
+              door_audio.play();
+              setTimeout(function(){ // This is necessary because the door is composed of multiple pickable meshes.
+                holdingKey = 0;
+				doorOpened = 0;
+                toggleKeyIcon(0);
+              }, 200);
+			  if(!doorOpened){
+				loadNewRoom("north");
+			  } 
+			  doorOpened = 1;
+            }
+          }
+		   else if(itemType == "closed_door_east"){
+            if(testKeys && !holdingKey){ // TODO: Re-enable keys before demo.
+              setStatus("The door seems to be locked.", 5000);	
+            } else {
+              room.objects[i].translation[0] = room.objects[i].translation[2] - 1.0;
+              room.objects[i].translation[2] = room.objects[i].translation[0] - 0.78;
+              room.objects[i].rotation = room.objects[i].rotation + glMatrix.toRadian(100);
+              room.objects[i].itemType = "open_door"
+              door_audio.play();
+              setTimeout(function(){ // This is necessary because the door is composed of multiple pickable meshes.
+                holdingKey = 0;
+				doorOpened = 0;
+                toggleKeyIcon(0);
+              }, 200);
+			  if(!doorOpened){
+				console.log("east");
+				loadNewRoom("east");
+			  } 
+			  doorOpened = 1;
+            }
+          }
+		   else if(itemType == "closed_door_west"){
+            if(testKeys && !holdingKey){ // TODO: Re-enable keys before demo.
+              setStatus("The door seems to be locked.", 5000);	
+            } else {
+              room.objects[i].translation[2] = room.objects[i].translation[2] + 1.0;
+              room.objects[i].translation[0] = room.objects[i].translation[0] - 0.78;
+              room.objects[i].rotation = room.objects[i].rotation + glMatrix.toRadian(-80);
+              room.objects[i].itemType = "open_door"
+              door_audio.play();
+              setTimeout(function(){ // This is necessary because the door is composed of multiple pickable meshes.
+                holdingKey = 0;
+				doorOpened = 0;
+                toggleKeyIcon(0);
+              }, 200);
+			  if(!doorOpened){
+				console.log("west");
+				loadNewRoom("west");
+			  } 
+			  doorOpened = 1;
             }
           }
           else if(itemType == "open_door"){
@@ -538,8 +646,11 @@ window.onload = function(){
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-		Rooms.forEach(function(room){
-			room.objects.forEach(function(object){
+
+		var object;
+		for(var i = 0; i < Rooms.length; i++){
+			for(var j = 0; j < Rooms[i].objects.length; j++){
+				object = Rooms[i].objects[j];
 				// Begin transformations.
 				mat4.identity(worldMatrix);
 				mat4.scale(scalingMatrix, identityMatrix, object.scale);
@@ -573,8 +684,8 @@ window.onload = function(){
 				
 				if(object.isDrawn)
 					object.draw();
-			});
-		});
+			}
+		}
 
 		// Draw to the frame buffer for picking.
 		gl.uniformMatrix4fv(mProjLoc, gl.FALSE, pickProjMatrix);
@@ -582,8 +693,9 @@ window.onload = function(){
 		gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		gl.uniform1i(use_ambience_loc, 0); // Turn off ambience before drawing to ensure fixed colors.
-		Rooms.forEach(function(room){
-			room.objects.forEach(function(object){
+		for(var i = 0; i < Rooms.length; i++){
+			for(var j = 0; j < Rooms[i].objects.length; j++){
+				object = Rooms[i].objects[j];
 				// Begin transformations.
 				mat4.identity(worldMatrix);
 				mat4.scale(scalingMatrix, identityMatrix, object.scale);
@@ -607,8 +719,8 @@ window.onload = function(){
 				if(object.isDrawn)
 					object.shape.drawForPicking();
 
-			})
-		});
+			}
+		}
 		gl.uniform1i(use_ambience_loc, 1);
 		requestAnimationFrame(loop);
 	}
