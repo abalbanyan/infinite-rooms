@@ -166,7 +166,7 @@ window.onload = function(){
 	////////////////////// Shadows ///////////////////////
 
 	// Create Framebuffers and Textures
-	shadowMapCube = gl.createTexture();
+	var shadowMapCube = gl.createTexture();
 	gl.bindTexture(gl.TEXTURE_CUBE_MAP, shadowMapCube);
 	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -182,9 +182,9 @@ window.onload = function(){
 		);
 	}
 
-	shadowMapFrameBuffer = gl.createFramebuffer();
+	var shadowMapFrameBuffer = gl.createFramebuffer();
 	gl.bindFramebuffer(gl.FRAMEBUFFER, shadowMapFrameBuffer);
-	shadowMapRenderBuffer = gl.createRenderbuffer();
+	var shadowMapRenderBuffer = gl.createRenderbuffer();
 	gl.bindRenderbuffer(gl.RENDERBUFFER, shadowMapRenderBuffer);
 
 	gl.renderbufferStorage(
