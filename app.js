@@ -1003,6 +1003,16 @@ window.onload = function(){
 		// Draw to the frame buffer for picking.
 		gl.useProgram(program);
 		light.changeProgram(program);
+
+		// Adjust view. The order of the rotation ensures that the camera rotates heading around the world's Y axis.
+		mat4.mul(viewMatrix, testViewMatrix, identityMatrix);
+		mat4.rotate(rotationMatrix1, identityMatrix, glMatrix.toRadian(heading), [0,1,0]); // Adjust heading.
+		mat4.rotate(rotationMatrix2, identityMatrix, glMatrix.toRadian(pitch), [1,0,0]); // Adjust pitch.
+		mat4.mul(viewMatrix, rotationMatrix1, viewMatrix);
+		mat4.mul(viewMatrix, rotationMatrix2, viewMatrix);
+		mat4.invert(curViewMatrix, viewMatrix);
+		gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
+
 		gl.uniformMatrix4fv(mProjLoc, gl.FALSE, pickProjMatrix);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, pickBuffer); // Comment this to draw the pickColors to the screen.
 		gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
