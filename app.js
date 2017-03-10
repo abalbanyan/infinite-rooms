@@ -926,8 +926,10 @@ window.onload = function(){
             rotateCamera(0, -30);
           	tripID = setInterval(function(){
 				tripIt++;
-				if(tripIt == 2000)	
+				if(tripIt == 1000){	
 					clearInterval(tripID);
+					trip_audio.pause();
+				}
 				else
 					rotateCamera(tripIt/100, Math.sin(tripIt/100) / 4 );
 			}, 10);  	
