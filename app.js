@@ -335,7 +335,7 @@ window.onload = function(){
 	////////////////////// Objects /////////////////////
 
 	var Rooms = [];
-	var templates = [loadBathroom, loadKitchen, loadMeme];
+	var templates = [loadMeme, loadBathroom, loadKitchen];
 
 	var ID = -1;
 	function getID(){
@@ -353,7 +353,7 @@ window.onload = function(){
 	{
 		var jsonObjects = [["meshes/bed.json", 			[75,10,65], [18,20,18],   180, [0,1,0], ["textures/bed.png"], null, "bed", getID()],
 					["meshes/bedside-table.json", 	[35,0,88], [1,1,1], 		   -90, [0,1,0], ["textures/bedwood.png"], [1,1,1,1]],
-					["meshes/bodypillow.json", 	[50,15,20], [15,15,15], 		   -90, [0,1,0], ["textures/bodypillow.png"], [1,1,1,1]],
+					["meshes/bodypillow.json", 	[80,15,78], [22,22,24], 		   0, [0,1,0], ["textures/bodypillow.png"], [1,1,1,1]],
 					["meshes/window1.json", 		[-100,10,-10], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]],
 					["meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]],
 					["meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], ["textures/wood2.png"],   [90/255,67/255,80/255,1]],
@@ -427,7 +427,9 @@ window.onload = function(){
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
-		Rooms.push(new Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));			
+		Rooms.push(new Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));		
+
+		templates.shift();	
 	}
 
 	function loadBathroom(coords, doors, doorways)
