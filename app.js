@@ -203,6 +203,11 @@ window.onload = function(){
 	function handleInput(){
 
 		//handle keyboard input
+		if(map[13]) {
+			utils.fade(document.getElementById("landingPageBackground"));
+			utils.fade(document.getElementById("landingPageText"));
+			utils.fade(document.getElementById("landingPageSubtext"));
+		}
 		if(map[87]) movePlayer(0,0, playerSpeed * 1);   // W
 		if(map[83]) movePlayer(0,0, -playerSpeed * 1);  // S
  		if(map[68]) movePlayer(-playerSpeed * 1, 0, 0);  // D
@@ -305,6 +310,7 @@ window.onload = function(){
 	{
 		var jsonObjects = [["meshes/bed.json", 			[75,10,65], [18,20,18],   180, [0,1,0], ["textures/bed.png"], null, "bed", getID()],
 					["meshes/bedside-table.json", 	[35,0,88], [1,1,1], 		   -90, [0,1,0], ["textures/bedwood.png"], [1,1,1,1]],
+					["meshes/bodypillow.json", 	[50,15,20], [15,15,15], 		   -90, [0,1,0], ["textures/bodypillow.png"], [1,1,1,1]],
 					["meshes/window1.json", 		[-100,10,-10], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]],
 					["meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]],
 					["meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], ["textures/wood2.png"],   [90/255,67/255,80/255,1]],
@@ -314,6 +320,19 @@ window.onload = function(){
 					["meshes/key.json",		[58,0,50], [11,11,11], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
 					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/waifu.png"], [1,1,1,1], null, null, null]];
 		var otherObjects = loadBox(["textures/hardwood.png", "textures/crate.png", "textures/wallpaper1.png"], doorways);
+
+		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
+
+		Rooms.push(new Room(gl, program, buffers, jsonObjects, otherObjects, coords));
+	}
+
+	function loadLivingRoom(coords, doors, doorways){
+		var jsonObjects = []
+		var boxObjects = loadBox(["textures/bathroomfloor.png","textures/bathroomfloor.png","textures/bathroomfloor.png"], doorways)
+		otherObjects = boxObjects;
+		
+		jsonObjects.push(["meshes/board.json",	[0,55,0], [0.5,0.5,0.7], 0,  [0,0,1], null, [1,1,1,1], null, null, null])
+		jsonObjects.push(["meshes/living_table.json",	[0,55,0], [0.1,0.1,0.1], 0,  [0,0,1], null, [1,1,1,1], null, null, null])
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
@@ -399,6 +418,7 @@ window.onload = function(){
 
 	var currentOrigin = {x: 0, y: 0};
 	var maxRooms = 2; // The maximum number of rooms that can be loaded at once.
+	//loadLivingRoom([0, 0], [0,0,1,0], [0,0,1,0]);
 	loadBedroom([0, 0], [0,0,1,0], [0,0,1,0]);
 
 	// @entryPoint is the direction of entry from the perspective of the previous room.

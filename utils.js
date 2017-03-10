@@ -1,6 +1,6 @@
 (function(global){
 
-  var uiUtils = {
+  var utils = {
     VERSION : '0.0.2',
     pixelInputToGLCoord: function(event, canvas) {
       var x = event.clientX,
@@ -19,10 +19,23 @@
       x = x - rect.left;
       y = rect.bottom - y;
       return {x:x,y:y};
+    },
+    fade: function(element){
+      var op = 1;  // initial opacity
+      var timer = setInterval(function () {
+          if (op <= 0.1){
+              clearInterval(timer);
+              element.style.display = 'none';
+          }
+          element.style.opacity = op;
+          element.style.filter = 'alpha(opacity=' + op * 100 + ")";
+          op -= op * 0.1;
+      }, 50);
     }
   };
 
+
   // Expose uiUtils globally
-  global.uiUtils = uiUtils;
+  global.utils = utils;
 
 }(window || this));

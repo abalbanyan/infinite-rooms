@@ -1,0 +1,55 @@
+body{
+	font-family: 'Open Sans', sans-serif;
+}
+
+#landingPageBackground {
+	z-index: 2;
+	position: fixed;
+	margin-left: -5vw;
+	margin-top: -5vw;
+	background-color: #2B4886;
+}
+
+#landingPageText {
+	position: fixed;
+	z-index: 3;
+	color: white;
+	letter-spacing: 0.1em;
+	font-size: 5vw;
+ 	text-shadow:
+    -1px -1px 0 #000,  
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
+    margin-left: 20vw;
+    margin-top: 11vw;
+}
+#landingPageSubtext {
+	position: fixed;
+	z-index: 3;
+	color: white;
+	font-family: avenir, helvetica, roboto, arial, sans-serif;
+	letter-spacing: 0.1em;
+	font-size: 1vw;
+ 	text-shadow:
+    -1px -1px 0 #000,  
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
+    margin-left: 20vw;
+    margin-top: 20vw;
+}
+#loadingPageImage {
+	 /* Set rules to fill background */
+  min-height: 100%;
+  min-width: 1024px;
+	
+  /* Set up proportionate scaling */
+  width: 100%;
+  height: auto;
+	
+  /* Set up positioning */
+  position: fixed;
+  top: 0;
+  left: 0;
+}
