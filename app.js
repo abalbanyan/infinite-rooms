@@ -414,8 +414,8 @@ window.onload = function(){
 
 	var currentOrigin = {x: 0, y: 0};
 	var maxRooms = 2; // The maximum number of rooms that can be loaded at once.
-	// loadMeme([0, 0], [0,0,1,0], [0,0,1,0]);
-	loadBedroom([0, 0], [0,0,1,0], [0,0,1,0]);
+	loadMeme([0, 0], [0,0,1,0], [0,0,1,0]);
+	// loadBedroom([0, 0], [0,0,1,0], [0,0,1,0]);
 
 
 	// @entryPoint is the direction of entry from the perspective of the previous room.
