@@ -163,7 +163,7 @@ window.onload = function(){
 	var lightColors = [1,0.3,0.1,1];
 	var vec3LightPositions = vec3.fromValues(0.0, 45.0, 0.0);
 	var lightAttenuations = [2.0/10000.0];
-	var ambience = 0.3
+	var ambience = 0.3;
 
 	var light = new Light(lightPositions, lightColors, lightAttenuations, ambience, gl, program);
 	var gouraud_loc = gl.getUniformLocation(program, 'GOURAUD');
@@ -432,7 +432,47 @@ window.onload = function(){
 			doors[1] = 0;
 			templates[1]([currentOrigin.x, currentOrigin.y], doors, doorways);
 		}
-		// Unload oldest room.
+
+		// Update lighting for shadow mapping
+		vec3LightPositions = vec3.fromValues(light.lightPosition[0], light.lightPosition[1], light.lightPosition[2]);
+		shadowMapCameras = [
+		// Positive X
+		new Camera(
+			vec3LightPositions,
+			vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(1, 0, 0)),
+			vec3.fromValues(0, -1, 0)
+		),
+		// Negative X
+		new Camera(
+			vec3LightPositions,
+			vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(-1, 0, 0)),
+			vec3.fromValues(0, -1, 0)
+		),
+		// Positive Y
+		new Camera(
+			vec3LightPositions,
+			vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(0, 1, 0)),
+			vec3.fromValues(0, 0, 1)
+		),
+		// Negative Y
+		new Camera(
+			vec3LightPositions,
+			vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(0, -1, 0)),
+			vec3.fromValues(0, 0, -1)
+		),
+		// Positive Z
+		new Camera(
+			vec3LightPositions,
+			vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(0, 0, 1)),
+			vec3.fromValues(0, -1, 0)
+		),
+		// Negative Z
+		new Camera(
+			vec3LightPositions,
+			vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(0, 0, -1)),
+			vec3.fromValues(0, -1, 0)
+		)
+		];
 		if(Rooms.length > maxRooms){
 			Rooms.shift();
 		}
@@ -526,7 +566,7 @@ window.onload = function(){
 
 	// Shadow Map Cameras
 	//TODO: get rid of Positive Y (on the ceiling)
-	var shadowMapCameras = [
+	shadowMapCameras = [
 	// Positive X
 	new Camera(
 		vec3LightPositions,
@@ -562,7 +602,7 @@ window.onload = function(){
 		vec3LightPositions,
 		vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(0, 0, -1)),
 		vec3.fromValues(0, -1, 0)
-	),
+	)
 	];
 	var shadowMapViewMatrices = [
 		mat4.create(),
@@ -823,7 +863,7 @@ window.onload = function(){
 		);
 		gl.uniform4fv(
 			shadowMapUniforms.pointLightPositionLoc,
-			lightPositions
+			light.lightPosition
 		);
 		gl.uniformMatrix4fv(
 			shadowMapUniforms.shadowMapProjLoc,
