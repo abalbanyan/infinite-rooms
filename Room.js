@@ -1,4 +1,4 @@
-function Room(gl, program, buffers, jsonobjects, otherObjects, coordinates) {
+function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects, otherObjects, coordinates) {
     this.meshes = jsonobjects;
     this.objects = otherObjects;
     this.coords = coordinates;
@@ -41,23 +41,23 @@ function Room(gl, program, buffers, jsonobjects, otherObjects, coordinates) {
                     vertices = mesh.vertices;
                     normals = mesh.normals;
                     textureCoords = [].concat.apply([], mesh.texturecoords);
-                    shape = new Shape(vertices, indices, normals, textureCoords, gl, program, buffers);
+                    shape = new Shape(vertices, indices, normals, textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
                     if(textureCoords.length && texture != null) { // First check if the mesh component has a texture.
                         shape.attachTexture(texture[texIterator]);
-                        if(texIterator < texture.length - 1) texIterator++; 
+                        if(texIterator < texture.length - 1) texIterator++;
                     }
                     else if(color != null) shape.setColor(color);
                     else shape.setColor([0,1,0,1]); // Set color to green if both of the above fail.
                     if(material != null) shape.setMaterialProperties(material.diffusivity, material.smoothness, material.shininess);
                     var object = new Object(shape, translation, scale, rotation, axis);
 
-                    if(pickID != null) 
+                    if(pickID != null)
                         object.shape.makePickable(pickID);
-            
-                    object.itemType = itemType; 
+
+                    object.itemType = itemType;
                     self.objects.push(object);
                 }
-		    }   
+		    }
         }
         rawFile.send();
 	}

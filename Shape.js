@@ -15,6 +15,14 @@ class Object{
 		this.shape.draw();
 	}
 
+	shadowMapDraw(shadowMapAttributes){
+		this.shape.shadowMapDraw(shadowMapAttributes);
+	}
+
+	shadowDraw(shadowUniforms, shadowAttributes){
+		this.shape.shadowDraw(shadowUniforms, shadowAttributes);
+	}
+
 	delete(){
 		this.isDrawn = false;
 	}
@@ -22,13 +30,16 @@ class Object{
 
 // The properties of an object are stored here, like vertices, color, texture, etc.
 class Shape{
-	constructor(vertices, indices, normals, textureCoords, gl, program, buffers){
+	constructor(vertices, indices, normals, textureCoords,
+		gl, program, shadowMapProgram, shadowProgram, buffers){
 		this.vertices = vertices;
 		this.indices = indices;
 		this.normals = normals;
 		this.textureCoords = textureCoords; // Set textureCoords to null if no texture is needed.
 		this.gl = gl;
 		this.program = program;
+		this.shadowMapProgram = shadowMapProgram;
+		this.shadowProgram = shadowProgram;
 		this.buffers = buffers;
 		this.material = { diffusivity: 3.5, smoothness: 40, shininess: 0.8 }; // Default material properties
 		//this.material.diffusivity = 1.5;
@@ -115,7 +126,7 @@ class Shape{
 		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.buffers.indexBuffer);
 		this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), this.gl.STATIC_DRAW);
 
-		this.gl.vertexAttribPointer( this.positionAttribLocation,	
+		this.gl.vertexAttribPointer( this.positionAttribLocation,
 		3, // Number of elements per attribute
 		this.gl.FLOAT, // Type of elements
 		this.gl.FALSE, // Normalization?
@@ -207,6 +218,86 @@ class Shape{
 
 	}
 
+	shadowMapDraw(shadowMapAttributes){
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.vertexBuffer); // The active buffer is now an ARRAY_BUFFER, vertexBuffer.
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.vertices), this.gl.STATIC_DRAW); 	// This uses whatever buffer is active. Float32Array is needed because webGL only uses 32 bit floats.  gl.STATIC_DRAW means we are sending the information once and not changing it.
+
+		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.buffers.indexBuffer);
+		this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), this.gl.STATIC_DRAW);
+
+		this.gl.vertexAttribPointer( shadowMapAttributes.positionAttribLocation,
+		3, // Number of elements per attribute
+		this.gl.FLOAT, // Type of elements
+		this.gl.FALSE, // Normalization?
+		3 * Float32Array.BYTES_PER_ELEMENT, // Size of individual vertex in bytes.
+		0 // Offset from beginning of single vertex to this attribute.
+		);
+		this.gl.enableVertexAttribArray( shadowMapAttributes.positionAttribLocation);
+		this.gl.drawElements(this.gl.TRIANGLES, this.indices.length, this.gl.UNSIGNED_SHORT, 0);
+	}
+
+	shadowDraw(shadowUniforms, shadowAttributes){
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.vertexBuffer); // The active buffer is now an ARRAY_BUFFER, vertexBuffer.
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.vertices), this.gl.STATIC_DRAW); 	// This uses whatever buffer is active. Float32Array is needed because webGL only uses 32 bit floats.  gl.STATIC_DRAW means we are sending the information once and not changing it.
+
+		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.buffers.indexBuffer);
+		this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), this.gl.STATIC_DRAW);
+
+		this.gl.vertexAttribPointer( shadowAttributes.vertPosition,
+		3, // Number of elements per attribute
+		this.gl.FLOAT, // Type of elements
+		this.gl.FALSE, // Normalization?
+		3 * Float32Array.BYTES_PER_ELEMENT, // Size of individual vertex in bytes.
+		0 // Offset from beginning of single vertex to this attribute.
+		);
+		this.gl.enableVertexAttribArray( shadowAttributes.vertPosition);
+
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.normalBuffer);
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.normals), this.gl.STATIC_DRAW);
+
+		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.buffers.indexNormalBuffer);
+		this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), this.gl.STATIC_DRAW);
+
+		this.gl.vertexAttribPointer(shadowAttributes.vertNormal,
+			3,
+			this.gl.FLOAT,
+			this.gl.FALSE,
+			3 * Float32Array.BYTES_PER_ELEMENT,
+			0
+		);
+		this.gl.enableVertexAttribArray(shadowAttributes.vertNormal);
+
+		// Setup materials for lighting
+		this.gl.uniform1f(shadowUniforms.diffusivity, this.material.diffusivity);
+		this.gl.uniform1f(shadowUniforms.smoothness, this.material.smoothness);
+		this.gl.uniform1f(shadowUniforms.shininess, this.material.shininess);
+		if(this.shapeColor != null) this.gl.uniform4fv(shadowUniforms.shapeColor, this.shapeColor);
+
+
+		if(this.use_texture){
+			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.texCoordBuffer);
+			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.textureCoords), this.gl.STATIC_DRAW);
+
+			this.gl.enableVertexAttribArray(shadowAttributes.texCoord);
+			this.gl.vertexAttribPointer(shadowAttributes.texCoord, 2, this.gl.FLOAT, false, 0, 0);
+
+			this.gl.activeTexture(this.gl.TEXTURE0);
+			this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
+			this.textureLocation = this.gl.getUniformLocation(this.shadowProgram, 'texture');
+			this.gl.uniform1i(this.textureLocation, 0);
+			this.gl.uniform1i(shadowUniforms.sampler, 0);
+			this.gl.uniform1i(shadowUniforms.USE_TEXTURE_Location, 1);
+
+			this.gl.drawElements(this.gl.TRIANGLES, this.indices.length, this.gl.UNSIGNED_SHORT, 0);
+
+			this.gl.disableVertexAttribArray(shadowAttributes.texCoord); // This is important!
+		}
+		else {
+			this.gl.uniform1i(shadowUniforms.USE_TEXTURE_Location, 0);
+
+			this.gl.drawElements(this.gl.TRIANGLES, this.indices.length, this.gl.UNSIGNED_SHORT, 0);
+		}
+	}
 }
 
 
