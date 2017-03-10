@@ -238,6 +238,7 @@ window.onload = function(){
 	var testKeys = 0;
 
 	// This section of Control is responsible for gamepad functionality.
+	var gameStart = 0;
 	var prevcrouch = 0;	var keyboard_prevcrouch = 0;
 	var crouch = 0; var keyboard_crouch = 0;
 	var footsteps_audio = new Audio('sound/footsteps.wav');
@@ -247,9 +248,12 @@ window.onload = function(){
 
 		//handle keyboard input
 		if(map[13]) {
-			utils.fade(document.getElementById("landingPageBackground"));
-			utils.fade(document.getElementById("landingPageText"));
-			utils.fade(document.getElementById("landingPageSubtext"));
+			if(!gameStart){
+				utils.fade(document.getElementById("landingPageBackground"));
+				utils.fade(document.getElementById("landingPageText"));
+				utils.fade(document.getElementById("landingPageSubtext"));
+				gameStart = 1;
+			}
 		}
 		if(map[87]) movePlayer(0,0, playerSpeed * 1);   // W
 		if(map[83]) movePlayer(0,0, -playerSpeed * 1);  // S
