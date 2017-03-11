@@ -69,12 +69,14 @@ varying float dist[N_LIGHTS];
 uniform float ambient, diffusivity, shininess, smoothness, attenuation_factor[N_LIGHTS];
 
 uniform sampler2D texture;
+uniform sampler2D normalMap;
 varying vec2 fragTexCoord;
 
 uniform vec4 shapeColor;  // Should really be called "shapeColor"...
 
 // Control Flags
 uniform bool USE_TEXTURE;
+uniform bool USE_NORMAL_MAP;
 
 void main(){
 	vec3 vec3LightPos = lightPos.xyz;
@@ -99,10 +101,17 @@ void main(){
 		gl_FragColor = vec4(shapeColor.xyz * ambient, shapeColor.w);
 	}
 
+	vec3 bumped_N = N; // numped_N is just the normal N if USE_NORMAL_MAP is off.
+	vec4 normalMap_color;
+	if(USE_NORMAL_MAP && USE_TEXTURE){
+		normalMap_color = texture2D(normalMap, fragTexCoord);
+		bumped_N = normalize(N + normalMap_color.rgb - 0.5*vec3(1,1,1));
+	}
+
 	for( int i = 0; i < N_LIGHTS; i++ ){
 		float attenuation_multiplier = 1.0 / (1.0 + attenuation_factor[i] * (dist[i] * dist[i]));
-		float diffuse  = max(dot(L[i], N), 0.0);
-		float specular = pow(max(dot(H[i], N), 0.0), smoothness);
+		float diffuse  = max(dot(L[i], bumped_N), 0.0);
+		float specular = pow(max(dot(H[i], bumped_N), 0.0), smoothness);
 
 		if ((shadowMapValue + 0.005) >= fromLightToFrag){
 			if(USE_TEXTURE)

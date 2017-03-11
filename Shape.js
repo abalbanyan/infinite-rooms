@@ -51,6 +51,8 @@ class Shape{
 		this.pickColor = null;
 		this.pickID = null;
 		this.texture = gl.createTexture()
+		this.use_normal_map = 0;
+		this.normalMapTexture = gl.createTexture();
 
 		this.positionAttribLocation = gl.getAttribLocation(program, 'vertPosition');
 		this.samplerLocation = gl.getUniformLocation(program, 'sampler')
@@ -72,6 +74,24 @@ class Shape{
 		var img = new Image()
 		img.onload = function(){
 			gl.bindTexture(gl.TEXTURE_2D, texture);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+			gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+		//	gl.generateMipmap(gl.TEXTURE_2D);
+			gl.bindTexture(gl.TEXTURE_2D, null);
+		}
+		img.src = source;
+	}
+
+	attachNormalMap(source){
+		var gl = this.gl;
+		var normalMapTexture = this.normalMapTexture;
+		this.use_normal_map = 1;
+		var img = new Image()
+		img.onload = function(){
+			gl.bindTexture(gl.TEXTURE_2D, normalMapTexture);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -275,6 +295,9 @@ class Shape{
 
 
 		if(this.use_texture){
+
+			this.gl.uniform1f(shadowUniforms.USE_TEXTURE_Location, this.use_normal_map);
+
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.texCoordBuffer);
 			this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.textureCoords), this.gl.STATIC_DRAW);
 
@@ -287,6 +310,16 @@ class Shape{
 			this.gl.uniform1i(this.textureLocation, 0);
 			this.gl.uniform1i(shadowUniforms.sampler, 0);
 			this.gl.uniform1i(shadowUniforms.USE_TEXTURE_Location, 1);
+
+			if(this.use_normal_map){
+				this.gl.activeTexture(this.gl.TEXTURE2);
+				this.gl.bindTexture(this.gl.TEXTURE_2D, this.normalMapTexture);
+				this.gl.uniform1i(shadowUniforms.normalMap, 0);
+				this.gl.uniform1i(shadowUniforms.sampler, 0);
+				this.gl.uniform1i(shadowUniforms.USE_NORMAL_MAP_Location, 1);
+			}else{
+				this.gl.uniform1i(shadowUniforms.USE_NORMAL_MAP_Location, 0);
+			}
 
 			this.gl.drawElements(this.gl.TRIANGLES, this.indices.length, this.gl.UNSIGNED_SHORT, 0);
 

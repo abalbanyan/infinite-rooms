@@ -211,7 +211,7 @@ window.onload = function(){
 		if(yDelta){
 			mat4.rotate(rotationMatrix, identityMatrix, glMatrix.toRadian(90), [1,0,0]);
 			mat4.mul(tempViewMatrix, rotationMatrix, curViewMatrix);
-			currentDirectionY = [tempViewMatrix[2], -tempViewMatrix[6], -tempViewMatrix[10]];
+			currentDirectionY = [swimMode * tempViewMatrix[2], -tempViewMatrix[6], swimMode* -tempViewMatrix[10]];
 			vec3.normalize(currentDirectionY, currentDirectionY);
 		}
 
@@ -271,14 +271,14 @@ window.onload = function(){
 			ambience += 0.1;
 			light.setAmbience(ambience);
 		}
-		if(map[89]){
+		if(map[189]){
 			ambience -= 0.1;
 			light.setAmbience(ambience);
 		}
 		if(map[192]) swimMode = ~swimMode;
 		if(map[49]) N = 1	;
 		if(map[57]) N = 9;
-		if(map[80]) interact();
+		if(map[80]) interact(); 
 		if(map[75]) testKeys = ~testKeys;
 		if(map[16]) keyboard_crouch = 1; else keyboard_crouch = 0;
 
@@ -360,13 +360,13 @@ window.onload = function(){
 					["meshes/bodypillow.json", 	[80,15,78], [22,22,24], 		   0, [0,1,0], ["textures/bodypillow.png"], [1,1,1,1]],
 					["meshes/window1.json", 		[-100,10,-10], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]],
 					["meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]],
-					["meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], ["textures/wood2.png"],   [90/255,67/255,80/255,1]],
+					["meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], ["textures/wood2.png"],   [90/255,67/255,80/255,1], null, null,null, "normalmaps/wood.png"],
 					["meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]],
 					["meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/cheese.png"],  [90/255,67/255,80/255,1], "food", getID()],
 					["meshes/umbreon.json",		[40,20,84], [3.2,3.2,3.2], 		-125,  [0,1,0], ["textures/umbreon.png","textures/umbreon2.png"], [1,1,1,1]],
 					["meshes/key.json",		[58,0,50], [11,11,11], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
 					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/waifu.png"], [1,1,1,1], null, null, null]];
-		var otherObjects = loadBox(["textures/hardwood.png", "textures/crate.png", "textures/wallpaper1.png"], doorways);
+		var otherObjects = loadBox(["textures/hardwood.png", "textures/crate.png", "textures/wallpaper1.png"], doorways, ["normalmaps/wood.png", "normalmaps/wood.png"]);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
@@ -589,11 +589,12 @@ window.onload = function(){
 
 	// load walls, ceiling, floor. Textures should be paths to textures in the following order: ceiling, floor, north wall, east wall, south wall, west wall.
 	// @doorways: size 4 array of booleans indicating which walls have doorways. [north, east, south, west]
-	function loadBox(textures, doorways){
+	function loadBox(textures, doorways, normalmaps = []){
 		var roomBox = [];
 
 		var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 		floor.attachTexture(textures[0]);
+		floor.attachNormalMap(textures[1]);
 		roomBox.push(new Object(floor, [0,-2,0], [100,1,100], 0, [0,1,0], [4,4]));
 
 		var ceilingHeight = 55.0;
@@ -607,8 +608,14 @@ window.onload = function(){
 				wall = new Shape(doorWayMesh.vertices, doorWayMesh.indices, doorWayMesh.normals, doorWayMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 			else
 			 	wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
-			if(textures[2+j]) wall.attachTexture(textures[2+j]);
-			else wall.attachTexture(textures[2]);
+			if(textures[2+j]) {
+				wall.attachTexture(textures[2+j]);
+				if(normalmaps[2+j] != null) wall.attachNormalMap(normalmaps[2+j]);
+			}
+			else {
+				wall.attachTexture(textures[2]);
+				if(normalmaps[2] != null) wall.attachNormalMap(normalmaps[2]);
+			}
 			roomBox.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(j*-90), [0,1,0], [8,4]));
 		}
 		return roomBox;
@@ -733,14 +740,18 @@ window.onload = function(){
 		lightShadowMap: gl.getUniformLocation(shadowProgram, 'lightShadowMap'),
 		shadowClipNearFar: gl.getUniformLocation(shadowProgram, 'shadowClipNearFar'),
 		USE_TEXTURE_Location: gl.getUniformLocation(shadowProgram, 'USE_TEXTURE'),
+		USE_NORMAL_MAP_Location: gl.getUniformLocation(shadowProgram, 'USE_NORMAL_MAP'),
 		texture: gl.getUniformLocation(shadowProgram, 'texture'),
-		sampler: gl.getUniformLocation(shadowProgram, 'sampler')
+		sampler: gl.getUniformLocation(shadowProgram, 'sampler'),
+		normalMap: gl.getUniformLocation(shadowProgram, 'normalMap')
 	};
 	var shadowAttributes = {
 		vertPosition: gl.getAttribLocation(shadowProgram, 'vertPosition'),
 		vertNormal: gl.getAttribLocation(shadowProgram, 'vertNormal'),
 		texCoord: gl.getAttribLocation(shadowProgram, 'texCoord')
 	};
+
+	gl.uniform1i(shadowUniforms.USE_NORMAL_MAP_Location, 1);
 
 	/////////// Picking ////////////////////
 
