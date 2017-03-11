@@ -69,6 +69,7 @@ varying float dist[N_LIGHTS];
 uniform float ambient, diffusivity, shininess, smoothness, attenuation_factor[N_LIGHTS];
 
 uniform sampler2D texture;
+uniform sampler2D normalMap;
 varying vec2 fragTexCoord;
 
 uniform vec4 shapeColor;  // Should really be called "shapeColor"...
@@ -101,8 +102,10 @@ void main(){
 	}
 
 	vec3 bumped_N = N; // numped_N is just the normal N if USE_NORMAL_MAP is off.
+	vec4 normalMap_color;
 	if(USE_NORMAL_MAP && USE_TEXTURE){
-		bumped_N = normalize(N + tex_color.rgb - .5*vec3(1,1,1));
+		normalMap_color = texture2D(normalMap, fragTexCoord);
+		bumped_N = normalize(N + normalMap_color.rgb - 0.5*vec3(1,1,1));
 	}
 
 	for( int i = 0; i < N_LIGHTS; i++ ){
