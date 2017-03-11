@@ -20,7 +20,7 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
     }
      // Pass in pickID as the last parameter to addObjectFromJSON if the object is pickable. The pickID can be any value between 0 and 255.
     // pickID should be unique, itemType does not need to be.
-    function addObjectFromJSON(jsonfile, translation, scale, rotation, axis, texture, color = null, itemType = null, pickID = null, material = null, normalMap = null)
+    function addObjectFromJSON(jsonfile, translation, scale, rotation, axis, texture, color = null, itemType = null, pickID = null, material = null, normalMap = null, shadows = true)
 	{
 	    var rawFile = new XMLHttpRequest();
 	    var rotation = glMatrix.toRadian(rotation);
@@ -59,6 +59,7 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
                         object.shape.makePickable(pickID);
 
                     object.itemType = itemType;
+                    object.shadows = shadows;
                     self.objects.push(object);
                 }
 		    }

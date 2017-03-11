@@ -1,6 +1,6 @@
 // The shape of an object, along with its state within the world (i.e, translations, rotations, scales) is stored here.
 class Object{
-	constructor(shape, translation, scale, rotation, axis = [0,1,0], texture_scale = null, itemType = null){
+	constructor(shape, translation, scale, rotation, axis = [0,1,0], texture_scale = null, itemType = null, shadows = true){
 		this.shape = shape;
 		this.translation = translation;
 		this.scale = scale;
@@ -9,6 +9,7 @@ class Object{
 		this.texture_scale = texture_scale; // This will determine how many times a texture will repeat.
 		this.itemType = itemType;
 		this.isDrawn = true;
+		this.shadows = shadows;
 	}
 
 	draw(){
@@ -173,7 +174,6 @@ class Shape{
 		this.gl.uniform1i(this.useTextureLocation, 0);
 		this.gl.drawElements(this.gl.TRIANGLES, this.indices.length, this.gl.UNSIGNED_SHORT, 0);
 	}
-
 
 	// Binds and buffers data, then draws the shape.
 	draw(){
