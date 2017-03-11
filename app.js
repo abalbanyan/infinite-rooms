@@ -339,7 +339,7 @@ window.onload = function(){
 	////////////////////// Objects /////////////////////
 
 	var Rooms = [];
-	var templates = [loadMeme, loadBathroom, loadKitchen, loadBedroom];
+	var templates = [loadMeme, loadBathroom, loadKitchen, loadLivingRoom];
 
 	var ID = -1;
 	function getID(){
@@ -385,9 +385,10 @@ window.onload = function(){
 					["meshes/bookshelf.json",	[-99,-1,-49], [1.0,0.65,0.8], 90,  [0,1,0], ["textures/crate.png"], [1,1,1,1], null, null, null, null, false]
 				];
 
+		var key_book = Math.floor(Math.random() * (9 - 3 + 1)) + 3;
 		for(var i = 3; i < 10; i++){
 			for(var j = 0; j < 2; j++){
-				if(i == 7 && j == 1){
+				if(i == key_book && j == 1){
 					jsonObjects.push(["meshes/book1.json",		[-98,20 + (8.7 * j),-54 - (i * 1.54) - (j * 6)], [0.05,0.04,0.05], -90,  [0,1,0], ["textures/book.png"], [0.15,0.1,0.2,1], "key", getID(), null, null, false]);
 					continue;
 				}
@@ -492,7 +493,7 @@ window.onload = function(){
 	var currentOrigin = {x: 0, y: 0};
 	var maxRooms = 2; // The maximum number of rooms that can be loaded at once.
 	//loadLivingRoom([0, 0], [0,0,1,0], [0,0,1,0]);
-	loadLivingRoom([0, 0], [0,0,1,0], [0,0,1,0]);
+	loadBedroom([0, 0], [0,0,1,0], [0,0,1,0]);
 
 	// @entryPoint is the direction of entry from the perspective of the previous room.
 
