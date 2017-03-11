@@ -48,6 +48,48 @@ window.onload = function(){
 	gl.enable(gl.DEPTH_TEST);
 	gl.enable(gl.CULL_FACE);
 
+	// Set up the Shadow Map Program
+	var shadowMapVertexShader = gl.createShader(gl.VERTEX_SHADER);
+	var shadowMapFragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+	gl.shaderSource(shadowMapVertexShader, shadowMapVertexShaderText);
+	gl.shaderSource(shadowMapFragmentShader, shadowMapFragmentShaderText);
+	gl.compileShader(shadowMapVertexShader);
+	if(!gl.getShaderParameter(shadowMapVertexShader, gl.COMPILE_STATUS)){
+		console.error("ERROR compiling shadow map vertex shader.", gl.getShaderInfoLog(shadowMapVertexShader));
+	}
+	gl.compileShader(shadowMapFragmentShader);
+	if(!gl.getShaderParameter(shadowMapFragmentShader, gl.COMPILE_STATUS)){
+		console.error("ERROR compiling shadow map fragment shader.", gl.getShaderInfoLog(shadowMapFragmentShader));
+	}
+
+	var shadowMapProgram = gl.createProgram();
+	gl.attachShader(shadowMapProgram, shadowMapVertexShader);
+	gl.attachShader(shadowMapProgram, shadowMapFragmentShader);
+	gl.linkProgram(shadowMapProgram);
+	gl.enable(gl.DEPTH_TEST);
+	gl.enable(gl.CULL_FACE);
+
+	// Set up the Shadow program
+	var shadowVertexShader = gl.createShader(gl.VERTEX_SHADER);
+	var shadowFragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+	gl.shaderSource(shadowVertexShader, shadowVertexShaderText);
+	gl.shaderSource(shadowFragmentShader, shadowFragmentShaderText);
+	gl.compileShader(shadowVertexShader);
+	if(!gl.getShaderParameter(shadowVertexShader, gl.COMPILE_STATUS)){
+		console.error("ERROR compiling shadow vertex shader.", gl.getShaderInfoLog(shadowVertexShader));
+	}
+	gl.compileShader(shadowFragmentShader);
+	if(!gl.getShaderParameter(shadowFragmentShader, gl.COMPILE_STATUS)){
+		console.error("ERROR compiling shadow fragment shader.", gl.getShaderInfoLog(shadowFragmentShader));
+	}
+
+	var shadowProgram = gl.createProgram();
+	gl.attachShader(shadowProgram, shadowVertexShader);
+	gl.attachShader(shadowProgram, shadowFragmentShader);
+	gl.linkProgram(shadowProgram);
+	gl.enable(gl.DEPTH_TEST);
+	gl.enable(gl.CULL_FACE);
+
     ////////////////// Create Buffers /////////////////
 
 	// Chunks of memory on GPU that are ready to use.
@@ -120,8 +162,9 @@ window.onload = function(){
 
 	var lightPositions = [0.0, 45.0, 0.0, 1.0];
 	var lightColors = [1,0.3,0.1,1];
+	var vec3LightPositions = vec3.fromValues(0.0, 45.0, 0.0);
 	var lightAttenuations = [2.0/10000.0];
-	var ambience = 0.3
+	var ambience = 0.3;
 
 	var light = new Light(lightPositions, lightColors, lightAttenuations, ambience, gl, program);
 	var gouraud_loc = gl.getUniformLocation(program, 'GOURAUD');
@@ -178,9 +221,9 @@ window.onload = function(){
 
 		var x = currentDirectionX[0] * xDelta + currentDirectionY[0] * yDelta + currentDirectionZ[0] * zDelta;
 		var z = currentDirectionX[2] * xDelta + currentDirectionY[2] * yDelta + currentDirectionZ[2] * zDelta;
-		if (posX + x == 90 || posX + x == -90 || posZ + z == 90 || posZ + z == -80) {
-			return;
-		}
+		// if (posX + x >= 90 || posX + x <= -90 || posZ + z >= 90 || posZ + z <= -80) {
+		// 	return;
+		// }
 
 		posX += x;
 		posZ += z;
@@ -302,7 +345,7 @@ window.onload = function(){
 	////////////////////// Objects /////////////////////
 
 	var Rooms = [];
-	var templates = [loadBedroom, loadBathroom, loadKitchen, loadMeme];
+	var templates = [loadBathroom, loadKitchen, loadMeme];
 
 	var ID = -1;
 	function getID(){
@@ -332,7 +375,7 @@ window.onload = function(){
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
-		Rooms.push(new Room(gl, program, buffers, jsonObjects, otherObjects, coords));
+		Rooms.push(new Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));
 	}
 
 	function loadKitchen(coords, doors, doorways)
@@ -348,7 +391,7 @@ window.onload = function(){
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
-		Rooms.push(new Room(gl, program, buffers, jsonObjects, otherObjects, coords));
+		Rooms.push(new Room(gl, program,  shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));
 	}
 
 	function loadMeme(coords, doors, doorways)
@@ -380,7 +423,7 @@ window.onload = function(){
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
-		Rooms.push(new Room(gl, program, buffers, jsonObjects, otherObjects, coords));
+		Rooms.push(new Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));
 	}
 
 	function loadBathroom(coords, doors, doorways)
@@ -409,18 +452,19 @@ window.onload = function(){
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
-		Rooms.push(new Room(gl, program, buffers, jsonObjects, otherObjects, coords));
+		Rooms.push(new Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));
 	}
 
 	var currentOrigin = {x: 0, y: 0};
 	var maxRooms = 2; // The maximum number of rooms that can be loaded at once.
-	loadMeme([0, 0], [0,0,1,0], [0,0,1,0]);
-	// loadBedroom([0, 0], [0,0,1,0], [0,0,1,0]);
+	// loadMeme([0, 0], [0,0,1,0], [0,0,1,0]);
+	loadBedroom([0, 0], [0,0,1,0], [0,0,1,0]);
 
 
 	// @entryPoint is the direction of entry from the perspective of the previous room.
+	var prevRoom = -1;
 	function loadNewRoom(entryPoint){
-		while(true){
+			while(true){
 			var rand1 = Math.random() >= 0.5;		var rand2 = Math.random() >= 0.5;
 			var rand3 = Math.random() >= 0.5;		var rand4 = Math.random() >= 0.5;
 			if(rand1 + rand2 + rand3 + rand4 > 2) break;
@@ -428,35 +472,80 @@ window.onload = function(){
 		var doorways = [0, 0, rand3, rand4]; // north and east won't have doors.
 		var doors = [0, 0, rand3, rand4];
 
+		var newRoom=  Math.floor(Math.random() * (templates.length));
+		while(prevRoom == newRoom){
+			newRoom =  Math.floor(Math.random() * (templates.length));
+		}
+		prevRoom = newRoom; // no room should be selected twice in a row.
 
 		if(entryPoint == "north"){
 			light.translateLight([0,0,200]);
 			currentOrigin.y++;
 			doorways[2] = 1;
 			doors[2] = 0;
-			templates[1]([currentOrigin.x, currentOrigin.y], doors, doorways);
+			templates[newRoom]([currentOrigin.x, currentOrigin.y], doors, doorways);
 		}
 		if(entryPoint == "east"){
 			light.translateLight([-200,0,0]);
 			currentOrigin.x--
 			doorways[3] = 1;
 			doors[3] = 0;
-			templates[1]([currentOrigin.x, currentOrigin.y], doors, doorways);
+			templates[newRoom]([currentOrigin.x, currentOrigin.y], doors, doorways);
 		}
 		if(entryPoint == "south"){
 			light.translateLight([0,0,-200]);
 			currentOrigin.y--;
 			doorways[0] = 1;
 			doors[0] = 0;
-			templates[1]([currentOrigin.x, currentOrigin.y], doors, doorways);
+			templates[newRoom]([currentOrigin.x, currentOrigin.y], doors, doorways);
 		}else if(entryPoint == "west"){
 			light.translateLight([200,0,0]);
 			currentOrigin.x++;
 			doorways[1] = 1;
 			doors[1] = 0;
-			templates[1]([currentOrigin.x, currentOrigin.y], doors, doorways);
+			templates[newRoom]([currentOrigin.x, currentOrigin.y], doors, doorways);
 		}
-		// Unload oldest room.
+
+		// Update lighting for shadow mapping
+		vec3LightPositions = vec3.fromValues(light.lightPosition[0], light.lightPosition[1], light.lightPosition[2]);
+		shadowMapCameras = [
+		// Positive X
+		new Camera(
+			vec3LightPositions,
+			vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(1, 0, 0)),
+			vec3.fromValues(0, -1, 0)
+		),
+		// Negative X
+		new Camera(
+			vec3LightPositions,
+			vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(-1, 0, 0)),
+			vec3.fromValues(0, -1, 0)
+		),
+		// Positive Y
+		new Camera(
+			vec3LightPositions,
+			vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(0, 1, 0)),
+			vec3.fromValues(0, 0, 1)
+		),
+		// Negative Y
+		new Camera(
+			vec3LightPositions,
+			vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(0, -1, 0)),
+			vec3.fromValues(0, 0, -1)
+		),
+		// Positive Z
+		new Camera(
+			vec3LightPositions,
+			vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(0, 0, 1)),
+			vec3.fromValues(0, -1, 0)
+		),
+		// Negative Z
+		new Camera(
+			vec3LightPositions,
+			vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(0, 0, -1)),
+			vec3.fromValues(0, -1, 0)
+		)
+		];
 		if(Rooms.length > maxRooms){
 			Rooms.shift();
 		}
@@ -493,27 +582,155 @@ window.onload = function(){
 	function loadBox(textures, doorways){
 		var roomBox = [];
 
-		var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
+		var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 		floor.attachTexture(textures[0]);
 		roomBox.push(new Object(floor, [0,-2,0], [100,1,100], 0, [0,1,0], [4,4]));
 
 		var ceilingHeight = 55.0;
-		var ceiling = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, buffers);
+		var ceiling = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 		ceiling.attachTexture(textures[1]);
 		roomBox.push(new Object(ceiling, [0,ceilingHeight +  2,0], [100,1,100], glMatrix.toRadian(180), [0,0,1], [8,8]));
 
 		for(var j = 0; j < 4; j++){
 			var wall;
 			if(doorways[j])
-				wall = new Shape(doorWayMesh.vertices, doorWayMesh.indices, doorWayMesh.normals, doorWayMesh.textureCoords, gl, program, buffers);
+				wall = new Shape(doorWayMesh.vertices, doorWayMesh.indices, doorWayMesh.normals, doorWayMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 			else
-			 	wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, buffers);
+			 	wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 			if(textures[2+j]) wall.attachTexture(textures[2+j]);
 			else wall.attachTexture(textures[2]);
 			roomBox.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(j*-90), [0,1,0], [8,4]));
 		}
 		return roomBox;
   }
+
+	////////////////////// Shadows ///////////////////////
+
+	// Create Framebuffers and Textures
+	var shadowMapCube = gl.createTexture();
+	gl.bindTexture(gl.TEXTURE_CUBE_MAP, shadowMapCube);
+	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+	for (var i = 0; i < 6; i++) {
+		gl.texImage2D(
+			gl.TEXTURE_CUBE_MAP_POSITIVE_X + i,
+			0, gl.RGBA,
+			textureSize, textureSize,
+			0, gl.RGBA,
+			gl.UNSIGNED_BYTE, null
+		);
+	}
+
+	var shadowMapFrameBuffer = gl.createFramebuffer();
+	gl.bindFramebuffer(gl.FRAMEBUFFER, shadowMapFrameBuffer);
+	var shadowMapRenderBuffer = gl.createRenderbuffer();
+	gl.bindRenderbuffer(gl.RENDERBUFFER, shadowMapRenderBuffer);
+
+	gl.renderbufferStorage(
+		gl.RENDERBUFFER, gl.DEPTH_COMPONENT16,
+		textureSize, textureSize
+	);
+
+	gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+	gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+	// Shadow Map Cameras
+	//TODO: get rid of Positive Y (on the ceiling)
+	shadowMapCameras = [
+	// Positive X
+	new Camera(
+		vec3LightPositions,
+		vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(1, 0, 0)),
+		vec3.fromValues(0, -1, 0)
+	),
+	// Negative X
+	new Camera(
+		vec3LightPositions,
+		vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(-1, 0, 0)),
+		vec3.fromValues(0, -1, 0)
+	),
+	// Positive Y
+	new Camera(
+		vec3LightPositions,
+		vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(0, 1, 0)),
+		vec3.fromValues(0, 0, 1)
+	),
+	// Negative Y
+	new Camera(
+		vec3LightPositions,
+		vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(0, -1, 0)),
+		vec3.fromValues(0, 0, -1)
+	),
+	// Positive Z
+	new Camera(
+		vec3LightPositions,
+		vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(0, 0, 1)),
+		vec3.fromValues(0, -1, 0)
+	),
+	// Negative Z
+	new Camera(
+		vec3LightPositions,
+		vec3.add(vec3.create(), vec3LightPositions, vec3.fromValues(0, 0, -1)),
+		vec3.fromValues(0, -1, 0)
+	)
+	];
+	var shadowMapViewMatrices = [
+		mat4.create(),
+		mat4.create(),
+		mat4.create(),
+		mat4.create(),
+		mat4.create(),
+		mat4.create()
+	];
+	var shadowMapProj = mat4.create();
+	var shadowClipNearFar = vec2.fromValues(10, 200);
+	mat4.perspective(
+		shadowMapProj,
+		glMatrix.toRadian(90),
+		1.0,
+		shadowClipNearFar[0],
+		shadowClipNearFar[1]
+	);
+
+	var shadowMapUniforms = {
+			pointLightPositionLoc: gl.getUniformLocation(shadowMapProgram, 'pointLightPosition'),
+			shadowClipNearFarLoc: gl.getUniformLocation(shadowMapProgram, 'shadowClipNearFar'),
+			shadowMapWorldLoc: gl.getUniformLocation(shadowMapProgram, 'mWorld'),
+			shadowMapProjLoc: gl.getUniformLocation(shadowMapProgram, 'mProj'),
+			shadowMapViewLoc: gl.getUniformLocation(shadowMapProgram, 'mView')
+		};
+	var shadowMapAttributes = {
+			positionAttribLocation: gl.getAttribLocation(shadowMapProgram, 'vertPosition')
+	};
+
+	var shadowUniforms = {
+		shapeColor: gl.getUniformLocation(shadowProgram, 'shapeColor'),
+		mWorld: gl.getUniformLocation(shadowProgram, 'mWorld'),
+		mView: gl.getUniformLocation(shadowProgram, 'mView'),
+		mProj: gl.getUniformLocation(shadowProgram, 'mProj'),
+		textureTransform: gl.getUniformLocation(shadowProgram, 'textureTransform'),
+		mWorldNormal: gl.getUniformLocation(shadowProgram, 'mWorldNormal'),
+		lightPosition: gl.getUniformLocation(shadowProgram, 'lightPosition'),
+		lightColor: gl.getUniformLocation(shadowProgram, 'lightColor'),
+		ambient: gl.getUniformLocation(shadowProgram, 'ambient'),
+		diffusivity: gl.getUniformLocation(shadowProgram, 'diffusivity'),
+		shininess: gl.getUniformLocation(shadowProgram, 'shininess'),
+		smoothness: gl.getUniformLocation(shadowProgram, 'smoothness'),
+		attenuation_factor: gl.getUniformLocation(shadowProgram, 'attenuation_factor'),
+		lightShadowMap: gl.getUniformLocation(shadowProgram, 'lightShadowMap'),
+		shadowClipNearFar: gl.getUniformLocation(shadowProgram, 'shadowClipNearFar'),
+		USE_TEXTURE_Location: gl.getUniformLocation(shadowProgram, 'USE_TEXTURE'),
+		texture: gl.getUniformLocation(shadowProgram, 'texture'),
+		sampler: gl.getUniformLocation(shadowProgram, 'sampler')
+	};
+	var shadowAttributes = {
+		vertPosition: gl.getAttribLocation(shadowProgram, 'vertPosition'),
+		vertNormal: gl.getAttribLocation(shadowProgram, 'vertNormal'),
+		texCoord: gl.getAttribLocation(shadowProgram, 'texCoord')
+	};
 
 	/////////// Picking ////////////////////
 
@@ -695,7 +912,7 @@ window.onload = function(){
 
 
             trip_audio.play();
-            resetCamera();
+            movePlayer(20, 0, -60);
             rotateCamera(0, -30);
           	tripID = setInterval(function(){
 				tripIt++;
@@ -727,10 +944,211 @@ window.onload = function(){
 	}
 
 	////////////////////// Render Loop /////////////////
+	var shadows = 1;
+	console.log()
 	var loop = function(){
 
 		handleInput();
 		theta = performance.now() / 1000 / 6 *  2 * Math.PI;
+		var object;
+
+		// Draw Shadow map //
+		// Set GL state status
+		gl.useProgram(shadowMapProgram);
+		gl.bindTexture(gl.TEXTURE_CUBE_MAP, shadowMapCube);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, shadowMapFrameBuffer);
+		gl.bindRenderbuffer(gl.RENDERBUFFER, shadowMapRenderBuffer);
+		gl.viewport(0, 0, textureSize, textureSize);
+		gl.enable(gl.DEPTH_TEST);
+		gl.enable(gl.CULL_FACE);
+
+		// Set per-frame uniforms
+		gl.uniform2fv(
+			shadowMapUniforms.shadowClipNearFarLoc,
+			shadowClipNearFar
+		);
+		gl.uniform4fv(
+			shadowMapUniforms.pointLightPositionLoc,
+			light.lightPosition
+		);
+		gl.uniformMatrix4fv(
+			shadowMapUniforms.shadowMapProjLoc,
+			gl.FALSE,
+			shadowMapProj
+		);
+
+		for (var i = 0; i < shadowMapCameras.length; i++) {
+			// Set per light uniforms
+			gl.uniformMatrix4fv(
+				shadowMapUniforms.shadowMapViewLoc,
+				gl.FALSE,
+				shadowMapCameras[i].GetViewMatrix(shadowMapViewMatrices[i])
+			);
+			// Set framebuffer destination
+			gl.framebufferTexture2D(
+				gl.FRAMEBUFFER,
+				gl.COLOR_ATTACHMENT0,
+				gl.TEXTURE_CUBE_MAP_POSITIVE_X + i,
+				shadowMapCube,
+				0
+			);
+			gl.framebufferRenderbuffer(
+				gl.FRAMEBUFFER,
+				gl.DEPTH_ATTACHMENT,
+				gl.RENDERBUFFER,
+				shadowMapRenderBuffer
+			);
+
+			gl.clearColor(0, 0, 0, 1);
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+			//for(var i = 0; i < Rooms.length; i++){
+			 	for(var j = 0; j < Rooms[Rooms.length-1].objects.length; j++){
+			 		object = Rooms[Rooms.length-1].objects[j];
+			 		// Begin transformations.
+			 		mat4.identity(worldMatrix);
+			 		mat4.scale(scalingMatrix, identityMatrix, object.scale);
+			 		mat4.rotate(rotationMatrix, identityMatrix, object.rotation, object.axis);
+			 		mat4.translate(translationMatrix, identityMatrix, object.translation);
+
+			 		mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
+			 		mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
+			 		mat4.mul(worldMatrix, translationMatrix, worldMatrix);
+
+			 		gl.uniformMatrix4fv(shadowMapUniforms.shadowMapWorldLoc, gl.FALSE, worldMatrix);
+
+			 		if(object.isDrawn)
+			 			object.shadowMapDraw(shadowMapAttributes);
+			 	}
+			//}
+		}
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+		gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+
+		if (shadows){
+			gl.useProgram(shadowProgram);
+			light.changeProgram(shadowProgram);
+			gl.uniform1i(shadowUniforms.lightShadowMap, 1);
+			gl.uniform2fv(shadowUniforms.shadowClipNearFar, shadowClipNearFar);
+			// Adjust view. The order of the rotation ensures that the camera rotates heading around the world's Y axis.
+			mat4.mul(viewMatrix, testViewMatrix, identityMatrix);
+			mat4.rotate(rotationMatrix1, identityMatrix, glMatrix.toRadian(heading), [0,1,0]); // Adjust heading.
+			mat4.rotate(rotationMatrix2, identityMatrix, glMatrix.toRadian(pitch), [1,0,0]); // Adjust pitch.
+			mat4.mul(viewMatrix, rotationMatrix1, viewMatrix);
+			mat4.mul(viewMatrix, rotationMatrix2, viewMatrix);
+			mat4.invert(curViewMatrix, viewMatrix);
+			gl.uniformMatrix4fv(shadowUniforms.mView, gl.FALSE, viewMatrix);
+
+			// Draw normally onto the screen.
+			gl.uniformMatrix4fv(shadowUniforms.mProj, gl.FALSE, projMatrix);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+			gl.activeTexture(gl.TEXTURE1);
+			gl.bindTexture(gl.TEXTURE_CUBE_MAP, shadowMapCube);
+
+			for(var i = 0; i < Rooms.length; i++){
+				for(var j = 0; j < Rooms[i].objects.length; j++){
+					object = Rooms[i].objects[j];
+					// Begin transformations.
+					mat4.identity(worldMatrix);
+					mat4.scale(scalingMatrix, identityMatrix, object.scale);
+					mat4.rotate(rotationMatrix, identityMatrix, object.rotation, object.axis);
+					mat4.translate(translationMatrix, identityMatrix, object.translation);
+
+					mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
+					mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
+					mat4.mul(worldMatrix, translationMatrix, worldMatrix);
+
+					if(object.texture_scale != null){
+						mat3.identity(textureTransform);
+						mat3.scale(textureTransform, textureTransform, object.texture_scale);
+						gl.uniformMatrix3fv(shadowUniforms.textureTransform, gl.FALSE, textureTransform);
+					} else {
+						gl.uniformMatrix3fv(shadowUniforms.textureTransform, gl.FALSE, mat3.identity(textureTransform));
+					}
+
+					// This is needed for lighting.
+					mat4.mul(cameraWorldMatrix, viewMatrix, worldMatrix);
+					mat4.invert(cameraWorldMatrix, cameraWorldMatrix);
+					mat4.transpose(cameraWorldMatrix, cameraWorldMatrix);
+					mat3.fromMat4(cameraWorldNormalMatrix, cameraWorldMatrix);
+					gl.uniformMatrix3fv(shadowUniforms.mWorldNormal, gl.FALSE, cameraWorldNormalMatrix);
+
+					//mat4.mul(worldMatrix, navigationMatrix, worldMatrix);
+					gl.uniformMatrix4fv(shadowUniforms.mWorld, gl.FALSE, worldMatrix);
+					//gl.uniform4fv(shadowUniforms.shapeColor, [1,1,1,1]);
+
+					if(object.shapeColor != null) gl.uniform4fv(shadowUniforms.shapeColor, object.shapeColor);
+
+					if(object.isDrawn)
+						object.shadowDraw(shadowUniforms, shadowAttributes);
+				}
+			}
+		}
+		else{
+			// Normal Draw
+			gl.useProgram(program);
+			light.changeProgram(program);
+			// Adjust view. The order of the rotation ensures that the camera rotates heading around the world's Y axis.
+			mat4.mul(viewMatrix, testViewMatrix, identityMatrix);
+			mat4.rotate(rotationMatrix1, identityMatrix, glMatrix.toRadian(heading), [0,1,0]); // Adjust heading.
+			mat4.rotate(rotationMatrix2, identityMatrix, glMatrix.toRadian(pitch), [1,0,0]); // Adjust pitch.
+			mat4.mul(viewMatrix, rotationMatrix1, viewMatrix);
+			mat4.mul(viewMatrix, rotationMatrix2, viewMatrix);
+			mat4.invert(curViewMatrix, viewMatrix);
+			gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
+
+			// Draw normally onto the screen.
+			gl.uniformMatrix4fv(mProjLoc, gl.FALSE, projMatrix);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+			for(var i = 0; i < Rooms.length; i++){
+				for(var j = 0; j < Rooms[i].objects.length; j++){
+					object = Rooms[i].objects[j];
+					// Begin transformations.
+					mat4.identity(worldMatrix);
+					mat4.scale(scalingMatrix, identityMatrix, object.scale);
+					mat4.rotate(rotationMatrix, identityMatrix, object.rotation, object.axis);
+					mat4.translate(translationMatrix, identityMatrix, object.translation);
+
+					mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
+					mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
+					mat4.mul(worldMatrix, translationMatrix, worldMatrix);
+
+					if(object.texture_scale != null){
+						mat3.identity(textureTransform);
+						mat3.scale(textureTransform, textureTransform, object.texture_scale);
+						gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, textureTransform);
+					} else {
+						gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, mat3.identity(textureTransform));
+					}
+					// This is needed for lighting.
+					mat4.mul(cameraWorldMatrix, viewMatrix, worldMatrix);
+					mat4.invert(cameraWorldMatrix, cameraWorldMatrix);
+					mat4.transpose(cameraWorldMatrix, cameraWorldMatrix);
+					mat3.fromMat4(cameraWorldNormalMatrix, cameraWorldMatrix);
+					gl.uniformMatrix3fv(mWorldNormalLoc, gl.FALSE, cameraWorldNormalMatrix);
+
+					//mat4.mul(worldMatrix, navigationMatrix, worldMatrix);
+					gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
+					//gl.uniform4fv(shapeColorLoc, [1,1,1,1]);
+
+					// Set color if a color was specified.
+					if(object.shapeColor != null) gl.uniform4fv(shapeColorLoc, object.shapeColor);
+
+					if(object.isDrawn)
+						object.draw();
+				}
+			}
+		}
+
+		// Draw to the frame buffer for picking.
+		gl.useProgram(program);
+		light.changeProgram(program);
 
 		// Adjust view. The order of the rotation ensures that the camera rotates heading around the world's Y axis.
 		mat4.mul(viewMatrix, testViewMatrix, identityMatrix);
@@ -741,53 +1159,7 @@ window.onload = function(){
 		mat4.invert(curViewMatrix, viewMatrix);
 		gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
 
-		// Draw normally onto the screen.
-		gl.uniformMatrix4fv(mProjLoc, gl.FALSE, projMatrix);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-		var object;
-		for(var i = 0; i < Rooms.length; i++){
-			for(var j = 0; j < Rooms[i].objects.length; j++){
-				object = Rooms[i].objects[j];
-				// Begin transformations.
-				mat4.identity(worldMatrix);
-				mat4.scale(scalingMatrix, identityMatrix, object.scale);
-				mat4.rotate(rotationMatrix, identityMatrix, object.rotation, object.axis);
-				mat4.translate(translationMatrix, identityMatrix, object.translation);
-
-				mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
-				mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
-				mat4.mul(worldMatrix, translationMatrix, worldMatrix);
-
-				if(object.texture_scale != null){
-					mat3.identity(textureTransform);
-					mat3.scale(textureTransform, textureTransform, object.texture_scale);
-					gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, textureTransform);
-				} else {
-					gl.uniformMatrix3fv(textureTransformLoc, gl.FALSE, mat3.identity(textureTransform));
-				}
-				// This is needed for lighting.
-				mat4.mul(cameraWorldMatrix, viewMatrix, worldMatrix);
-				mat4.invert(cameraWorldMatrix, cameraWorldMatrix);
-				mat4.transpose(cameraWorldMatrix, cameraWorldMatrix);
-				mat3.fromMat4(cameraWorldNormalMatrix, cameraWorldMatrix);
-				gl.uniformMatrix3fv(mWorldNormalLoc, gl.FALSE, cameraWorldNormalMatrix);
-
-				//mat4.mul(worldMatrix, navigationMatrix, worldMatrix);
-				gl.uniformMatrix4fv(mWorldLoc, gl.FALSE, worldMatrix);
-				//gl.uniform4fv(shapeColorLoc, [1,1,1,1]);
-
-				// Set color if a color was specified.
-				if(object.shapeColor != null) gl.uniform4fv(shapeColorLoc, object.shapeColor);
-
-				if(object.isDrawn)
-					object.draw();
-			}
-		}
-
-		// Draw to the frame buffer for picking.
 		gl.uniformMatrix4fv(mProjLoc, gl.FALSE, pickProjMatrix);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, pickBuffer); // Comment this to draw the pickColors to the screen.
 		gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
