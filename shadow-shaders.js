@@ -93,13 +93,20 @@ void main(){
 	float shadowMapValue = textureCube(lightShadowMap, -toLightNormal).r;
 
 	vec4 tex_color;
+	vec2 tex = fragTexCoord;
 	if(USE_TEXTURE){
-	 	tex_color = texture2D(texture, fragTexCoord);
+		if(TEXTURE_DISTORTION){
+			tex.x += 2.0 * sin(theta);
+			tex.y += cos(theta);
+		}
+
+	 	tex_color = texture2D(texture, tex);
 
 		 if(TEXTURE_DISTORTION){
-			 tex_color.x += sin(theta); //* tex_color.r;
-			 tex_color.y += cos(theta); //* tex_color.g;
-			 tex_color.z += sin(-theta); //* tex_color.g;
+			tex_color.x += sin(theta); //* tex_color.r;
+		 	tex_color.y += cos(theta); //* tex_color.g;
+			tex_color.z += sin(-theta); //* tex_color.g;
+			tex_color.a += 0.3 * sin(3.0 * theta);
 		 }
 	}
 
@@ -113,7 +120,7 @@ void main(){
 	vec3 bumped_N = N; // numped_N is just the normal N if USE_NORMAL_MAP is off.
 	vec4 normalMap_color;
 	if(USE_NORMAL_MAP && USE_TEXTURE){
-		bumped_N = texture2D(normalMap, fragTexCoord).rgb;
+		bumped_N = texture2D(normalMap, tex).rgb;
 		bumped_N = normalize(bumped_N * 2.0 - 1.0);
 	}
 
