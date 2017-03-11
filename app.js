@@ -366,7 +366,7 @@ window.onload = function(){
 					["meshes/umbreon.json",		[40,20,84], [3.2,3.2,3.2], 		-125,  [0,1,0], ["textures/umbreon.png","textures/umbreon2.png"], [1,1,1,1]],
 					["meshes/key.json",		[58,0,50], [11,11,11], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
 					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/waifu.png"], [1,1,1,1], null, null, null]];
-		var otherObjects = loadBox(["textures/hardwood.png", "textures/crate.png", "textures/wallpaper1.png"], doorways, ["normalmaps/wood.png", "normalmaps/wood.png"]);
+		var otherObjects = loadBox(["textures/hardwood.png", "textures/crate.png", "textures/brickwall.png"], doorways, ["normalmaps/wood.png", "normalmaps/wood.png", "normalmaps/brickwall.png"]);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
