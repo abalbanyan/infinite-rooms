@@ -287,7 +287,7 @@ window.onload = function(){
 	////////////////////// Objects /////////////////////
 
 	var Rooms = [];
-	var templates = [loadBedroom, loadBathroom, loadKitchen, loadMeme];
+	var templates = [loadBedroom, loadKitchen, loadKitchen, loadMeme];
 
 	var ID = -1;
 	function getID(){
@@ -323,10 +323,15 @@ window.onload = function(){
 	function loadKitchen(coords, doors, doorways)
 	{
 		var jsonObjects = [
-					["meshes/cafe.json",			[-58,0,-35], [60,60,60], 	90, [0,1,0], ["textures/bedwood.png"],  [90/255,67/255,80/255,1]],
-					["meshes/kitchen.json",			[0,0,35], [15,15,15], 	90, [0,1,0], ["textures/dirt.png"],  [90/255,67/255,80/255,1]],
+					["meshes/table.json",			[-58,0,-35], [15,15,15], 	90, [0,1,0], ["textures/wood1.png"],  [90/255,67/255,80/255,1]],
+					["meshes/kitchen.json",			[0,0,35], [15,15,15], 	90, [0,1,0], ["textures/kit.jpg"],  [90/255,67/255,80/255,1]],
 					["meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]],
-					["meshes/cheese.json",			[-58,16,-35], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/bread.jpg"],  [90/255,67/255,80/255,1], "food", getID()],
+					["meshes/apple.json",			[-48,18,0], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
+					["meshes/cookie.json",			[30,20,25], [1,1,1], 	90, [0,1,0], ["textures/cookie.png"],  [90/255,67/255,80/255,1], "food", getID()],
+
+					["meshes/banana.json",			[-38,7,16], [.5,.5,.5], 	90, [1,0,0], ["textures/banana.png"],  [90/255,67/255,80/255,1], "food", getID()],
+
+					["meshes/cheese.json",			[-58,14,-35], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/bread.jpg"],  [90/255,67/255,80/255,1], "food", getID()],
 					["meshes/key.json",		[-23,2,18], [11,11,11], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key_kitchen", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
 					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null]];
 		var otherObjects = loadBox(["textures/tile.jpg", "textures/crate.png", "textures/kitchenwall.jpg"], doorways);
