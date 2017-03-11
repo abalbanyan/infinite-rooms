@@ -27,9 +27,11 @@ varying vec2 fragTexCoord;
 varying vec3 fragPos;
 varying vec3 fragNorm;
 varying vec4 lightPos;
+varying mat3 fragWorldNormal;
 
 void main(){
 	N = normalize( mWorldNormal * vertNormal);
+	fragWorldNormal = mWorldNormal;
 
 	vec4 object_space_pos = vec4(vertPosition, 1.0);
 	gl_Position = mProj * mView * mWorld * object_space_pos;
@@ -66,10 +68,12 @@ varying vec4 VERTEX_COLOR; // VERTEX_COLOR
 varying vec3 N, E, pos;
 varying vec3 L[N_LIGHTS], H[N_LIGHTS];
 varying float dist[N_LIGHTS];
+varying mat3 fragWorldNormal;
 uniform float ambient, diffusivity, shininess, smoothness, attenuation_factor[N_LIGHTS];
 
-uniform sampler2D texture;
 uniform sampler2D normalMap;
+
+uniform sampler2D texture;
 varying vec2 fragTexCoord;
 
 uniform vec4 shapeColor;  // Should really be called "shapeColor"...
@@ -104,8 +108,8 @@ void main(){
 	vec3 bumped_N = N; // numped_N is just the normal N if USE_NORMAL_MAP is off.
 	vec4 normalMap_color;
 	if(USE_NORMAL_MAP && USE_TEXTURE){
-		bumped_N = texture2D(normalMap, fragTexCoord).rgb;
-		bumped_N = normalize(bumped_N * 2.0 - 1.0); 
+		bumped_N = fragWorldNormal * texture2D(normalMap, fragTexCoord).rgb;
+		bumped_N = normalize(bumped_N - vec3(0.5, 0.5, 0.5)); 
 	}
 
 	for( int i = 0; i < N_LIGHTS; i++ ){

@@ -751,8 +751,6 @@ window.onload = function(){
 		texCoord: gl.getAttribLocation(shadowProgram, 'texCoord')
 	};
 
-	gl.uniform1i(shadowUniforms.USE_NORMAL_MAP_Location, 1);
-
 	/////////// Picking ////////////////////
 
 	//Creates texture

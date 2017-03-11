@@ -50,7 +50,6 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
                     else shape.setColor([0,1,0,1]); // Set color to green if both of the above fail.
                     if(material != null) shape.setMaterialProperties(material.diffusivity, material.smoothness, material.shininess);
                     if(normalMap != null) {
-                        console.log(normalMap);
                         shape.attachNormalMap(normalMap);
                     }
                     var object = new Object(shape, translation, scale, rotation, axis);
