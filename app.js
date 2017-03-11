@@ -161,7 +161,7 @@ window.onload = function(){
 	//////////////// Lighting /////////////////////////////
 
 	var lightPositions = [0.0, 45.0, 0.0, 1.0];
-	var lightColors = [1,0.3,0.1,1];
+	var lightColors = [1,0.8,0.8,1];
 	var vec3LightPositions = vec3.fromValues(0.0, 45.0, 0.0);
 	var lightAttenuations = [2.0/10000.0];
 	var ambience = 0.3;
@@ -339,11 +339,13 @@ window.onload = function(){
 	////////////////////// Objects /////////////////////
 
 	var Rooms = [];
-	var templates = [loadMeme, loadBathroom, loadKitchen];
+	var templates = [loadMeme, loadBathroom, loadKitchen, loadBedroom];
 
 	var ID = -1;
 	function getID(){
 		ID++;
+		if(ID > 255)
+			ID = 0;
 		return ID;
 	}
 
@@ -374,16 +376,38 @@ window.onload = function(){
 	}
 
 	function loadLivingRoom(coords, doors, doorways){
-		var jsonObjects = []
-		var boxObjects = loadBox(["textures/bathroomfloor.png","textures/bathroomfloor.png","textures/bathroomfloor.png"], doorways)
-		otherObjects = boxObjects;
+		var jsonObjects = [
+					["meshes/living_table.json",	[0,-3,0], [12,8,8], 0,  [0,0,1], ["textures/table1.png"], [1,1,1,1], null, null, null],
+					["meshes/cheez.json",	[-10,12,-15], [1,1,1], 180,  [0,1,0], ["textures/cheez.png"], [1,1,1,1], "food_2", getID(), null],
+					["meshes/tv.json",	[69,11.5,90], [4,4,4], 90,  [0,1,0], ["textures/static.png", "textures/tv.png"], [1,1,1,1], null, null, null, null, false],
+					["meshes/tv_stand.json",	[69,-1,90], [0.4,0.4,0.35], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], null, null, null],
+					["meshes/sofa.json",	[-90,-1,60], [0.8,0.6,0.6], 90,  [0,1,0], ["textures/sofa.png"], [1,1,1,1], null, null, null, null, false],
+					["meshes/bookshelf.json",	[-99,-1,-49], [1.0,0.65,0.8], 90,  [0,1,0], ["textures/crate.png"], [1,1,1,1], null, null, null, null, false]
+				];
 
+		for(var i = 3; i < 10; i++){
+			for(var j = 0; j < 2; j++){
+				if(i == 7 && j == 1){
+					jsonObjects.push(["meshes/book1.json",		[-98,20 + (8.7 * j),-54 - (i * 1.54) - (j * 6)], [0.05,0.04,0.05], -90,  [0,1,0], ["textures/book.png"], [0.15,0.1,0.2,1], "key", getID(), null, null, false]);
+					continue;
+				}
+				jsonObjects.push(["meshes/book1.json",		[-98,20 + (8.7 * j),-54 - (i * 1.54) - (j * 6)], [0.05,0.04,0.05], -90,  [0,1,0], ["textures/book.png"], [0.15,0.1,0.05,1], null, null, null, null, false]);
+			}
+
+		}
+		for(var i = 19; i < 23; i++){
+			for(var j = -1; j < 1; j++){
+				jsonObjects.push(["meshes/book1.json",		[-98,20 + (8.7 * j),-54 - (i * 1.54) - (j * 6)], [0.05,0.04,0.05], -90,  [0,1,0], ["textures/book.png"], [0.15,0.1,0.05,1], null, null, null, null, false]);
+			}
+
+		}
 		jsonObjects.push(["meshes/board.json",	[0,55,0], [0.5,0.5,0.7], 0,  [0,0,1], null, [1,1,1,1], null, null, null])
-		jsonObjects.push(["meshes/living_table.json",	[0,55,0], [0.1,0.1,0.1], 0,  [0,0,1], null, [1,1,1,1], null, null, null])
+
+		var otherObjects = loadBox(["textures/brickwall.png","textures/hardwood.png","textures/hardwood.png"], doorways, ["normalmaps/brickwall.png"]);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
-		Rooms.push(new Room(gl, program, buffers, jsonObjects, otherObjects, coords));
+		Rooms.push(new Room(gl, program,  shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));
 	}
 
 	function loadKitchen(coords, doors, doorways)
@@ -468,7 +492,7 @@ window.onload = function(){
 	var currentOrigin = {x: 0, y: 0};
 	var maxRooms = 2; // The maximum number of rooms that can be loaded at once.
 	//loadLivingRoom([0, 0], [0,0,1,0], [0,0,1,0]);
-	loadBedroom([0, 0], [0,0,1,0], [0,0,1,0]);
+	loadLivingRoom([0, 0], [0,0,1,0], [0,0,1,0]);
 
 	// @entryPoint is the direction of entry from the perspective of the previous room.
 
@@ -594,12 +618,13 @@ window.onload = function(){
 
 		var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 		floor.attachTexture(textures[0]);
-		floor.attachNormalMap(textures[1]);
+		if(normalmaps[0] != null) floor.attachNormalMap(normalmaps[0]);
 		roomBox.push(new Object(floor, [0,-2,0], [100,1,100], 0, [0,1,0], [4,4], null));
 
 		var ceilingHeight = 55.0;
 		var ceiling = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 		ceiling.attachTexture(textures[1]);
+		if(normalmaps[1] != null) ceiling.attachNormalMap(normalmaps[1])
 		roomBox.push(new Object(ceiling, [0,ceilingHeight +  2,0], [100,1,100], glMatrix.toRadian(180), [0,0,1], [8,8], null));
 
 		for(var j = 0; j < 4; j++){
@@ -616,6 +641,7 @@ window.onload = function(){
 				wall.attachTexture(textures[2]);
 				if(normalmaps[2] != null) wall.attachNormalMap(normalmaps[2]);
 			}
+			wall.setMaterialProperties(2, 2, 30);
 			roomBox.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(j*-90), [0,1,0], [8,4]));
 		}
 		return roomBox;
@@ -819,9 +845,14 @@ window.onload = function(){
           if(itemType == "food"){
             room.objects[i].delete();
             eating_audio.play();
-            healthleft = Math.min(100, healthleft + 10);
+            healthleft = Math.min(100, healthleft + 8);
             setHealth(healthleft);
-          }
+          }else if(itemType == "food_2"){
+			room.objects[i].delete();
+            eating_audio.play();
+            healthleft = Math.min(100, healthleft + 15);
+            setHealth(healthleft);
+		  }
           else if(itemType == "closed_door_south"){
             if(testKeys && !holdingKey){ // TODO: Re-enable keys before demo.
               setStatus("The door seems to be locked.", 5000);
