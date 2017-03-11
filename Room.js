@@ -2,6 +2,8 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
     this.meshes = jsonobjects;
     this.objects = otherObjects;
     this.coords = coordinates;
+    this.wallCoords = [];
+    this.doorCoords = [];
 
     var delx = this.coords[0] * 200; // We can set this to 200, since we're using gl.CULL_FACE.
     var delz = this.coords[1] * 200;
@@ -13,7 +15,15 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
     for(var i = 0; i < this.objects.length; i++){
         this.objects[i].translation[0] += delx;
         this.objects[i].translation[2] += delz;
+
+        if (this.objects[i].itemType == "wall") {
+            this.wallCoords.push([this.objects[i].translation, this.objects[i].rotation]);
+        }
+        if (this.objects[i].itemType == "doorWall") {
+            this.doorCoords.push([this.objects[i].translation, this.objects[i].rotation]);
+        }
     }
+
 
     for(var i = 0; i < this.meshes.length; i++){
         addObjectFromJSON.apply(this, this.meshes[i]);

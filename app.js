@@ -221,14 +221,61 @@ window.onload = function(){
 
 		var x = currentDirectionX[0] * xDelta + currentDirectionY[0] * yDelta + currentDirectionZ[0] * zDelta;
 		var z = currentDirectionX[2] * xDelta + currentDirectionY[2] * yDelta + currentDirectionZ[2] * zDelta;
-		// if (posX + x >= 90 || posX + x <= -90 || posZ + z >= 90 || posZ + z <= -80) {
-		// 	return;
-		// }
+		// if ((posX + x >= 90 || posX + x <= -90 || posZ + z >= 90 || posZ + z <= -80) &&
+		// 				!(posX <= 6 && posX >= -6 || posZ <= 6 && posZ >= -6)) {
+
 
 		posX += x;
 		posZ += z;
-		console.log(posX);
-		console.log(posZ);
+		var padding = 10,
+				doorwidth = 16;
+		for (var i = 0; i < Rooms.length; i++){
+			var room = Rooms[i];
+			for (var i = 0; i < room.wallCoords.length; i++) {
+				var wallTranslation = room.wallCoords[i][0];
+				var wallRotation = room.wallCoords[i][1];
+				if (wallRotation % Math.PI == 0){ // if wall rotation is 0 (north) or 180 (south)
+					// if posZ and north/south wall position are both positive or both negative
+					// if both positive, then if posZ > wall you can't move
+					// if both negative, then if posZ < wall you can't move past wall either
+					if (((posZ >= 0) == (wallTranslation[2] >= 0)) && (Math.abs(posZ - wallTranslation[2]) <= padding)) {
+						posX -= x;
+						posZ -= z;
+						return;
+					}
+				} else { // if wall rotation is 90 (east) or 270 (west)
+					// same thing as above but for the east/west wall
+					if (((posX >= 0) == (wallTranslation[0] >= 0)) && (Math.abs(posX - wallTranslation[0]) <= padding)) {
+						posX -= x;
+						posZ -= z;
+						return;
+					}
+				}
+			}
+			for (var i = 0; i < room.doorCoords.length; i++) {
+				var wallTranslation = room.doorCoords[i][0];
+				var wallRotation = room.doorCoords[i][1];
+				if (wallRotation % Math.PI == 0){ // if wall rotation is 0 (north) or 180 (south)
+					// if posZ and north/south wall position are both positive or both negative
+					// if both positive, then if posZ > wall you can't move
+					// if both negative, then if posZ < wall you can't move past wall either
+					if (((posZ >= 0) == (wallTranslation[2] >= 0)) && (Math.abs(posZ - wallTranslation[2]) <= padding + 5)
+												&& Math.abs(posX - wallTranslation[0])  >= doorwidth/2) {
+						posX -= x;
+						posZ -= z;
+						return;
+					}
+				} else { // if wall rotation is 90 (east) or 270 (west)
+					// same thing as above but for the east/west wall
+					if (((posX >= 0) == (wallTranslation[0] >= 0)) && (Math.abs(posX - wallTranslation[0]) <= padding + 5)
+												&& Math.abs(posZ - wallTranslation[2] - 7) >= doorwidth/2) {
+						posX -= x;
+						posZ -= z;
+						return;
+					}
+				}
+			}
+		}
 
 		// Multiply everything by the deltas here to account for the magnitude of the movement.
 		mat4.translate(translationMatrix, identityMatrix, [
@@ -620,9 +667,15 @@ window.onload = function(){
 
 		for(var j = 0; j < 4; j++){
 			var wall;
-			if(doorways[j])
+			var walltype = "wall";
+			var translation = [0, 0, 0];
+			translation[2] = (j % 2 == 1)? 0: (j-1) * -100;
+			translation[1] = ceilingHeight / 2;
+			translation[0] = (j % 2 == 0)? 0: (j-2) * 100;
+			if(doorways[j]) {
 				wall = new Shape(doorWayMesh.vertices, doorWayMesh.indices, doorWayMesh.normals, doorWayMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
-			else
+				walltype = "doorWall"; // if wall has a door
+			} else
 			 	wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 			if(textures[2+j]) {
 				wall.attachTexture(textures[2+j]);
@@ -632,7 +685,7 @@ window.onload = function(){
 				wall.attachTexture(textures[2]);
 				if(normalmaps[2] != null) wall.attachNormalMap(normalmaps[2]);
 			}
-			roomBox.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(j*-90), [0,1,0], [8,4]));
+			roomBox.push(new Object(wall, translation, [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(j*-90), [0,1,0], [8,4], walltype));
 		}
 		return roomBox;
   }
