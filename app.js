@@ -275,10 +275,12 @@ window.onload = function(){
 			ambience -= 0.1;
 			light.setAmbience(ambience);
 		}
+		if(map[75]) gl.uniform1i(shadowUniforms.USE_NORMAL_MAP_Location, 0);
+		if(map[74]) 	{gl.uniform1i(shadowUniforms.USE_NORMAL_MAP_Location, 1); console.log("check");}
 		if(map[192]) swimMode = ~swimMode;
 		if(map[49]) N = 1	;
 		if(map[57]) N = 9;
-		if(map[80]) interact();
+		if(map[80]) interact(); 
 		if(map[75]) testKeys = ~testKeys;
 		if(map[16]) keyboard_crouch = 1; else keyboard_crouch = 0;
 
@@ -733,6 +735,7 @@ window.onload = function(){
 		lightShadowMap: gl.getUniformLocation(shadowProgram, 'lightShadowMap'),
 		shadowClipNearFar: gl.getUniformLocation(shadowProgram, 'shadowClipNearFar'),
 		USE_TEXTURE_Location: gl.getUniformLocation(shadowProgram, 'USE_TEXTURE'),
+		USE_NORMAL_MAP_Location: gl.getUniformLocation(shadowProgram, 'USE_NORMAL_MAP'),
 		texture: gl.getUniformLocation(shadowProgram, 'texture'),
 		sampler: gl.getUniformLocation(shadowProgram, 'sampler')
 	};
@@ -741,6 +744,8 @@ window.onload = function(){
 		vertNormal: gl.getAttribLocation(shadowProgram, 'vertNormal'),
 		texCoord: gl.getAttribLocation(shadowProgram, 'texCoord')
 	};
+
+	gl.uniform1i(shadowUniforms.USE_NORMAL_MAP_Location, 1);
 
 	/////////// Picking ////////////////////
 
