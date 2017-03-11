@@ -9,6 +9,7 @@ class Object{
 		this.texture_scale = texture_scale; // This will determine how many times a texture will repeat.
 		this.itemType = itemType;
 		this.isDrawn = true;
+		this.shadows = true;
 	}
 
 	draw(){
@@ -173,7 +174,6 @@ class Shape{
 		this.gl.uniform1i(this.useTextureLocation, 0);
 		this.gl.drawElements(this.gl.TRIANGLES, this.indices.length, this.gl.UNSIGNED_SHORT, 0);
 	}
-
 
 	// Binds and buffers data, then draws the shape.
 	draw(){

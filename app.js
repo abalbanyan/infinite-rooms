@@ -25,7 +25,7 @@ window.onload = function(){
 	var status = document.getElementById('status');
 
     ////////////////// Compile Shaders ////////////////
-
+		//TODO: Refactor to reduce code bloat
 	// Send the shaders to the gpu and compile them.
 	var vertexShader = gl.createShader(gl.VERTEX_SHADER);
 	var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
@@ -278,7 +278,7 @@ window.onload = function(){
 		if(map[192]) swimMode = ~swimMode;
 		if(map[49]) N = 1	;
 		if(map[57]) N = 9;
-		if(map[80]) interact(); 
+		if(map[80]) interact();
 		if(map[75]) testKeys = ~testKeys;
 		if(map[16]) keyboard_crouch = 1; else keyboard_crouch = 0;
 
@@ -360,7 +360,7 @@ window.onload = function(){
 					["meshes/bodypillow.json", 	[80,17,78], [22,22,24], 		   0, [0,1,0], ["textures/bodypillow.png"], [1,1,1,1]],
 					["meshes/window1.json", 		[-100,10,-10], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]],
 					["meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]],
-					["meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], ["textures/wood2.png"],   [90/255,67/255,80/255,1], null, null,null, "normalmaps/wood.png"],
+					["meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], ["textures/wood2.png"],   [90/255,67/255,80/255,1], null, null,null, "normalmaps/wood.png", false],
 					["meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]],
 					["meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/cheese.png"],  [90/255,67/255,80/255,1], "food", getID()],
 					["meshes/umbreon.json",		[40,20,84], [3.2,3.2,3.2], 		-125,  [0,1,0], ["textures/umbreon.png","textures/umbreon2.png"], [1,1,1,1]],
@@ -377,7 +377,7 @@ window.onload = function(){
 		var jsonObjects = []
 		var boxObjects = loadBox(["textures/bathroomfloor.png","textures/bathroomfloor.png","textures/bathroomfloor.png"], doorways)
 		otherObjects = boxObjects;
-		
+
 		jsonObjects.push(["meshes/board.json",	[0,55,0], [0.5,0.5,0.7], 0,  [0,0,1], null, [1,1,1,1], null, null, null])
 		jsonObjects.push(["meshes/living_table.json",	[0,55,0], [0.1,0.1,0.1], 0,  [0,0,1], null, [1,1,1,1], null, null, null])
 
@@ -399,7 +399,7 @@ window.onload = function(){
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
-		Rooms.push(new Room(gl, program,  shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));		
+		Rooms.push(new Room(gl, program,  shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));
 	}
 
 	function loadMeme(coords, doors, doorways)
@@ -431,9 +431,9 @@ window.onload = function(){
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
-		Rooms.push(new Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));		
+		Rooms.push(new Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));
 
-		templates.shift();	
+		templates.shift();
 	}
 
 	function loadBathroom(coords, doors, doorways)
@@ -473,7 +473,7 @@ window.onload = function(){
 	// @entryPoint is the direction of entry from the perspective of the previous room.
 
 	var prevRoom = -1;
-	function loadNewRoom(entryPoint){ 
+	function loadNewRoom(entryPoint){
 		while(true){
 			var rand1 = Math.random() >= 0.5;		var rand2 = Math.random() >= 0.5;
 			var rand3 = Math.random() >= 0.5;		var rand4 = Math.random() >= 0.5;
@@ -481,13 +481,13 @@ window.onload = function(){
 		}
 		var doorways = [0, 0, rand3, rand4]; // north and east won't have doors.
 		var doors = [0, 0, rand3, rand4];
-		
+
 		var newRoom=  Math.floor(Math.random() * (templates.length));
 		while(prevRoom == newRoom){
 			newRoom =  Math.floor(Math.random() * (templates.length));
 		}
 		prevRoom = newRoom; // no room should be selected twice in a row.
-		
+
 		if(entryPoint == "north"){
 			light.translateLight([0,0,200]);
 			currentOrigin.y++;
@@ -741,6 +741,7 @@ window.onload = function(){
 		shadowClipNearFar: gl.getUniformLocation(shadowProgram, 'shadowClipNearFar'),
 		USE_TEXTURE_Location: gl.getUniformLocation(shadowProgram, 'USE_TEXTURE'),
 		USE_NORMAL_MAP_Location: gl.getUniformLocation(shadowProgram, 'USE_NORMAL_MAP'),
+		SHADOWS_OFF_Location: gl.getUniformLocation(shadowProgram, 'SHADOWS_OFF'),
 		texture: gl.getUniformLocation(shadowProgram, 'texture'),
 		sampler: gl.getUniformLocation(shadowProgram, 'sampler'),
 		normalMap: gl.getUniformLocation(shadowProgram, 'normalMap')
@@ -929,7 +930,7 @@ window.onload = function(){
           	toggleKeyIcon(1);
       //    	key_audio.play();
           	room.objects[i].delete();
-          	setStatus("nothing is suspicious", 5000); 
+          	setStatus("nothing is suspicious", 5000);
 
 
             trip_audio.play();
@@ -937,13 +938,13 @@ window.onload = function(){
             rotateCamera(0, -30);
           	tripID = setInterval(function(){
 				tripIt++;
-				if(tripIt == 1000){	
+				if(tripIt == 1000){
 					clearInterval(tripID);
 					trip_audio.pause();
 				}
 				else
 					rotateCamera(tripIt/100, Math.sin(tripIt/100) / 4 );
-			}, 10);  	
+			}, 10);
           }
 		  else if(itemType == "key_obama"){
             holdingKey = 1;
@@ -1025,9 +1026,9 @@ window.onload = function(){
 			gl.clearColor(0, 0, 0, 1);
 			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-			//for(var i = 0; i < Rooms.length; i++){
-			 	for(var j = 0; j < Rooms[Rooms.length-1].objects.length; j++){
-			 		object = Rooms[Rooms.length-1].objects[j];
+		 	for(var j = 0; j < Rooms[Rooms.length-1].objects.length; j++){
+		 		object = Rooms[Rooms.length-1].objects[j];
+				if (object.shadows){
 			 		// Begin transformations.
 			 		mat4.identity(worldMatrix);
 			 		mat4.scale(scalingMatrix, identityMatrix, object.scale);
@@ -1042,8 +1043,8 @@ window.onload = function(){
 
 			 		if(object.isDrawn)
 			 			object.shadowMapDraw(shadowMapAttributes);
-			 	}
-			//}
+				}
+		 	}
 		}
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
@@ -1074,6 +1075,11 @@ window.onload = function(){
 			for(var i = 0; i < Rooms.length; i++){
 				for(var j = 0; j < Rooms[i].objects.length; j++){
 					object = Rooms[i].objects[j];
+					// Is the current objects shadow off or on?
+					if (object.shadows)
+						gl.uniform1i(shadowUniforms.SHADOWS_OFF_Location, 0);
+					else
+						gl.uniform1i(shadowUniforms.SHADOWS_OFF_Location, 1);
 					// Begin transformations.
 					mat4.identity(worldMatrix);
 					mat4.scale(scalingMatrix, identityMatrix, object.scale);
