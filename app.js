@@ -122,7 +122,7 @@ window.onload = function(){
 	var textureTransform = new Float32Array(9);
 
 	var fovY = 50;
-	var pickDistance = 55.0;
+	var pickDistance = 56.0;
 	mat4.lookAt(viewMatrix, [0, 30, -10], [0,30,0], [0,1,0]); // Eye, Point, Up. The camera is initialized using lookAt. I promise I don't use it anywhere else!
  	mat4.perspective(projMatrix, glMatrix.toRadian(fovY), canvas.width / canvas.height, 0.1, 500.0); // fovy, aspect ratio, near, far
 	mat4.perspective(pickProjMatrix, glMatrix.toRadian(fovY), canvas.width / canvas.height, 0.1, pickDistance);
@@ -355,16 +355,16 @@ window.onload = function(){
 	// For your convenience: ["meshes/.json",		[0,0,0], [1,1,1], 0,  [0,1,0], ["textures/"], [1,1,1,1], null, null, null]
 	function loadBedroom(coords, doors, doorways)
 	{
-		var jsonObjects = [["meshes/bed.json", 			[75,10,65], [18,20,18],   180, [0,1,0], ["textures/bed.png"], null, "bed", getID()],
-					["meshes/bedside-table.json", 	[35,0,88], [1,1,1], 		   -90, [0,1,0], ["textures/bedwood.png"], [1,1,1,1]],
-					["meshes/bodypillow.json", 	[80,15,78], [22,22,24], 		   0, [0,1,0], ["textures/bodypillow.png"], [1,1,1,1]],
+		var jsonObjects = [["meshes/bed.json", 			[75,-4,65], [0.75,0.75,0.75],   180, [0,1,0], ["textures/bedwood.png"], [0.8,1,1,1], null, null, null, "normalmaps/wood.png"],
+					["meshes/bedside-table.json", 	[36,0,88], [1,1,1], 		   -90, [0,1,0], ["textures/bedwood.png"], [1,1,1,1]],
+					["meshes/bodypillow.json", 	[80,17,78], [22,22,24], 		   0, [0,1,0], ["textures/bodypillow.png"], [1,1,1,1]],
 					["meshes/window1.json", 		[-100,10,-10], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]],
 					["meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]],
 					["meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], ["textures/wood2.png"],   [90/255,67/255,80/255,1], null, null,null, "normalmaps/wood.png"],
 					["meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]],
 					["meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/cheese.png"],  [90/255,67/255,80/255,1], "food", getID()],
 					["meshes/umbreon.json",		[40,20,84], [3.2,3.2,3.2], 		-125,  [0,1,0], ["textures/umbreon.png","textures/umbreon2.png"], [1,1,1,1]],
-					["meshes/key.json",		[58,0,50], [11,11,11], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
+					["meshes/key.json",		[54,0,50], [11,11,11], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
 					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/waifu.png"], [1,1,1,1], null, null, null]];
 		var otherObjects = loadBox(["textures/hardwood.png", "textures/crate.png", "textures/wallpaper1.png"], doorways, ["normalmaps/wood.png", "normalmaps/wood.png"]);
 
