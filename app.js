@@ -368,7 +368,7 @@ window.onload = function(){
 					["meshes/umbreon.json",		[40,20,84], [3.2,3.2,3.2], 		-125,  [0,1,0], ["textures/umbreon.png","textures/umbreon2.png"], [1,1,1,1]],
 					["meshes/key.json",		[54,0,50], [11,11,11], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
 					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/waifu.png"], [1,1,1,1], null, null, null, null, false]];
-		var otherObjects = loadBox(["textures/hardwood.png", "textures/crate.png", "textures/brickwall.png"], doorways, ["normalmaps/wood.png", "normalmaps/wood.png", "normalmaps/brickwall.png"]);
+		var otherObjects = loadBox(["textures/hardwood.png", "textures/crate.png", "textures/wallpaper1.png"], doorways);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
@@ -452,7 +452,7 @@ window.onload = function(){
 					["meshes/painting.json",		[85,25,-98.5], [2,2,2], -270,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false],
 
 					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false]];
-		var otherObjects = loadBox(["textures/space.png", "textures/space.png", "textures/space.png"], doorways);
+		var otherObjects = loadBox(["textures/space.png", "textures/space.png", "textures/space.png"], doorways, [], true);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
@@ -614,11 +614,12 @@ window.onload = function(){
 
 	// load walls, ceiling, floor. Textures should be paths to textures in the following order: ceiling, floor, north wall, east wall, south wall, west wall.
 	// @doorways: size 4 array of booleans indicating which walls have doorways. [north, east, south, west]
-	function loadBox(textures, doorways, normalmaps = []){
+	function loadBox(textures, doorways, normalmaps = [], distorted = false){
 		var roomBox = [];
 
 		var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 		floor.attachTexture(textures[0]);
+		if(distorted) floor.distortTextures();
 		if(normalmaps[0] != null) floor.attachNormalMap(normalmaps[0]);
 		roomBox.push(new Object(floor, [0,-2,0], [100,1,100], 0, [0,1,0], [4,4], null));
 
@@ -626,6 +627,7 @@ window.onload = function(){
 		var ceiling = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 		ceiling.attachTexture(textures[1]);
 		if(normalmaps[1] != null) ceiling.attachNormalMap(normalmaps[1])
+		if(distorted) ceiling.distortTextures();
 		roomBox.push(new Object(ceiling, [0,ceilingHeight +  2,0], [100,1,100], glMatrix.toRadian(180), [0,0,1], [8,8], null));
 
 		for(var j = 0; j < 4; j++){
@@ -643,6 +645,7 @@ window.onload = function(){
 				if(normalmaps[2] != null) wall.attachNormalMap(normalmaps[2]);
 			}
 			wall.setMaterialProperties(2, 2, 30);
+			if(distorted) wall.distortTextures();
 			roomBox.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(j*-90), [0,1,0], [8,4]));
 		}
 		return roomBox;
@@ -771,7 +774,9 @@ window.onload = function(){
 		SHADOWS_OFF_Location: gl.getUniformLocation(shadowProgram, 'SHADOWS_OFF'),
 		texture: gl.getUniformLocation(shadowProgram, 'texture'),
 		sampler: gl.getUniformLocation(shadowProgram, 'sampler'),
-		normalMap: gl.getUniformLocation(shadowProgram, 'normalMap')
+		normalMap: gl.getUniformLocation(shadowProgram, 'normalMap'),
+		theta: gl.getUniformLocation(shadowProgram, "theta"),
+		TEXTURE_DISTORTION_Location: gl.getUniformLocation(shadowProgram, 'TEXTURE_DISTORTION')
 	};
 	var shadowAttributes = {
 		vertPosition: gl.getAttribLocation(shadowProgram, 'vertPosition'),
@@ -1095,6 +1100,7 @@ window.onload = function(){
 			gl.uniformMatrix4fv(shadowUniforms.mView, gl.FALSE, viewMatrix);
 
 			// Draw normally onto the screen.
+			gl.uniform1f(shadowUniforms.theta, theta);
 			gl.uniformMatrix4fv(shadowUniforms.mProj, gl.FALSE, projMatrix);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 			gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
