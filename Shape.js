@@ -55,6 +55,7 @@ class Shape{
 		this.use_normal_map = 0;
 		this.normalMapTexture = gl.createTexture();
 		this.distorted = 0;
+		this.water = 0;
 
 		this.positionAttribLocation = gl.getAttribLocation(program, 'vertPosition');
 		this.samplerLocation = gl.getUniformLocation(program, 'sampler')
@@ -135,6 +136,9 @@ class Shape{
 
 	distortTextures(){
 		this.distorted = 1;
+	}
+	useWater(bool = true){
+		this.water = bool;
 	}
 
 	setMaterialProperties(new_diffusivity, new_smoothness, new_shininess){
@@ -298,11 +302,9 @@ class Shape{
 		this.gl.uniform1f(shadowUniforms.shininess, this.material.shininess);
 		if(this.shapeColor != null) this.gl.uniform4fv(shadowUniforms.shapeColor, this.shapeColor);
 
-		if(this.distorted){
-			this.gl.uniform1i(shadowUniforms.TEXTURE_DISTORTION_Location, 1);
-		} else {
-			this.gl.uniform1i(shadowUniforms.TEXTURE_DISTORTION_Location, 0);
-		}
+		// Special shader effects.
+		this.gl.uniform1i(shadowUniforms.TEXTURE_DISTORTION_Location, this.distorted);
+		this.gl.uniform1i(shadowUniforms.water, this.water);
 
 		if(this.use_texture){
 
