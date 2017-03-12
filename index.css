@@ -25,6 +25,7 @@ body{
     margin-top: 11vw;
 }
 #landingPageSubtext {
+    opacity: 0.4;
 	position: fixed;
 	z-index: 3;
 	color: white;
