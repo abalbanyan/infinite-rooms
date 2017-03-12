@@ -1,6 +1,6 @@
 // The shape of an object, along with its state within the world (i.e, translations, rotations, scales) is stored here.
 class Object{
-	constructor(shape, translation, scale, rotation, axis = [0,1,0], texture_scale = null, itemType = null){
+	constructor(shape, translation, scale, rotation, axis = [0,1,0], texture_scale = null, itemType = null, shadows = true){
 		this.shape = shape;
 		this.translation = translation;
 		this.scale = scale;
@@ -9,6 +9,7 @@ class Object{
 		this.texture_scale = texture_scale; // This will determine how many times a texture will repeat.
 		this.itemType = itemType;
 		this.isDrawn = true;
+		this.shadows = shadows;
 	}
 
 	draw(){
@@ -53,6 +54,8 @@ class Shape{
 		this.texture = gl.createTexture()
 		this.use_normal_map = 0;
 		this.normalMapTexture = gl.createTexture();
+		this.distorted = 0;
+		this.water = 0;
 
 		this.positionAttribLocation = gl.getAttribLocation(program, 'vertPosition');
 		this.samplerLocation = gl.getUniformLocation(program, 'sampler')
@@ -131,6 +134,13 @@ class Shape{
 		this.use_texture = true;
 	}
 
+	distortTextures(){
+		this.distorted = 1;
+	}
+	useWater(bool = true){
+		this.water = bool;
+	}
+
 	setMaterialProperties(new_diffusivity, new_smoothness, new_shininess){
 		this.material.diffusivity = new_diffusivity;
 		this.material.smoothness = new_smoothness;
@@ -173,7 +183,6 @@ class Shape{
 		this.gl.uniform1i(this.useTextureLocation, 0);
 		this.gl.drawElements(this.gl.TRIANGLES, this.indices.length, this.gl.UNSIGNED_SHORT, 0);
 	}
-
 
 	// Binds and buffers data, then draws the shape.
 	draw(){
@@ -293,6 +302,9 @@ class Shape{
 		this.gl.uniform1f(shadowUniforms.shininess, this.material.shininess);
 		if(this.shapeColor != null) this.gl.uniform4fv(shadowUniforms.shapeColor, this.shapeColor);
 
+		// Special shader effects.
+		this.gl.uniform1i(shadowUniforms.TEXTURE_DISTORTION_Location, this.distorted);
+		this.gl.uniform1i(shadowUniforms.water, this.water);
 
 		if(this.use_texture){
 
@@ -314,7 +326,7 @@ class Shape{
 			if(this.use_normal_map){
 				this.gl.activeTexture(this.gl.TEXTURE2);
 				this.gl.bindTexture(this.gl.TEXTURE_2D, this.normalMapTexture);
-				this.gl.uniform1i(shadowUniforms.normalMap, 0);
+				this.gl.uniform1i(shadowUniforms.normalMap, 2);
 				this.gl.uniform1i(shadowUniforms.sampler, 0);
 				this.gl.uniform1i(shadowUniforms.USE_NORMAL_MAP_Location, 1);
 			}else{

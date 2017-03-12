@@ -1,5 +1,9 @@
 window.onload = function(){
 
+	// Display once page is loaded.
+	document.getElementById('landingPageSubtext').innerHTML = "Game loaded. Press START or ENTER to continue.";
+	utils.fadein(document.getElementById('landingPageSubtext'));
+
 	console.log("Starting.")
 	var canvas = document.getElementById('webgl-canvas');
 	canvas.width  = 960 * 1.1//window.innerWidth - 250;
@@ -25,7 +29,7 @@ window.onload = function(){
 	var status = document.getElementById('status');
 
     ////////////////// Compile Shaders ////////////////
-
+		//TODO: Refactor to reduce code bloat
 	// Send the shaders to the gpu and compile them.
 	var vertexShader = gl.createShader(gl.VERTEX_SHADER);
 	var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
@@ -161,7 +165,7 @@ window.onload = function(){
 	//////////////// Lighting /////////////////////////////
 
 	var lightPositions = [0.0, 45.0, 0.0, 1.0];
-	var lightColors = [1,0.3,0.1,1];
+	var lightColors = [1,0.8,0.8,1];
 	var vec3LightPositions = vec3.fromValues(0.0, 45.0, 0.0);
 	var lightAttenuations = [2.0/10000.0];
 	var ambience = 0.3;
@@ -306,13 +310,11 @@ window.onload = function(){
 	function handleInput(){
 
 		//handle keyboard input
-		if(map[13]) {
-			if(!gameStart){
-				utils.fade(document.getElementById("landingPageBackground"));
-				utils.fade(document.getElementById("landingPageText"));
-				utils.fade(document.getElementById("landingPageSubtext"));
-				gameStart = 1;
-			}
+		if(map[13] && !gameStart) {
+			utils.fade(document.getElementById("landingPageBackground"));
+			utils.fade(document.getElementById("landingPageText"));
+			utils.fade(document.getElementById("landingPageSubtext"));
+			gameStart = 1;
 		}
 		if(map[87]) movePlayer(0,0, playerSpeed * 1);   // W
 		if(map[83]) movePlayer(0,0, -playerSpeed * 1);  // S
@@ -381,6 +383,13 @@ window.onload = function(){
 		// Navigation
 		movePlayer(-axes[0] * playerSpeed, 0, -axes[1] * playerSpeed);
 
+		if(gamepad.buttons[9].pressed && !gameStart){
+			utils.fade(document.getElementById("landingPageBackground"));
+			utils.fade(document.getElementById("landingPageText"));
+			utils.fade(document.getElementById("landingPageSubtext"));
+			gameStart = 1;
+		}
+
 		// Buttons
 		if(gamepad.buttons[0].pressed) interact();
 		if(gamepad.buttons[2].pressed) crouch = 1;
@@ -403,11 +412,14 @@ window.onload = function(){
 	////////////////////// Objects /////////////////////
 
 	var Rooms = [];
-	var templates = [loadMeme, loadBathroom, loadKitchen];
+
+	var templates = [loadMeme, loadBathroom, loadKitchen, loadLivingRoom, loadPool];
 
 	var ID = -1;
 	function getID(){
 		ID++;
+		if(ID > 255)
+			ID = 0;
 		return ID;
 	}
 
@@ -417,49 +429,136 @@ window.onload = function(){
 	// @doorways: size 4 array of booleans indicating which walls have doorways. [north, east, south, west]
 	// @doors: size 4 array of booleans indicating which walls have doors. [north, east, south, west] Should be the same as doorways, except with the direction the player enters the room as 0.
 	// For your convenience: ["meshes/.json",		[0,0,0], [1,1,1], 0,  [0,1,0], ["textures/"], [1,1,1,1], null, null, null]
-	function loadBedroom(coords, doors, doorways)
+
+	function loadTomb(coords, doors, doorways)
 	{
-		var jsonObjects = [["meshes/bed.json", 			[75,-4,65], [0.75,0.75,0.75],   180, [0,1,0], ["textures/bedwood.png"], [0.8,1,1,1], null, null, null, "normalmaps/wood.png"],
-					["meshes/bedside-table.json", 	[36,0,88], [1,1,1], 		   -90, [0,1,0], ["textures/bedwood.png"], [1,1,1,1]],
-					["meshes/bodypillow.json", 	[80,17,78], [22,22,24], 		   0, [0,1,0], ["textures/bodypillow.png"], [1,1,1,1]],
-					["meshes/window1.json", 		[-100,10,-10], [0.6,0.6,0.6],    -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]],
-					["meshes/window1.json", 		[-100,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], null,					 [90/255,67/255,80/255,1]],
-					["meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], ["textures/wood2.png"],   [90/255,67/255,80/255,1], null, null,null, "normalmaps/wood.png"],
-					["meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]],
-					["meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/cheese.png"],  [90/255,67/255,80/255,1], "food", getID()],
-					["meshes/umbreon.json",		[40,20,84], [3.2,3.2,3.2], 		-125,  [0,1,0], ["textures/umbreon.png","textures/umbreon2.png"], [1,1,1,1]],
-					["meshes/key.json",		[54,0,50], [11,11,11], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
-					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/waifu.png"], [1,1,1,1], null, null, null]];
-		var otherObjects = loadBox(["textures/hardwood.png", "textures/crate.png", "textures/wallpaper1.png"], doorways, ["normalmaps/wood.png", "normalmaps/wood.png"]);
+		var jsonObjects = [
+		];
+
+		for(var i = -4; i < 0; i++){
+			jsonObjects.push(["meshes/tombstone1.json",	   [i * 20 - 5,-2,95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [-i * 20 + 5,-2,95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [i * 20 - 5,-2,-95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [-i * 20 + 5,-2,-95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [95,-2,i * 20 - 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [95,-2,-i * 20 + 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [-95,-2,i * 20 - 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [-95,-2,-i * 20 + 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
+		}
+
+		jsonObjects.push(["meshes/grave.json",	[-8,-13,0], [10,12,10], -90,  [1,0,0], ["textures/tv.png"], [1,1,1,1], null, null, null]);
+
+		var otherObjects = loadBox(["textures/dirtfloor.png", "textures/dirtfloor.png", "textures/tv.png"], doorways);
+		otherObjects[3].shape.useWater(); otherObjects[4].shape.useWater(); otherObjects[5].shape.useWater(); otherObjects[2].shape.useWater();
+		otherObjects[0].shape.useWater();
+		otherObjects[1].shape.useWater();
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
 		Rooms.push(new Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));
 	}
 
-	function loadLivingRoom(coords, doors, doorways){
-		var jsonObjects = []
-		var boxObjects = loadBox(["textures/bathroomfloor.png","textures/bathroomfloor.png","textures/bathroomfloor.png"], doorways)
-		otherObjects = boxObjects;
-
-		jsonObjects.push(["meshes/board.json",	[0,55,0], [0.5,0.5,0.7], 0,  [0,0,1], null, [1,1,1,1], null, null, null])
-		jsonObjects.push(["meshes/living_table.json",	[0,55,0], [0.1,0.1,0.1], 0,  [0,0,1], null, [1,1,1,1], null, null, null])
+	function loadBedroom(coords, doors, doorways)
+	{
+		var jsonObjects = [["meshes/bed.json", 			[75,-4,65], [0.75,0.75,0.75],   180, [0,1,0], ["textures/bedwood.png"], [0.8,1,1,1], null, null, null, "normalmaps/wood.png"],
+					["meshes/bedside-table.json", 	[36,0,88], [1,1,1], 		   -90, [0,1,0], ["textures/bedwood.png"], [1,1,1,1]],
+					["meshes/commode.json",		[65,-3,-89], [1.6,1.4,1.0], 0,  [0,1,0], ["textures/bedwood.png", "textures/bedwood.png","textures/bedwood.png", "textures/bedwood.png", "textures/stone.png" ], [1,1,1,1], null, null, null, null, false],
+					["meshes/carpet.json",		[0,-2.2,0], [1,1,1], 0,  [0,1,0], ["textures/blue_carpet.png"], [1,1,1,1], null, null, null, "normalmaps/carpet.png", false],
+					["meshes/bodypillow.json", 	[80,17,78], [22,22,24], 		   0, [0,1,0], ["textures/bodypillow.png"], [1,1,1,1]],
+					["meshes/window1.json", 		[-99,10,-10], [0.6,0.6,0.6],    -90,	[0,1,0], ["textures/wood2.png"],					 [90/255,67/255,80/255,1], null, null, null, null, false],
+					["meshes/window1.json", 		[-99,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], ["textures/wood2.png"],					 [90/255,67/255,80/255,1], null, null, null, null, false],
+					["meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], ["textures/wood2.png"],   [90/255,67/255,80/255,1], null, null,null, null, false],
+					["meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]],
+					["meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/cheese.png"],  [90/255,67/255,80/255,1], "food", getID()],
+					["meshes/umbreon.json",		[40,20,84], [3.2,3.2,3.2], 		-125,  [0,1,0], ["textures/umbreon.png","textures/umbreon2.png"], [1,1,1,1]],
+					["meshes/key.json",		[54,0,50], [15,15,15], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
+					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/waifu.png"], [1,1,1,1], null, null, null, null, false]];
+		var otherObjects = loadBox(["textures/hardwood.png", "textures/crate.png", "textures/wallpaper1.png"], doorways);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
-		Rooms.push(new Room(gl, program, buffers, jsonObjects, otherObjects, coords));
+		Rooms.push(new Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));
+	}
+	function loadPool(coords, doors, doorways)
+	{
+		var jsonObjects = [["meshes/pool.json", 	[0,-17,0], [0.007,0.01,0.014],   0, [0,1,0], ["textures/bedwood.png"], [0.8,1,1,1]],
+				["meshes/diving.json",		[28,0,0], [0.5,0.8,0.5], 90,  [0,1,0], ["textures/bedwood.png"], [0.15,0.1,0.05,1], null, null, null],
+				["meshes/window2.json", 		[-99,30,-30], [5,5,5],   90,	[0,0,1], ["textures/crate.png" ],	 [90/255,67/255,80/255,1],  null, null, null, null, false],
+				["meshes/window2.json", 		[-99,30, 40], [5,5,5],   90,	[0,0,1], ["textures/crate.png"],	 [90/255,67/255,80/255,1],  null, null, null, null, false],
+				["meshes/window2.json", 		[99,30,-30], [5,5,5],   -90,	[0,0,1], ["textures/crate.png"],	 [90/255,67/255,80/255,1],  null, null, null, null, false],
+				["meshes/window2.json", 		[99,30, 40], [5,5,5],   -90,	[0,0,1], ["textures/crate.png" ],	 [90/255,67/255,80/255,1],  null, null, null, null, false],
+				["meshes/painting.json",		[-75,22,98], [3,3,3 * 1.777], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/free.png"], [1,1,1,1], null, null, null, null, false],
+				["meshes/key.json",		[48,13.5,0], [15,15,15], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}]
+
+		];
+		var otherObjects = loadBox(["textures/bathroomfloor.png", "textures/tile.png", "textures/tile.png"], doorways);
+
+		var water = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
+		water.attachTexture("textures/water.png");
+		water.useWater();
+		//water.attachNormalMap("normalmaps/water.png");
+		otherObjects.push(new Object(water, [-5,3,0], [43,1,48], 0, [0,1,0], [4,4], null));
+
+		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
+
+		Rooms.push(new Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));
+	}
+
+	
+
+	function loadLivingRoom(coords, doors, doorways){
+		var jsonObjects = [
+					["meshes/living_table.json",	[0,-3,0], [12,8,8], 0,  [0,0,1], ["textures/table1.png"], [1,1,1,1], null, null, null],
+					["meshes/carpet.json",		[0,-2.2,0], [1,1,1], 0,  [0,1,0], ["textures/carpet.png"], [1,1,1,1], null, null, null, "normalmaps/carpet.png", true],
+					["meshes/cheez.json",	[-10,12,-15], [1,1,1], 180,  [0,1,0], ["textures/cheez.png"], [1,1,1,1], "food_2", getID(), null],
+					["meshes/tv.json",	[69,11.5,90], [4,4,4], 90,  [0,1,0], ["textures/static.png", "textures/tv.png"], [1,1,1,1], null, null, null, null, false],
+					["meshes/tv_stand.json",	[69,-1,89.5], [0.4,0.4,0.35], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], null, null, null],
+					["meshes/sofa.json",	[-90,-1,60], [0.8,0.6,0.6], 90,  [0,1,0], ["textures/sofa.png"], [1,1,1,1], null, null, null, null, false],
+					["meshes/bookshelf.json",	[-99,-1,-49], [1.0,0.65,0.8], 90,  [0,1,0], ["textures/crate.png"], [1,1,1,1], null, null, null, null, false],
+					["meshes/cookie.json",			[20,4,-13], [2.2,2.2,2.2], 	90, [0,1,0], ["textures/cookie.png"],  [90/255,67/255,80/255,1], "food", getID()]
+				];
+
+		var key_book = Math.floor(Math.random() * (9 - 3 + 1)) + 3;
+		for(var i = 3; i < 10; i++){
+			for(var j = 0; j < 2; j++){
+				if(i == key_book && j == 1){
+					jsonObjects.push(["meshes/book1.json",		[-98,20 + (8.7 * j),-54 - (i * 1.54) - (j * 6)], [0.05,0.04,0.05], -90,  [0,1,0], ["textures/book.png"], [0.15,0.1,0.2,1], "key", getID(), null, null, false]);
+					continue;
+				}
+				jsonObjects.push(["meshes/book1.json",		[-98,20 + (8.7 * j),-54 - (i * 1.54) - (j * 6)], [0.05,0.04,0.05], -90,  [0,1,0], ["textures/book.png"], [0.15,0.1,0.05,1], null, null, null, null, false]);
+			}
+
+		}
+		for(var i = 19; i < 23; i++){
+			for(var j = -1; j < 1; j++){
+				jsonObjects.push(["meshes/book1.json",		[-98,20 + (8.7 * j),-54 - (i * 1.54) - (j * 6)], [0.05,0.04,0.05], -90,  [0,1,0], ["textures/book.png"], [0.15,0.1,0.05,1], null, null, null, null, false]);
+			}
+
+		}
+		jsonObjects.push(["meshes/board.json",	[0,55,0], [0.5,0.5,0.7], 0,  [0,0,1], null, [1,1,1,1], null, null, null])
+
+		var otherObjects = loadBox(["textures/brickwall.png","textures/hardwood.png","textures/hardwood.png"], doorways, ["normalmaps/brickwall.png"]);
+
+		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
+
+		Rooms.push(new Room(gl, program,  shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));
 	}
 
 	function loadKitchen(coords, doors, doorways)
 	{
 		var jsonObjects = [
-					["meshes/cafe.json",			[-58,0,-35], [60,60,60], 	90, [0,1,0], ["textures/bedwood.png"],  [90/255,67/255,80/255,1]],
-					["meshes/kitchen.json",			[0,0,35], [15,15,15], 	90, [0,1,0], ["textures/dirt.png"],  [90/255,67/255,80/255,1]],
+					["meshes/table.json",			[-58,0,-35], [15,15,15], 	90, [0,1,0], ["textures/wood1.png"],  [90/255,67/255,80/255,1]],
+					["meshes/kitchen.json",			[0,0,35], [15,15,15], 	90, [0,1,0], ["textures/kitchen.jpg"],  [90/255,67/255,80/255,1]],
 					["meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]],
-					["meshes/cheese.json",			[-58,16,-35], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/bread.jpg"],  [90/255,67/255,80/255,1], "food", getID()],
-					["meshes/key.json",		[-23,2,18], [11,11,11], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key_kitchen", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
-					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null]];
-		var otherObjects = loadBox(["textures/tile.jpg", "textures/crate.png", "textures/kitchenwall.jpg"], doorways);
+					["meshes/apple.json",			[-48,18,0], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
+					["meshes/cookie.json",			[25,24,-10], [1.3,1.3,1.3], 	90, [0,1,0], ["textures/cookie.png"],  [90/255,67/255,80/255,1], "food", getID()],
+
+					["meshes/banana.json",			[-33,6,16], [.5,.5,.5], 	90, [1,0,0], ["textures/banana.png"],  [90/255,67/255,80/255,1], "food", getID()],
+
+					["meshes/cheese.json",			[-58,14,-35], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/bread.jpg"],  [90/255,67/255,80/255,1], "food", getID()],
+					["meshes/key.json",		[-20,7.7,16], [14,14,14], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key_kitchen", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
+					["meshes/painting.json",		[-85,25,98.5], [2,2,2 * 1.26], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/tea.png"], [1,1,1,1], null, null, null, null, false]];
+		var otherObjects = loadBox(["textures/tile.png", "textures/crate.png", "textures/kitchenwall.jpg"], doorways);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
@@ -469,32 +568,30 @@ window.onload = function(){
 	function loadMeme(coords, doors, doorways)
 	{
 		var jsonObjects = [
-					["meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]],
 					["meshes/cheese.json",			[0,1,0], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/bread.jpg"],  [90/255,67/255,80/255,1], "food", getID()],
-					["meshes/key.json",		[97,35.5,32.5], [11,11,11], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key_egg", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
-					["meshes/painting.json",		[-45,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null],
-					["meshes/painting.json",		[45,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null],
-					["meshes/painting.json",		[85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null],
-					["meshes/painting.json",		[-98,25,75.5], [2,2,2], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null],
-					["meshes/painting.json",		[-98,25,35.5], [2,2,2], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null],
-					["meshes/painting.json",		[-98,25,-35.5], [2,2,2], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null],
-					["meshes/painting.json",		[-98,25,-75.5], [2,2,2], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null],
+					["meshes/key.json",		[97,35.5,32.5], [11,11,11], 		45,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key_egg", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
+					["meshes/painting.json",		[-45,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false],
+					["meshes/painting.json",		[45,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false],
+					["meshes/painting.json",		[85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false],
+					["meshes/painting.json",		[-98,25,75.5], [2,2,2], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false],
+					["meshes/painting.json",		[-98,25,35.5], [2,2,2], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false],
+					["meshes/painting.json",		[-98,25,-35.5], [2,2,2], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false],
+					["meshes/painting.json",		[-98,25,-75.5], [2,2,2], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false],
 
-					["meshes/painting.json",		[98,25,75.5], [2,2,2], 0,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null],
-					["meshes/painting.json",		[98,25,35.5], [2,2,2], 0,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null],
-					["meshes/painting.json",		[98,25,-35.5], [2,2,2], 0,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null],
-					["meshes/painting.json",		[98,25,-75.5], [2,2,2], 0,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null],
+					["meshes/painting.json",		[98,25,75.5], [2,2,2], 0,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false],
+					["meshes/painting.json",		[98,25,35.5], [2,2,2], 0,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false],
+					["meshes/painting.json",		[98,25,-35.5], [2,2,2], 0,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false],
+					["meshes/painting.json",		[98,25,-75.5], [2,2,2], 0,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false],
 
-					["meshes/painting.json",		[-85,25,-98.5], [2,2,2], -270,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null],
-					["meshes/painting.json",		[-45,25,-98.5], [2,2,2], -270,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null],
-					["meshes/painting.json",		[45,25,-98.5], [2,2,2], -270,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null],
-					["meshes/painting.json",		[85,25,-98.5], [2,2,2], -270,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null],
+					["meshes/painting.json",		[-85,25,-98.5], [2,2,2], -270,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false],
+					["meshes/painting.json",		[-45,25,-98.5], [2,2,2], -270,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false],
+					["meshes/painting.json",		[45,25,-98.5], [2,2,2], -270,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false],
+					["meshes/painting.json",		[85,25,-98.5], [2,2,2], -270,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false],
 
-					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null]];
-		var otherObjects = loadBox(["textures/space.png", "textures/space.png", "textures/space.png"], doorways);
+					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false]];
+		var otherObjects = loadBox(["textures/space.png", "textures/space.png", "textures/space.png"], doorways, [], true);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
-
 
 		Rooms.push(new Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));
 
@@ -511,15 +608,16 @@ window.onload = function(){
 			var offset = i*20;
 			jsonObjects.push(["meshes/sink.json", [offset, 20, 92], [38, 38, 38], 0, [1, 0, 0], ["textures/steel.png"], [1, 1, 1, 1]]);
 		};
-		jsonObjects.push(["meshes/toilet.json", [90, 0, -30], [0.8, 0.8, 0.73], -90, [0, 1, 0], ["textures/porcelain.png"], [1, 1, 1, 1]]);
+		jsonObjects.push(["meshes/toilet.json", [90, 0, -30], [0.8, 0.8, 0.73], -90, [0, 1, 0], ["textures/porcelain.png"], [1, 1, 1, 1], null, null, null, null, false]);
 		jsonObjects.push(["meshes/tp.json", [93, 0, -20], [0.7, 0.7, 0.73], -90, [0, 1, 0], ["textures/wood2.png"], [0.5, 0.5, 0.5, 1]]);
-		jsonObjects.push(["meshes/painting.json",		[58,23,99], [1,1.5,1], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/obama.png"], [1,1,1,1], null, null, null]);
+		jsonObjects.push(["meshes/painting.json",		[58,23,99], [1,1.5,1], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/obama.png"], [1,1,1,1], null, null, null, null, false]);
 		jsonObjects.push(["meshes/key.json",		[60,16.6,93.1], [11,11,11], 		65,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key_obama", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}])
 
-		jsonObjects.push(["meshes/board.json",	[-60,30,-38 - 38], [3.03,1.83,1.8], 90,  [0,0,1], ["textures/wood2.png"], [1,1,1,1], "shower_door_2", getID(), null])
+		jsonObjects.push(["meshes/board.json",	[-60,30,-38 - 38], [3.03,1.83,1.8], 90,  [0,0,1], ["textures/wood2.png"], [1,1,1,1], "shower_door_2", getID()]);
 
-		jsonObjects.push(["meshes/cubicle.json",	[-80,-4,-38], [1.43,1.43,1.5], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], null, null, null]);
-		jsonObjects.push(["meshes/cubicle.json",	[-80,-4,-38 + -38], [1.43,1.43,1.5], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], null, null, null]);
+		jsonObjects.push(["meshes/cubicle.json",	[-80,-4,-38], [1.43,1.43,1.5], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], null, null, null, null, false]);
+		jsonObjects.push(["meshes/cubicle.json",	[-80,-4,-38 + -38], [1.43,1.43,1.5], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], null, null, null, null, false]);
+		jsonObjects.push(["meshes/grate.json",		[0,-3,0], [0.07,0.07,0.14], 0,  [0,1,0], ["textures/stone.png"], [0,1,1,1], null, null, null, null, false]);
 
 		jsonObjects.push(["meshes/board.json",	[0,55,0], [0.5,0.5,0.7], 0,  [0,0,1], null, [1,1,1,1], null, null, null])
 
@@ -538,7 +636,7 @@ window.onload = function(){
 	// @entryPoint is the direction of entry from the perspective of the previous room.
 	var prevRoom = -1;
 	function loadNewRoom(entryPoint){
-			while(true){
+		while(true){
 			var rand1 = Math.random() >= 0.5;		var rand2 = Math.random() >= 0.5;
 			var rand3 = Math.random() >= 0.5;		var rand4 = Math.random() >= 0.5;
 			if(rand1 + rand2 + rand3 + rand4 > 2) break;
@@ -647,25 +745,28 @@ window.onload = function(){
 				translation = [100,-1, 0];
 				dir = "west";
 			}
-			doorArray.push(["meshes/door.json",	translation, [6 * adj , 6 * adj, 6 * adj], (i) * 90 - 90,  [0,1,0], door_textures, [1,1,1,1], "closed_door_" + dir, getID(), door_material]);
+			doorArray.push(["meshes/door.json",	translation, [6 * adj , 6 * adj, 6 * adj], (i) * 90 - 90,  [0,1,0], door_textures, [1,1,1,1], "closed_door_" + dir, getID(), door_material, null, false]);
 		}
 		return doorArray;
 	}
 
 	// load walls, ceiling, floor. Textures should be paths to textures in the following order: ceiling, floor, north wall, east wall, south wall, west wall.
 	// @doorways: size 4 array of booleans indicating which walls have doorways. [north, east, south, west]
-	function loadBox(textures, doorways, normalmaps = []){
+	function loadBox(textures, doorways, normalmaps = [], distorted = false){
 		var roomBox = [];
 
 		var floor = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 		floor.attachTexture(textures[0]);
-		floor.attachNormalMap(textures[1]);
-		roomBox.push(new Object(floor, [0,-2,0], [100,1,100], 0, [0,1,0], [4,4]));
+		if(distorted) floor.distortTextures();
+		if(normalmaps[0] != null) floor.attachNormalMap(normalmaps[0]);
+		roomBox.push(new Object(floor, [0,-2,0], [100,1,100], 0, [0,1,0], [4,4], null));
 
 		var ceilingHeight = 55.0;
 		var ceiling = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 		ceiling.attachTexture(textures[1]);
-		roomBox.push(new Object(ceiling, [0,ceilingHeight +  2,0], [100,1,100], glMatrix.toRadian(180), [0,0,1], [8,8]));
+		if(normalmaps[1] != null) ceiling.attachNormalMap(normalmaps[1])
+		if(distorted) ceiling.distortTextures();
+		roomBox.push(new Object(ceiling, [0,ceilingHeight +  2,0], [100,1,100], glMatrix.toRadian(180), [0,0,1], [8,8], null));
 
 		for(var j = 0; j < 4; j++){
 			var wall;
@@ -687,7 +788,9 @@ window.onload = function(){
 				wall.attachTexture(textures[2]);
 				if(normalmaps[2] != null) wall.attachNormalMap(normalmaps[2]);
 			}
-			roomBox.push(new Object(wall, translation, [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(j*-90), [0,1,0], [8,4], walltype));
+			wall.setMaterialProperties(2, 2, 30);
+			if(distorted) wall.distortTextures();
+			roomBox.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(j*-90), [0,1,0], [8,4]), walltype);
 		}
 		return roomBox;
   }
@@ -812,17 +915,19 @@ window.onload = function(){
 		shadowClipNearFar: gl.getUniformLocation(shadowProgram, 'shadowClipNearFar'),
 		USE_TEXTURE_Location: gl.getUniformLocation(shadowProgram, 'USE_TEXTURE'),
 		USE_NORMAL_MAP_Location: gl.getUniformLocation(shadowProgram, 'USE_NORMAL_MAP'),
+		SHADOWS_OFF_Location: gl.getUniformLocation(shadowProgram, 'SHADOWS_OFF'),
 		texture: gl.getUniformLocation(shadowProgram, 'texture'),
 		sampler: gl.getUniformLocation(shadowProgram, 'sampler'),
-		normalMap: gl.getUniformLocation(shadowProgram, 'normalMap')
+		normalMap: gl.getUniformLocation(shadowProgram, 'normalMap'),
+		theta: gl.getUniformLocation(shadowProgram, "theta"),
+		TEXTURE_DISTORTION_Location: gl.getUniformLocation(shadowProgram, 'TEXTURE_DISTORTION'),
+		water: gl.getUniformLocation(shadowProgram, 'WATER')
 	};
 	var shadowAttributes = {
 		vertPosition: gl.getAttribLocation(shadowProgram, 'vertPosition'),
 		vertNormal: gl.getAttribLocation(shadowProgram, 'vertNormal'),
 		texCoord: gl.getAttribLocation(shadowProgram, 'texCoord')
 	};
-
-	gl.uniform1i(shadowUniforms.USE_NORMAL_MAP_Location, 1);
 
 	/////////// Picking ////////////////////
 
@@ -891,9 +996,14 @@ window.onload = function(){
           if(itemType == "food"){
             room.objects[i].delete();
             eating_audio.play();
-            healthleft = Math.min(100, healthleft + 10);
+            healthleft = Math.min(100, healthleft + 8);
             setHealth(healthleft);
-          }
+          }else if(itemType == "food_2"){
+			room.objects[i].delete();
+            eating_audio.play();
+            healthleft = Math.min(100, healthleft + 15);
+            setHealth(healthleft);
+		  }
           else if(itemType == "closed_door_south"){
             if(testKeys && !holdingKey){ // TODO: Re-enable keys before demo.
               setStatus("The door seems to be locked.", 5000);
@@ -1002,14 +1112,13 @@ window.onload = function(){
           	room.objects[i].delete();
           	setStatus("nothing is suspicious", 5000);
 
-
             trip_audio.play();
             movePlayer(20, 0, -60);
             rotateCamera(0, -30);
           	tripID = setInterval(function(){
 				tripIt++;
-
-				if(tripIt == 1000){
+              
+				if(tripIt == 1200){
 					clearInterval(tripID);
 					trip_audio.pause();
 				}
@@ -1097,9 +1206,9 @@ window.onload = function(){
 			gl.clearColor(0, 0, 0, 1);
 			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-			//for(var i = 0; i < Rooms.length; i++){
-			 	for(var j = 0; j < Rooms[Rooms.length-1].objects.length; j++){
-			 		object = Rooms[Rooms.length-1].objects[j];
+		 	for(var j = 0; j < Rooms[Rooms.length-1].objects.length; j++){
+		 		object = Rooms[Rooms.length-1].objects[j];
+				if (object.shadows){
 			 		// Begin transformations.
 			 		mat4.identity(worldMatrix);
 			 		mat4.scale(scalingMatrix, identityMatrix, object.scale);
@@ -1114,8 +1223,8 @@ window.onload = function(){
 
 			 		if(object.isDrawn)
 			 			object.shadowMapDraw(shadowMapAttributes);
-			 	}
-			//}
+				}
+		 	}
 		}
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
@@ -1136,6 +1245,7 @@ window.onload = function(){
 			gl.uniformMatrix4fv(shadowUniforms.mView, gl.FALSE, viewMatrix);
 
 			// Draw normally onto the screen.
+			gl.uniform1f(shadowUniforms.theta, theta);
 			gl.uniformMatrix4fv(shadowUniforms.mProj, gl.FALSE, projMatrix);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 			gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
@@ -1146,6 +1256,11 @@ window.onload = function(){
 			for(var i = 0; i < Rooms.length; i++){
 				for(var j = 0; j < Rooms[i].objects.length; j++){
 					object = Rooms[i].objects[j];
+					// Is the current objects shadow off or on?
+					if (object.shadows)
+						gl.uniform1i(shadowUniforms.SHADOWS_OFF_Location, 0);
+					else
+						gl.uniform1i(shadowUniforms.SHADOWS_OFF_Location, 1);
 					// Begin transformations.
 					mat4.identity(worldMatrix);
 					mat4.scale(scalingMatrix, identityMatrix, object.scale);
