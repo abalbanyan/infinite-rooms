@@ -476,6 +476,13 @@ window.onload = function(){
 			jsonObjects.push(["meshes/tombstone1.json",	   [-95,-2,-i * 20 + 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
 		}
 
+			jsonObjects.push(["meshes/painting.json",		[-92,10,23.5], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/will.png"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[-92,10,43.5], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/eric.png"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[-92,10,-45.5], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/christine.png"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[-92,10,-25], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/abdullah.png"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[-40,6,-2], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/chris.png"], [1,1,1,1], null, null, null, null, false]);
+
+
 		jsonObjects.push(["meshes/grave.json",	[-8,-13,0], [10,12,10], -90,  [1,0,0], ["textures/tv.png"], [1,1,1,1], null, null, null]);
 
 		var otherObjects = loadBox(["textures/dirtfloor.png", "textures/dirtfloor.png", "textures/tv.png"], doorways);
@@ -661,6 +668,7 @@ window.onload = function(){
 	//loadLivingRoom([0, 0], [0,0,1,0], [0,0,1,0]);
 
 	loadBedroom([0, 0], [0,0,1,0], [0,0,1,0]);
+
 	Rooms[0].loadWallCoords();
 
 	// @entryPoint is the direction of entry from the perspective of the previous room.
