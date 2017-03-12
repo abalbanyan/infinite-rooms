@@ -4,6 +4,7 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
     this.coords = coordinates;
     this.wallCoords = [];
     this.doorCoords = [];
+    this.openDoors = undefined;
 
     delx = this.coords[0] * 200; // We can set this to 200, since we're using gl.CULL_FACE.
     delz = this.coords[1] * 200;

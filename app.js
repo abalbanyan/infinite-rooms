@@ -261,16 +261,18 @@ window.onload = function(){
 				var doorTranslation = room.doorCoords[j][0];
 				var doorRotation = room.doorCoords[j][1];
 				if (doorRotation % Math.PI == 0){ 
-					if (((posZ >= 0) == (doorTranslation[2] >= 0)) && (Math.abs(posZ - doorTranslation[2]) <= padding)
-												&& Math.abs(posX - doorTranslation[0])  >= doorwidth/2) {
+					if (((posZ >= 0) == (doorTranslation[2] >= 0)) && (Math.abs(posZ - doorTranslation[2]) <= padding)){
+						if (Math.abs(posX - doorTranslation[0])  <= doorwidth/2 && room.openDoors == "north" && doorRotation == 0) continue; 
+						if (Math.abs(posX - doorTranslation[0])  <= doorwidth/2 && room.openDoors == "south" && doorRotation == -Math.PI) continue;
 						posX -= x;
 						posZ -= z;
 						return;
 					}
 				} else { // if wall rotation is 90 (east) or 270 (west)
 					// same thing as above but for the east/west wall
-					if (((posX >= 0) == (doorTranslation[0] >= 0)) && (Math.abs(posX - doorTranslation[0]) <= padding)
-												&& Math.abs(posZ - doorTranslation[2]) >= doorwidth/2) {
+					if (((posX >= 0) == (doorTranslation[0] >= 0)) && (Math.abs(posX - doorTranslation[0]) <= padding)){
+						if (Math.abs(posZ - doorTranslation[2])  <= doorwidth/2 && room.openDoors == "east" && doorRotation == -Math.PI/2) continue; 
+						if (Math.abs(posZ - doorTranslation[2])  <= doorwidth/2 && room.openDoors == "west" && doorRotation == -3*Math.PI/2) continue;
 						posX -= x;
 						posZ -= z;
 						return;
@@ -414,7 +416,7 @@ window.onload = function(){
 
 	var Rooms = [];
 
-	var templates = [loadMeme, loadBathroom, loadKitchen, loadLivingRoom, loadPool, loadGarden];
+	var templates = [loadMeme, loadBathroom, loadKitchen, loadLivingRoom, loadPool, loadGarden, loadTomb];
 
 	var ID = -1;
 	function getID(){
@@ -429,6 +431,25 @@ window.onload = function(){
 	// @doorways: size 4 array of booleans indicating which walls have doorways. [north, east, south, west]
 	// @doors: size 4 array of booleans indicating which walls have doors. [north, east, south, west] Should be the same as doorways, except with the direction the player enters the room as 0.
 	// For your convenience: ["meshes/.json",		[0,0,0], [1,1,1], 0,  [0,1,0], ["textures/"], [1,1,1,1], null, null, null]
+
+	function loadWeeb(coords, doors, doorways)
+	{
+		var jsonObjects = [
+			
+		]
+
+		var otherObjects = loadBox(["textures/dirtfloor.png", "textures/tile.png", "textures/tile.png"], doorways);
+
+				for(var i = 1; i < 6; i++){
+			otherObjects[i].texture_scale[1] *= 5/3;
+			otherObjects[i].shape.setMaterialProperties(2, 2.5, 30);
+		}
+
+		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
+
+		Rooms.push(new Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));
+
+	}
 
 	function loadGarden(coords, doors, doorways)
 	{
@@ -668,7 +689,7 @@ window.onload = function(){
 	var maxRooms = 2; // The maximum number of rooms that can be loaded at once.
 	//loadLivingRoom([0, 0], [0,0,1,0], [0,0,1,0]);
 
-	loadBedroom([0, 0], [0,0,1,0], [0,0,1,0]);
+	loadWeeb([0, 0], [0,0,1,0], [0,0,1,0]);
 
 	Rooms[0].loadWallCoords();
 
@@ -689,7 +710,9 @@ window.onload = function(){
 		}
 		prevRoom = newRoom; // no room should be selected twice in a row.
 
+		var opening = "";
 		if(entryPoint == "north"){
+			opening = "south";
 			light.translateLight([0,0,200]);
 			currentOrigin.y++;
 			doorways[2] = 1;
@@ -697,6 +720,7 @@ window.onload = function(){
 			templates[newRoom]([currentOrigin.x, currentOrigin.y], doors, doorways);
 		}
 		if(entryPoint == "east"){
+			opening = "west";
 			light.translateLight([-200,0,0]);
 			currentOrigin.x--
 			doorways[3] = 1;
@@ -704,18 +728,22 @@ window.onload = function(){
 			templates[newRoom]([currentOrigin.x, currentOrigin.y], doors, doorways);
 		}
 		if(entryPoint == "south"){
+			opening = "north";
 			light.translateLight([0,0,-200]);
 			currentOrigin.y--;
 			doorways[0] = 1;
 			doors[0] = 0;
 			templates[newRoom]([currentOrigin.x, currentOrigin.y], doors, doorways);
 		}else if(entryPoint == "west"){
+			opening = "east";
 			light.translateLight([200,0,0]);
 			currentOrigin.x++;
 			doorways[1] = 1;
 			doors[1] = 0;
 			templates[newRoom]([currentOrigin.x, currentOrigin.y], doors, doorways);
 		}
+		Rooms[Rooms.length - 1].openDoors = opening;
+
 
 		// Update lighting for shadow mapping
 		vec3LightPositions = vec3.fromValues(light.lightPosition[0], light.lightPosition[1], light.lightPosition[2]);
@@ -1050,7 +1078,8 @@ window.onload = function(){
               room.objects[i].translation[0] = room.objects[i].translation[0] + 1.0;
               room.objects[i].translation[2] = room.objects[i].translation[2] + 0.78;
               room.objects[i].rotation = room.objects[i].rotation + glMatrix.toRadian(100);
-              room.objects[i].itemType = "open_door"
+              room.objects[i].itemType = "open_door";
+			  room.openDoors = "south";
               door_audio.play();
               setTimeout(function(){ // This is necessary because the door is composed of multiple pickable meshes.
                 holdingKey = 0;
@@ -1071,7 +1100,8 @@ window.onload = function(){
               room.objects[i].translation[0] = room.objects[i].translation[0] -1.0;
               room.objects[i].translation[2] = room.objects[i].translation[2] - 0.78;
               room.objects[i].rotation = room.objects[i].rotation + glMatrix.toRadian(-100);
-              room.objects[i].itemType = "open_door"
+              room.objects[i].itemType = "open_door";
+			  room.openDoors = "north";
               door_audio.play();
               setTimeout(function(){ // This is necessary because the door is composed of multiple pickable meshes.
                 holdingKey = 0;
@@ -1092,6 +1122,7 @@ window.onload = function(){
               room.objects[i].translation[2] = room.objects[i].translation[0] - 0.78;
               room.objects[i].rotation = room.objects[i].rotation + glMatrix.toRadian(100);
               room.objects[i].itemType = "open_door"
+			  room.openDoors = "east";
               door_audio.play();
               setTimeout(function(){ // This is necessary because the door is composed of multiple pickable meshes.
                 holdingKey = 0;
@@ -1113,6 +1144,7 @@ window.onload = function(){
               room.objects[i].translation[0] = room.objects[i].translation[0] - 0.78;
               room.objects[i].rotation = room.objects[i].rotation + glMatrix.toRadian(-80);
               room.objects[i].itemType = "open_door"
+			  room.openDoors = "west";
               door_audio.play();
               setTimeout(function(){ // This is necessary because the door is composed of multiple pickable meshes.
                 holdingKey = 0;
