@@ -326,7 +326,7 @@ class Shape{
 			if(this.use_normal_map){
 				this.gl.activeTexture(this.gl.TEXTURE2);
 				this.gl.bindTexture(this.gl.TEXTURE_2D, this.normalMapTexture);
-				this.gl.uniform1i(shadowUniforms.normalMap, 0);
+				this.gl.uniform1i(shadowUniforms.normalMap, 2);
 				this.gl.uniform1i(shadowUniforms.sampler, 0);
 				this.gl.uniform1i(shadowUniforms.USE_NORMAL_MAP_Location, 1);
 			}else{

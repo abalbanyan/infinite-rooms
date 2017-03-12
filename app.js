@@ -1,5 +1,9 @@
 window.onload = function(){
 
+	// Display once page is loaded.
+	document.getElementById('landingPageSubtext').innerHTML = "Game loaded. Press START or ENTER to continue.";
+	utils.fadein(document.getElementById('landingPageSubtext'));
+
 	console.log("Starting.")
 	var canvas = document.getElementById('webgl-canvas');
 	canvas.width  = 960 * 1.1//window.innerWidth - 250;
@@ -189,6 +193,10 @@ window.onload = function(){
 		pitch += (pitch + pitchDelta > 91 || pitch + pitchDelta < -91)? 0 : pitchDelta; // Don't increase pitch beyond +/-90 degrees.
 	}
 
+	// player's current position
+	var posX = 0;
+	var posZ = -10;
+
 	var currentDirectionX = [];
 	var currentDirectionY = [];
 	var currentDirectionZ = [];
@@ -213,6 +221,61 @@ window.onload = function(){
 			mat4.mul(tempViewMatrix, rotationMatrix, curViewMatrix);
 			currentDirectionY = [swimMode * tempViewMatrix[2], -tempViewMatrix[6], swimMode* -tempViewMatrix[10]];
 			vec3.normalize(currentDirectionY, currentDirectionY);
+		}
+
+		var x = currentDirectionX[0] * xDelta + currentDirectionY[0] * yDelta + currentDirectionZ[0] * zDelta;
+		var z = currentDirectionX[2] * xDelta + currentDirectionY[2] * yDelta + currentDirectionZ[2] * zDelta;
+		// if ((posX + x >= 90 || posX + x <= -90 || posZ + z >= 90 || posZ + z <= -80) &&
+		// 				!(posX <= 6 && posX >= -6 || posZ <= 6 && posZ >= -6)) {
+
+
+		posX += x;
+		posZ += z;
+		var padding = 10,
+			doorwidth = 16;
+		for (var i = 0; i < Rooms.length; i++){
+			var room = Rooms[i];
+			for (var j = 0; j < room.wallCoords.length; j++) {
+				var wallTranslation = room.wallCoords[j][0];
+				var wallRotation = room.wallCoords[j][1];
+				if (wallRotation % Math.PI == 0){ // if wall rotation is 0 (north) or 180 (south)
+					// if posZ and north/south wall position are both positive or both negative
+					// if both positive, then if posZ > wall you can't move
+					// if both negative, then if posZ < wall you can't move past wall either
+					if (((posZ >= 0) == (wallTranslation[2] >= 0)) && (Math.abs(posZ - wallTranslation[2]) <= padding)) {
+						posX -= x;
+						posZ -= z;
+						return;
+					}
+				} else { // if wall rotation is 90 (east) or 270 (west)
+					// same thing as above but for the east/west wall
+					if (((posX >= 0) == (wallTranslation[0] >= 0)) && (Math.abs(posX - wallTranslation[0]) <= padding)) {
+						posX -= x;
+						posZ -= z;
+						return;
+					}
+				}
+			}
+			for (var j = 0; j < room.doorCoords.length; j++) {
+				var doorTranslation = room.doorCoords[j][0];
+				var doorRotation = room.doorCoords[j][1];
+				if (doorRotation % Math.PI == 0){ 
+					if (((posZ >= 0) == (doorTranslation[2] >= 0)) && (Math.abs(posZ - doorTranslation[2]) <= padding)
+												&& Math.abs(posX - doorTranslation[0])  >= doorwidth/2) {
+						posX -= x;
+						posZ -= z;
+						return;
+					}
+				} else { // if wall rotation is 90 (east) or 270 (west)
+					// same thing as above but for the east/west wall
+					if (((posX >= 0) == (doorTranslation[0] >= 0)) && (Math.abs(posX - doorTranslation[0]) <= padding)
+												&& Math.abs(posZ - doorTranslation[2] - 7) >= doorwidth/2) {
+						posX -= x;
+						posZ -= z;
+						return;
+					}
+				}
+			}
 		}
 
 		// Multiply everything by the deltas here to account for the magnitude of the movement.
@@ -247,19 +310,22 @@ window.onload = function(){
 	function handleInput(){
 
 		//handle keyboard input
-		if(map[13]) {
-			if(!gameStart){
-				utils.fade(document.getElementById("landingPageBackground"));
-				utils.fade(document.getElementById("landingPageText"));
-				utils.fade(document.getElementById("landingPageSubtext"));
-				gameStart = 1;
-			}
+		if(map[13] && !gameStart) {
+			utils.fade(document.getElementById("landingPageBackground"));
+			utils.fade(document.getElementById("landingPageText"));
+			utils.fade(document.getElementById("landingPageSubtext"));
+			gameStart = 1;
 		}
 		if(map[87]) movePlayer(0,0, playerSpeed * 1);   // W
 		if(map[83]) movePlayer(0,0, -playerSpeed * 1);  // S
  		if(map[68]) movePlayer(-playerSpeed * 1, 0, 0);  // D
 		if(map[65]) movePlayer(playerSpeed * 1, 0, 0); // A
-		if(map[65] || map[87] || map[83] || map[68]) footsteps_audio.play(); else footsteps_audio.pause();
+		if(map[65] || map[87] || map[83] || map[68]) {
+			function playAudio(){return footsteps_audio.play();}
+			playAudio().then(function(){}).catch(function(error){playAudio()});
+
+		}
+		else footsteps_audio.pause();
 
 		if(map[37]) rotateCamera(-N, 0);
 		if(map[39]) rotateCamera(N, 0);
@@ -316,6 +382,13 @@ window.onload = function(){
 		rotateCamera(axes[2], axes[3]);
 		// Navigation
 		movePlayer(-axes[0] * playerSpeed, 0, -axes[1] * playerSpeed);
+
+		if(gamepad.buttons[9].pressed && !gameStart){
+			utils.fade(document.getElementById("landingPageBackground"));
+			utils.fade(document.getElementById("landingPageText"));
+			utils.fade(document.getElementById("landingPageSubtext"));
+			gameStart = 1;
+		}
 
 		// Buttons
 		if(gamepad.buttons[0].pressed) interact();
@@ -514,8 +587,8 @@ window.onload = function(){
 
 					["meshes/cheese.json",			[-58,14,-35], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/bread.jpg"],  [90/255,67/255,80/255,1], "food", getID()],
 					["meshes/key.json",		[-20,7.7,16], [14,14,14], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key_kitchen", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
-					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false]];
-		var otherObjects = loadBox(["textures/tile.jpg", "textures/crate.png", "textures/kitchenwall.jpg"], doorways);
+					["meshes/painting.json",		[-85,25,98.5], [2,2,2 * 1.26], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/tea.png"], [1,1,1,1], null, null, null, null, false]];
+		var otherObjects = loadBox(["textures/tile.png", "textures/crate.png", "textures/kitchenwall.jpg"], doorways);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
@@ -574,7 +647,6 @@ window.onload = function(){
 
 		jsonObjects.push(["meshes/cubicle.json",	[-80,-4,-38], [1.43,1.43,1.5], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], null, null, null, null, false]);
 		jsonObjects.push(["meshes/cubicle.json",	[-80,-4,-38 + -38], [1.43,1.43,1.5], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], null, null, null, null, false]);
-
 		jsonObjects.push(["meshes/grate.json",		[0,-3,0], [0.07,0.07,0.14], 0,  [0,1,0], ["textures/stone.png"], [0,1,1,1], null, null, null, null, false]);
 
 		jsonObjects.push(["meshes/board.json",	[0,55,0], [0.5,0.5,0.7], 0,  [0,0,1], null, [1,1,1,1], null, null, null])
@@ -587,10 +659,11 @@ window.onload = function(){
 	var currentOrigin = {x: 0, y: 0};
 	var maxRooms = 2; // The maximum number of rooms that can be loaded at once.
 	//loadLivingRoom([0, 0], [0,0,1,0], [0,0,1,0]);
-	loadGarden([0, 0], [0,0,1,0], [0,0,1,0]);
+
+	loadBedroom([0, 0], [0,0,1,0], [0,0,1,0]);
+	Rooms[0].loadWallCoords();
 
 	// @entryPoint is the direction of entry from the perspective of the previous room.
-
 	var prevRoom = -1;
 	function loadNewRoom(entryPoint){
 		while(true){
@@ -678,6 +751,7 @@ window.onload = function(){
 		if(Rooms.length > maxRooms){
 			Rooms.shift();
 		}
+		Rooms.forEach(function(room){room.loadWallCoords();});
 	}
 
 	function loadDoors(doors, ceilingHeight = 55){
@@ -726,9 +800,15 @@ window.onload = function(){
 
 		for(var j = 0; j < 4; j++){
 			var wall;
-			if(doorways[j])
+			var walltype = "wall";
+			var translation = [0, 0, 0];
+			translation[2] = (j % 2 == 1)? 0: (j-1) * -100;
+			translation[1] = ceilingHeight / 2;
+			translation[0] = (j % 2 == 0)? 0: (j-2) * 100;
+			if(doorways[j]) {
 				wall = new Shape(doorWayMesh.vertices, doorWayMesh.indices, doorWayMesh.normals, doorWayMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
-			else
+				walltype = "doorWall"; // if wall has a door
+			} else
 			 	wall = new Shape(wallMesh.vertices, wallMesh.indices, wallMesh.normals, wallMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 			if(textures[2+j]) {
 				wall.attachTexture(textures[2+j]);
@@ -740,7 +820,7 @@ window.onload = function(){
 			}
 			wall.setMaterialProperties(2, 2, 30);
 			if(distorted) wall.distortTextures();
-			roomBox.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(j*-90), [0,1,0], [8,4]));
+			roomBox.push(new Object(wall, translation, [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(j*-90), [0,1,0], [8,4], walltype));
 		}
 		return roomBox;
   }
@@ -878,7 +958,7 @@ window.onload = function(){
 		vertNormal: gl.getAttribLocation(shadowProgram, 'vertNormal'),
 		texCoord: gl.getAttribLocation(shadowProgram, 'texCoord')
 	};
- 
+
 	/////////// Picking ////////////////////
 
 	//Creates texture
@@ -1067,6 +1147,7 @@ window.onload = function(){
             rotateCamera(0, -30);
           	tripID = setInterval(function(){
 				tripIt++;
+              
 				if(tripIt == 1200){
 					clearInterval(tripID);
 					trip_audio.pause();
@@ -1317,6 +1398,7 @@ window.onload = function(){
 		mat4.mul(viewMatrix, rotationMatrix2, viewMatrix);
 		mat4.invert(curViewMatrix, viewMatrix);
 		gl.uniformMatrix4fv(mViewLoc, gl.FALSE, viewMatrix);
+
 
 		gl.uniformMatrix4fv(mProjLoc, gl.FALSE, pickProjMatrix);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, pickBuffer); // Comment this to draw the pickColors to the screen.
