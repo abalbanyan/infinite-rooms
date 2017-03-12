@@ -29,11 +29,20 @@ varying vec3 fragPos;
 varying vec3 fragNorm;
 varying vec4 lightPos;
 
+uniform bool WATER;
+
+
 void main(){
 	N = normalize( mWorldNormal * vertNormal);
 
 	vec4 object_space_pos = vec4(vertPosition, 1.0);
+
+	if(WATER)
+		object_space_pos.y += sin(object_space_pos.z * theta * 0.5) +  cos(object_space_pos.z * theta * 0.8)+ cos(object_space_pos.x * theta * 0.7) ;
+
 	gl_Position = mProj * mView * mWorld * object_space_pos;
+
+	
 
 	vec3 texCoord_transformed = textureTransform * vec3(texCoord, 1.0);
 	fragTexCoord = texCoord_transformed.xy;
@@ -82,6 +91,7 @@ uniform bool USE_TEXTURE;
 uniform bool USE_NORMAL_MAP;
 uniform bool SHADOWS_OFF;
 uniform bool TEXTURE_DISTORTION;
+uniform bool WATER;
 
 void main(){
 	vec3 vec3LightPos = lightPos.xyz;
@@ -100,6 +110,10 @@ void main(){
 		if(TEXTURE_DISTORTION){
 			tex.x += 2.0 * sin(theta);
 			tex.y += cos(theta);
+		}
+		if(WATER){
+			tex.x += 0.2 * sin(theta);
+			tex.y += 0.1 * cos(theta);
 		}
 
 	 	tex_color = texture2D(texture, tex);
