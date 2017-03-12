@@ -225,6 +225,7 @@ window.onload = function(){
 
 		var x = currentDirectionX[0] * xDelta + currentDirectionY[0] * yDelta + currentDirectionZ[0] * zDelta;
 		var z = currentDirectionX[2] * xDelta + currentDirectionY[2] * yDelta + currentDirectionZ[2] * zDelta;
+		if(Math.abs(posX) > 100 || Math.abs)
 		// if ((posX + x >= 90 || posX + x <= -90 || posZ + z >= 90 || posZ + z <= -80) &&
 		// 				!(posX <= 6 && posX >= -6 || posZ <= 6 && posZ >= -6)) {
 
@@ -820,7 +821,7 @@ window.onload = function(){
 			}
 			wall.setMaterialProperties(2, 2, 30);
 			if(distorted) wall.distortTextures();
-			roomBox.push(new Object(wall, translation, [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(j*-90), [0,1,0], [8,4], walltype));
+			roomBox.push(new Object(wall, [0, ceilingHeight/2, 0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(j*-90), [0,1,0], [8,4], walltype, true, translation));
 		}
 		return roomBox;
   }
