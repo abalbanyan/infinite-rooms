@@ -419,7 +419,7 @@ window.onload = function(){
 	{
 		var jsonObjects = [
 					["meshes/table.json",			[-58,0,-35], [15,15,15], 	90, [0,1,0], ["textures/wood1.png"],  [90/255,67/255,80/255,1]],
-					["meshes/kitchen.json",			[0,0,35], [15,15,15], 	90, [0,1,0], ["textures/kit.jpg"],  [90/255,67/255,80/255,1]],
+					["meshes/kitchen.json",			[0,0,35], [15,15,15], 	90, [0,1,0], ["textures/kitchen.jpg"],  [90/255,67/255,80/255,1]],
 					["meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]],
 					["meshes/apple.json",			[-48,18,0], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
 					["meshes/cookie.json",			[30,20,25], [1,1,1], 	90, [0,1,0], ["textures/cookie.png"],  [90/255,67/255,80/255,1], "food", getID()],
