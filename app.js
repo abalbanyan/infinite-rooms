@@ -191,7 +191,7 @@ window.onload = function(){
 
 	// player's current position
 	var posX = 0;
-	var posZ = 0;
+	var posZ = -10;
 
 	var currentDirectionX = [];
 	var currentDirectionY = [];
@@ -231,7 +231,6 @@ window.onload = function(){
 			doorwidth = 16;
 		for (var i = 0; i < Rooms.length; i++){
 			var room = Rooms[i];
-			console.log(room.doorCoords);
 			for (var j = 0; j < room.wallCoords.length; j++) {
 				var wallTranslation = room.wallCoords[j][0];
 				var wallRotation = room.wallCoords[j][1];
@@ -320,10 +319,9 @@ window.onload = function(){
  		if(map[68]) movePlayer(-playerSpeed * 1, 0, 0);  // D
 		if(map[65]) movePlayer(playerSpeed * 1, 0, 0); // A
 		if(map[65] || map[87] || map[83] || map[68]) {
-			var playpromise = footsteps_audio.play();
-			if (playpromise !== undefined){
-				playpromise.then().catch(function(error){});
-			}
+			function playAudio(){return footsteps_audio.play();}
+			playAudio().then(function(){}).catch(function(error){playAudio()});
+
 		}
 		else footsteps_audio.pause();
 
@@ -522,8 +520,6 @@ window.onload = function(){
 
 		jsonObjects.push(["meshes/cubicle.json",	[-80,-4,-38], [1.43,1.43,1.5], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], null, null, null]);
 		jsonObjects.push(["meshes/cubicle.json",	[-80,-4,-38 + -38], [1.43,1.43,1.5], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], null, null, null]);
-
-		jsonObjects.push(["meshes/grate.json",		[0,-3,0], [0.07,0.07,0.14], 0,  [0,1,0], ["textures/stone.png"], [0,1,1,1], null, null, null]);
 
 		jsonObjects.push(["meshes/board.json",	[0,55,0], [0.5,0.5,0.7], 0,  [0,0,1], null, [1,1,1,1], null, null, null])
 
