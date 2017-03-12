@@ -92,3 +92,4 @@ Camera.prototype._realign = function() {
 	vec3.normalize(this.right, this.right);
 	vec3.normalize(this.up, this.up);
 };
+
