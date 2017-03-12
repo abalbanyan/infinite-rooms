@@ -18,6 +18,7 @@ uniform mat3 mWorldNormal;
 
 uniform vec4 lightPosition[N_LIGHTS], lightColor[N_LIGHTS];
 uniform float ambient, diffusivity, shininess, smoothness, attenuation_factor[N_LIGHTS];
+uniform float theta;
 
 varying vec4 VERTEX_COLOR;
 varying vec3 N, E, pos;
@@ -33,6 +34,7 @@ void main(){
 
 	vec4 object_space_pos = vec4(vertPosition, 1.0);
 	gl_Position = mProj * mView * mWorld * object_space_pos;
+
 	vec3 texCoord_transformed = textureTransform * vec3(texCoord, 1.0);
 	fragTexCoord = texCoord_transformed.xy;
 
