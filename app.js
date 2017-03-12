@@ -422,12 +422,12 @@ window.onload = function(){
 					["meshes/kitchen.json",			[0,0,35], [15,15,15], 	90, [0,1,0], ["textures/kitchen.jpg"],  [90/255,67/255,80/255,1]],
 					["meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]],
 					["meshes/apple.json",			[-48,18,0], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
-					["meshes/cookie.json",			[30,20,25], [1,1,1], 	90, [0,1,0], ["textures/cookie.png"],  [90/255,67/255,80/255,1], "food", getID()],
+					["meshes/cookie.json",			[25,24,-10], [1.3,1.3,1.3], 	90, [0,1,0], ["textures/cookie.png"],  [90/255,67/255,80/255,1], "food", getID()],
 
-					["meshes/banana.json",			[-38,7,16], [.5,.5,.5], 	90, [1,0,0], ["textures/banana.png"],  [90/255,67/255,80/255,1], "food", getID()],
+					["meshes/banana.json",			[-33,6,16], [.5,.5,.5], 	90, [1,0,0], ["textures/banana.png"],  [90/255,67/255,80/255,1], "food", getID()],
 
 					["meshes/cheese.json",			[-58,14,-35], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/bread.jpg"],  [90/255,67/255,80/255,1], "food", getID()],
-					["meshes/key.json",		[-23,2,18], [11,11,11], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key_kitchen", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
+					["meshes/key.json",		[-20,7.7,16], [14,14,14], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key_kitchen", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
 					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false]];
 		var otherObjects = loadBox(["textures/tile.jpg", "textures/crate.png", "textures/kitchenwall.jpg"], doorways);
 
