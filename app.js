@@ -30,7 +30,8 @@ window.onload = function(){
 	var scrollText = document.getElementById('scrollTextID');
 
 	/////////////// Scroll Control //////////////
-	var numOfScrolls = 1;
+	var numOfScrolls = 8;
+	var scrollIterator = 0;
 	var scrollSeen = [];
 	var scrollTextArray = [];
 	var scrollDebounce = 1;
@@ -43,6 +44,35 @@ window.onload = function(){
 		Various notes have a certain chance of spawning in rooms.<br>Collect them... carefully.<br>
 		Collected notes can be toggle viewed by pressing their corresponding function number.
 		<br>Press F1 now to exit this note.`);
+	scrollTextArray.push(
+		`Note 2: Infinite rooms and technically, infinite food.<br>
+		Everything you need to survive.`
+	);
+	scrollTextArray.push(
+		`Note 3: Getting bored yet? Feeling a little existential?<br>
+		Press on for more answers, but remember to be careful.<br>
+		This world is pretty safe for now.`
+	);
+	scrollTextArray.push(
+		`Note 4: Go explore a couple of more rooms, notice anything different?`
+	);
+	scrollTextArray.push(
+		`Note 5: Things might not look nice now, but they really aren't that bad.<br>
+		You've still got food and an infinite number of places to explore.<br>
+		Knowledge can be bad sometimes. Just look at where these notes have gotten you so far.`
+	);
+	scrollTextArray.push(
+		`Note 6: Last chance. If you read the next note then your journey will inevitably end.`
+	);
+	scrollTextArray.push(
+		`Note 7: Well that's it. The rooms and food are finite now. Only one way to go now really.`
+	);
+	scrollTextArray.push(
+		`Some people say that every journey comes to an end.<br>
+		Did this one have to though?<br>
+		Make peace with yourself.<br>
+		This is the end.`
+	);
 
 	function setScrollText(string){
 		scrollText.innerHTML = string;
@@ -538,7 +568,7 @@ window.onload = function(){
 					["meshes/umbreon.json",		[40,20,84], [3.2,3.2,3.2], 		-125,  [0,1,0], ["textures/umbreon.png","textures/umbreon2.png"], [1,1,1,1]],
 					["meshes/key.json",		[54,0,50], [15,15,15], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
 					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/waifu.png"], [1,1,1,1], null, null, null, null, false],
-					["meshes/papyrus.json",		[-93,22,82], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll1", getID()]];
+					["meshes/papyrus.json",		[-93,22,82], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]];
 		var otherObjects = loadBox(["textures/hardwood.png", "textures/crate.png", "textures/wallpaper1.png"], doorways);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
@@ -1208,10 +1238,11 @@ window.onload = function(){
 			room.objects[i].itemType = "shower_door_1";
 	        door_audio.play();
 		  }
-			else if (itemType == 'scroll1'){
+			else if (itemType == 'scroll'){
 				room.objects[i].delete();
-				setScrollText(scrollTextArray[0]);
-				scrollSeen[0] = true;
+				setScrollText(scrollTextArray[scrollIterator]);
+				scrollSeen[scrollIterator] = true;
+				scrollIterator++;
 			}
         }
       }
