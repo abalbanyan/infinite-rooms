@@ -350,7 +350,6 @@ window.onload = function(){
 		return ID;
 	}
 
-
 	// rooms return the range of indices in objects that contain their components. These will be accessed at a later time to
 	// translate the entire room
 	// @doorways: size 4 array of booleans indicating which walls have doorways. [north, east, south, west]
@@ -588,7 +587,7 @@ window.onload = function(){
 	var currentOrigin = {x: 0, y: 0};
 	var maxRooms = 2; // The maximum number of rooms that can be loaded at once.
 	//loadLivingRoom([0, 0], [0,0,1,0], [0,0,1,0]);
-	loadGarden([0, 0], [1,0,1,0], [0,0,1,0]);
+	loadGarden([0, 0], [0,0,1,0], [0,0,1,0]);
 
 	// @entryPoint is the direction of entry from the perspective of the previous room.
 
