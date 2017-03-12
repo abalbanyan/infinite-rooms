@@ -27,7 +27,41 @@ window.onload = function(){
 	}
 
 	var status = document.getElementById('status');
+	var scrollText = document.getElementById('scrollTextID');
 
+	/////////////// Scroll Control //////////////
+	var numOfScrolls = 1;
+	var scrollSeen = [];
+	var scrollTextArray = [];
+	var scrollDebounce = 1;
+	for (var j = 0; j < numOfScrolls; j++){
+		scrollSeen.push(false);
+	}
+	// Add scrolls
+	scrollTextArray.push(
+		`Note 1: Welcome to Infinite Rooms.<br>Traverse the Rooms and eat food to survive.<br>
+		Various notes have a certain chance of spawning in rooms.<br>Collect them... carefully.<br>
+		Collected notes can be toggle viewed by pressing their corresponding function number.
+		<br>Press F1 now to exit this note.`);
+
+	function setScrollText(string){
+		scrollText.innerHTML = string;
+		scrollText.style.visibility = 'visible';
+	}
+	function toggleScrollText(string){
+		scrollDebounce = 0;
+		if (scrollText.style.visibility == 'hidden'){
+			scrollText.innerHTML = string;
+			scrollText.style.visibility = 'visible';
+		}
+		else{
+			scrollText.style.visibility = 'hidden'
+			scrollText.innerHTML = "";
+		}
+		setTimeout(function(){
+				scrollDebounce = 1;
+		}, 500);
+	}
     ////////////////// Compile Shaders ////////////////
 		//TODO: Refactor to reduce code bloat
 	// Send the shaders to the gpu and compile them.
@@ -259,7 +293,7 @@ window.onload = function(){
 			for (var j = 0; j < room.doorCoords.length; j++) {
 				var doorTranslation = room.doorCoords[j][0];
 				var doorRotation = room.doorCoords[j][1];
-				if (doorRotation % Math.PI == 0){ 
+				if (doorRotation % Math.PI == 0){
 					if (((posZ >= 0) == (doorTranslation[2] >= 0)) && (Math.abs(posZ - doorTranslation[2]) <= padding)
 												&& Math.abs(posX - doorTranslation[0])  >= doorwidth/2) {
 						posX -= x;
@@ -347,6 +381,7 @@ window.onload = function(){
 		if(map[80]) interact();
 		if(map[75]) testKeys = ~testKeys;
 		if(map[16]) keyboard_crouch = 1; else keyboard_crouch = 0;
+		if(map[112] && scrollSeen[0] && scrollDebounce) toggleScrollText(scrollTextArray[0]);
 
 		if(keyboard_crouch && keyboard_crouch != keyboard_prevcrouch){ // When crouch is pressed.
 			movePlayer(0, -20, 0);
@@ -440,8 +475,8 @@ window.onload = function(){
 			["meshes/fence.json",		[40,3,95], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
 			["meshes/fence.json",		[-75,3,95], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
 			["meshes/fence.json",		[40,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
-			["meshes/fence.json",		[-75,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],				
-			
+			["meshes/fence.json",		[-75,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+
 			["meshes/key.json",		[80,1,76.5], [15,15,15], 		30,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
 			["meshes/wateringcan.json",		[80,-2,80], [0.25,0.25,0.25], 45,  [0,1,0], ["textures/wateringcan.png"], [1,1,1,1], null, null, null]
 
@@ -502,7 +537,8 @@ window.onload = function(){
 					["meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/cheese.png"],  [90/255,67/255,80/255,1], "food", getID()],
 					["meshes/umbreon.json",		[40,20,84], [3.2,3.2,3.2], 		-125,  [0,1,0], ["textures/umbreon.png","textures/umbreon2.png"], [1,1,1,1]],
 					["meshes/key.json",		[54,0,50], [15,15,15], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
-					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/waifu.png"], [1,1,1,1], null, null, null, null, false]];
+					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/waifu.png"], [1,1,1,1], null, null, null, null, false],
+					["meshes/papyrus.json",		[-93,22,82], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll1", getID()]];
 		var otherObjects = loadBox(["textures/hardwood.png", "textures/crate.png", "textures/wallpaper1.png"], doorways);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
@@ -534,7 +570,7 @@ window.onload = function(){
 		Rooms.push(new Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));
 	}
 
-	
+
 
 	function loadLivingRoom(coords, doors, doorways){
 		var jsonObjects = [
@@ -1147,7 +1183,7 @@ window.onload = function(){
             rotateCamera(0, -30);
           	tripID = setInterval(function(){
 				tripIt++;
-              
+
 				if(tripIt == 1200){
 					clearInterval(tripID);
 					trip_audio.pause();
@@ -1172,6 +1208,11 @@ window.onload = function(){
 			room.objects[i].itemType = "shower_door_1";
 	        door_audio.play();
 		  }
+			else if (itemType == 'scroll1'){
+				room.objects[i].delete();
+				setScrollText(scrollTextArray[0]);
+				scrollSeen[0] = true;
+			}
         }
       }
     });
