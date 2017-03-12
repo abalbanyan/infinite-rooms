@@ -857,7 +857,7 @@ window.onload = function(){
 		vertNormal: gl.getAttribLocation(shadowProgram, 'vertNormal'),
 		texCoord: gl.getAttribLocation(shadowProgram, 'texCoord')
 	};
- 
+
 	/////////// Picking ////////////////////
 
 	//Creates texture
