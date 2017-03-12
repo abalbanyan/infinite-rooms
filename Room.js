@@ -2,6 +2,8 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
     this.meshes = jsonobjects;
     this.objects = otherObjects;
     this.coords = coordinates;
+    this.wallCoords = [];
+    this.doorCoords = [];
 
     var delx = this.coords[0] * 200; // We can set this to 200, since we're using gl.CULL_FACE.
     var delz = this.coords[1] * 200;
@@ -18,6 +20,7 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
     for(var i = 0; i < this.meshes.length; i++){
         addObjectFromJSON.apply(this, this.meshes[i]);
     }
+
      // Pass in pickID as the last parameter to addObjectFromJSON if the object is pickable. The pickID can be any value between 0 and 255.
     // pickID should be unique, itemType does not need to be.
     function addObjectFromJSON(jsonfile, translation, scale, rotation, axis, texture, color = null, itemType = null, pickID = null, material = null, normalMap = null, shadows = true)
@@ -65,4 +68,16 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
         }
         rawFile.send();
 	}
+}
+Room.prototype.loadWallCoords = function(){
+    this.doorCoords = [];
+    this.wallCoords = [];
+    for(var i = 0; i < this.objects.length; i++){
+        if (this.objects[i].itemType == "wall") {
+            this.wallCoords.push([this.objects[i].translation, this.objects[i].rotation]);
+        }
+        if (this.objects[i].itemType == "doorWall") {
+            this.doorCoords.push([this.objects[i].translation, this.objects[i].rotation]);
+        }
+    }
 }
