@@ -269,7 +269,7 @@ window.onload = function(){
 				} else { // if wall rotation is 90 (east) or 270 (west)
 					// same thing as above but for the east/west wall
 					if (((posX >= 0) == (doorTranslation[0] >= 0)) && (Math.abs(posX - doorTranslation[0]) <= padding)
-												&& Math.abs(posZ - doorTranslation[2] - 7) >= doorwidth/2) {
+												&& Math.abs(posZ - doorTranslation[2]) >= doorwidth/2) {
 						posX -= x;
 						posZ -= z;
 						return;
