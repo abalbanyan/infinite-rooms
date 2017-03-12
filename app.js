@@ -340,7 +340,7 @@ window.onload = function(){
 
 	var Rooms = [];
 
-	var templates = [loadMeme, loadBathroom, loadKitchen, loadLivingRoom, loadPool];
+	var templates = [loadMeme, loadBathroom, loadKitchen, loadLivingRoom, loadPool, loadGarden];
 
 	var ID = -1;
 	function getID(){
@@ -356,6 +356,37 @@ window.onload = function(){
 	// @doorways: size 4 array of booleans indicating which walls have doorways. [north, east, south, west]
 	// @doors: size 4 array of booleans indicating which walls have doors. [north, east, south, west] Should be the same as doorways, except with the direction the player enters the room as 0.
 	// For your convenience: ["meshes/.json",		[0,0,0], [1,1,1], 0,  [0,1,0], ["textures/"], [1,1,1,1], null, null, null]
+
+	function loadGarden(coords, doors, doorways)
+	{
+		var jsonObjects = [
+
+			["meshes/fence.json",		[98,3,40], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[98,3,-75], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[-95,3,40], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[-95,3,-75], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[40,3,95], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[-75,3,95], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[40,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[-75,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],				
+			
+			["meshes/key.json",		[80,1,76.5], [15,15,15], 		30,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
+			["meshes/wateringcan.json",		[80,-2,80], [0.25,0.25,0.25], 45,  [0,1,0], ["textures/wateringcan.png"], [1,1,1,1], null, null, null]
+
+		];
+		jsonObjects.push(["meshes/tombstone1.json",	   [-70,-2,90], [20,20,20], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
+		var otherObjects = loadBox(["textures/dirtfloor.png", "textures/leaf.png", "textures/leaf.png"], doorways);
+
+		for(var i = 1; i < 6; i++){
+			otherObjects[i].texture_scale[1] *= 5/3;
+			otherObjects[i].shape.setMaterialProperties(2, 2.5, 30);
+			otherObjects[i].shape.attachNormalMap("normalmaps/leaf.png");
+		}
+
+		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
+
+		Rooms.push(new Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));
+	}
 
 	function loadTomb(coords, doors, doorways)
 	{
@@ -557,7 +588,7 @@ window.onload = function(){
 	var currentOrigin = {x: 0, y: 0};
 	var maxRooms = 2; // The maximum number of rooms that can be loaded at once.
 	//loadLivingRoom([0, 0], [0,0,1,0], [0,0,1,0]);
-	loadBedroom([0, 0], [1,0,1,0], [0,0,1,0]);
+	loadGarden([0, 0], [1,0,1,0], [0,0,1,0]);
 
 	// @entryPoint is the direction of entry from the perspective of the previous room.
 
