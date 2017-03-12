@@ -13,6 +13,7 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
         this.meshes[i][1][2] += delz;
     }
     for(var i = 0; i < this.objects.length; i++){
+        console.log(this.objects[i]);
         this.objects[i].translation[0] += delx;
         this.objects[i].translation[2] += delz;
     }

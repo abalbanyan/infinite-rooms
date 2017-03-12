@@ -790,7 +790,7 @@ window.onload = function(){
 			}
 			wall.setMaterialProperties(2, 2, 30);
 			if(distorted) wall.distortTextures();
-			roomBox.push(new Object(wall, [0,ceilingHeight / 2,0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(j*-90), [0,1,0], [8,4]), walltype);
+			roomBox.push(new Object(wall, translation, [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(j*-90), [0,1,0], [8,4], walltype));
 		}
 		return roomBox;
   }
