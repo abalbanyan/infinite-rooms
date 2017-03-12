@@ -1,5 +1,9 @@
 window.onload = function(){
 
+	// Display once page is loaded.
+	document.getElementById('landingPageSubtext').innerHTML = "Game loaded. Press START or ENTER to continue.";
+	utils.fadein(document.getElementById('landingPageSubtext'));
+
 	console.log("Starting.")
 	var canvas = document.getElementById('webgl-canvas');
 	canvas.width  = 960 * 1.1//window.innerWidth - 250;
@@ -247,13 +251,11 @@ window.onload = function(){
 	function handleInput(){
 
 		//handle keyboard input
-		if(map[13]) {
-			if(!gameStart){
-				utils.fade(document.getElementById("landingPageBackground"));
-				utils.fade(document.getElementById("landingPageText"));
-				utils.fade(document.getElementById("landingPageSubtext"));
-				gameStart = 1;
-			}
+		if(map[13] && !gameStart) {
+			utils.fade(document.getElementById("landingPageBackground"));
+			utils.fade(document.getElementById("landingPageText"));
+			utils.fade(document.getElementById("landingPageSubtext"));
+			gameStart = 1;
 		}
 		if(map[87]) movePlayer(0,0, playerSpeed * 1);   // W
 		if(map[83]) movePlayer(0,0, -playerSpeed * 1);  // S
@@ -316,6 +318,13 @@ window.onload = function(){
 		rotateCamera(axes[2], axes[3]);
 		// Navigation
 		movePlayer(-axes[0] * playerSpeed, 0, -axes[1] * playerSpeed);
+
+		if(gamepad.buttons[9].pressed && !gameStart){
+			utils.fade(document.getElementById("landingPageBackground"));
+			utils.fade(document.getElementById("landingPageText"));
+			utils.fade(document.getElementById("landingPageSubtext"));
+			gameStart = 1;
+		}
 
 		// Buttons
 		if(gamepad.buttons[0].pressed) interact();
@@ -485,7 +494,7 @@ window.onload = function(){
 					["meshes/cheese.json",			[-58,14,-35], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/bread.jpg"],  [90/255,67/255,80/255,1], "food", getID()],
 					["meshes/key.json",		[-20,7.7,16], [14,14,14], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key_kitchen", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
 					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false]];
-		var otherObjects = loadBox(["textures/tile.jpg", "textures/crate.png", "textures/kitchenwall.jpg"], doorways);
+		var otherObjects = loadBox(["textures/tile.png", "textures/crate.png", "textures/kitchenwall.jpg"], doorways);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
@@ -557,7 +566,7 @@ window.onload = function(){
 	var currentOrigin = {x: 0, y: 0};
 	var maxRooms = 2; // The maximum number of rooms that can be loaded at once.
 	//loadLivingRoom([0, 0], [0,0,1,0], [0,0,1,0]);
-	loadBedroom([0, 0], [1,0,1,0], [0,0,1,0]);
+	loadBedroom([0, 0], [0,0,1,0], [0,0,1,0]);
 
 	// @entryPoint is the direction of entry from the perspective of the previous room.
 
