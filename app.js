@@ -14,12 +14,17 @@ window.onload = function(){
 
 	////////////////// HUD /////////////////////////
 	// how much health is left
-	var healthleft = 30;
+	var healthleft = 30.0;
 	// sets health bar to whatever percentage
 	var setHealth = function(percent = healthleft){
 		document.getElementById("health").style.width = percent + "%";
 	}
 	setHealth();
+
+	var decrementHealth = function(n){
+		healthleft -= n;
+		setHealth(Math.max(healthleft, 0.0));
+	}
 
 	var key_icon = document.getElementById("key_icon");
 	var toggleKeyIcon = function(bool){
@@ -27,6 +32,25 @@ window.onload = function(){
 	}
 
 	var status = document.getElementById('status');
+
+	var startGame = function(){
+		gameStart = 1;
+		utils.fade(document.getElementById("landingPageBackground"));
+		utils.fade(document.getElementById("landingPageText"));
+		utils.fade(document.getElementById("landingPageSubtext"));
+		setInterval(function(){ // Decrease health over time.
+			decrementHealth(spooky? 1.0: 0.5);
+			if(healthleft <= 10.0 && healthleft	> 0.0){
+				utils.fadein(document.getElementById(spooky? "spooky_heart" : "heart"));
+			}
+
+			if(healthleft <= 0.0 && healthleft > -4.0){
+				utils.fade(document.getElementById("spooky_heart"));
+				utils.fade(document.getElementById("heart"));
+				utils.fadein(document.getElementById("skull"));
+			}
+		}, 1000);
+	}
 
     ////////////////// Compile Shaders ////////////////
 		//TODO: Refactor to reduce code bloat
@@ -299,10 +323,8 @@ window.onload = function(){
 		e = e || event; // to deal with IE
 		map[e.keyCode] = e.type == 'keydown';
 	}
-	var testKeys = 0;
 
 	// This section of Control is responsible for gamepad functionality.
-	var gameStart = 0;
 	var prevcrouch = 0;	var keyboard_prevcrouch = 0;
 	var crouch = 0; var keyboard_crouch = 0;
 	var footsteps_audio = new Audio('sound/footsteps.wav');
@@ -312,10 +334,7 @@ window.onload = function(){
 
 		//handle keyboard input
 		if(map[13] && !gameStart) {
-			utils.fade(document.getElementById("landingPageBackground"));
-			utils.fade(document.getElementById("landingPageText"));
-			utils.fade(document.getElementById("landingPageSubtext"));
-			gameStart = 1;
+			startGame();
 		}
 		if(map[87]) movePlayer(0,0, playerSpeed * 1);   // W
 		if(map[83]) movePlayer(0,0, -playerSpeed * 1);  // S
@@ -343,10 +362,16 @@ window.onload = function(){
 			light.setAmbience(ambience);
 		}
 		if(map[192]) swimMode = ~swimMode;
+
+		if(map[67] && !spooky){
+			spooky = 1;
+			utils.fade(document.getElementById("heart"));
+		}
+
 		if(map[49]) N = 1	;
 		if(map[57]) N = 9;
 		if(map[80]) interact();
-		if(map[75]) testKeys = ~testKeys;
+		if(map[75]) testKeys = 1;
 		if(map[16]) keyboard_crouch = 1; else keyboard_crouch = 0;
 
 		if(keyboard_crouch && keyboard_crouch != keyboard_prevcrouch){ // When crouch is pressed.
@@ -385,10 +410,7 @@ window.onload = function(){
 		movePlayer(-axes[0] * playerSpeed, 0, -axes[1] * playerSpeed);
 
 		if(gamepad.buttons[9].pressed && !gameStart){
-			utils.fade(document.getElementById("landingPageBackground"));
-			utils.fade(document.getElementById("landingPageText"));
-			utils.fade(document.getElementById("landingPageSubtext"));
-			gameStart = 1;
+			startGame();
 		}
 
 		// Buttons
