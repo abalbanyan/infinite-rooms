@@ -15,19 +15,12 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
     for(var i = 0; i < this.objects.length; i++){
         this.objects[i].translation[0] += delx;
         this.objects[i].translation[2] += delz;
-
-        if (this.objects[i].itemType == "wall") {
-            this.wallCoords.push([this.objects[i].translation, this.objects[i].rotation]);
-        }
-        if (this.objects[i].itemType == "doorWall") {
-            this.doorCoords.push([this.objects[i].translation, this.objects[i].rotation]);
-        }
     }
-
 
     for(var i = 0; i < this.meshes.length; i++){
         addObjectFromJSON.apply(this, this.meshes[i]);
     }
+
      // Pass in pickID as the last parameter to addObjectFromJSON if the object is pickable. The pickID can be any value between 0 and 255.
     // pickID should be unique, itemType does not need to be.
     function addObjectFromJSON(jsonfile, translation, scale, rotation, axis, texture, color = null, itemType = null, pickID = null, material = null, normalMap = null)
@@ -75,4 +68,16 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
         }
         rawFile.send();
 	}
+}
+Room.prototype.loadWallCoords = function(){
+    this.doorCoords = [];
+    this.wallCoords = [];
+    for(var i = 0; i < this.objects.length; i++){
+        if (this.objects[i].itemType == "wall") {
+            this.wallCoords.push([this.objects[i].translation, this.objects[i].rotation]);
+        }
+        if (this.objects[i].itemType == "doorWall") {
+            this.doorCoords.push([this.objects[i].translation, this.objects[i].rotation]);
+        }
+    }
 }

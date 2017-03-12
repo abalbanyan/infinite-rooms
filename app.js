@@ -228,12 +228,13 @@ window.onload = function(){
 		posX += x;
 		posZ += z;
 		var padding = 10,
-				doorwidth = 16;
+			doorwidth = 16;
 		for (var i = 0; i < Rooms.length; i++){
 			var room = Rooms[i];
-			for (var i = 0; i < room.wallCoords.length; i++) {
-				var wallTranslation = room.wallCoords[i][0];
-				var wallRotation = room.wallCoords[i][1];
+			console.log(room.doorCoords);
+			for (var j = 0; j < room.wallCoords.length; j++) {
+				var wallTranslation = room.wallCoords[j][0];
+				var wallRotation = room.wallCoords[j][1];
 				if (wallRotation % Math.PI == 0){ // if wall rotation is 0 (north) or 180 (south)
 					// if posZ and north/south wall position are both positive or both negative
 					// if both positive, then if posZ > wall you can't move
@@ -252,23 +253,20 @@ window.onload = function(){
 					}
 				}
 			}
-			for (var i = 0; i < room.doorCoords.length; i++) {
-				var wallTranslation = room.doorCoords[i][0];
-				var wallRotation = room.doorCoords[i][1];
-				if (wallRotation % Math.PI == 0){ // if wall rotation is 0 (north) or 180 (south)
-					// if posZ and north/south wall position are both positive or both negative
-					// if both positive, then if posZ > wall you can't move
-					// if both negative, then if posZ < wall you can't move past wall either
-					if (((posZ >= 0) == (wallTranslation[2] >= 0)) && (Math.abs(posZ - wallTranslation[2]) <= padding + 5)
-												&& Math.abs(posX - wallTranslation[0])  >= doorwidth/2) {
+			for (var j = 0; j < room.doorCoords.length; j++) {
+				var doorTranslation = room.doorCoords[j][0];
+				var doorRotation = room.doorCoords[j][1];
+				if (doorRotation % Math.PI == 0){ 
+					if (((posZ >= 0) == (doorTranslation[2] >= 0)) && (Math.abs(posZ - doorTranslation[2]) <= padding)
+												&& Math.abs(posX - doorTranslation[0])  >= doorwidth/2) {
 						posX -= x;
 						posZ -= z;
 						return;
 					}
 				} else { // if wall rotation is 90 (east) or 270 (west)
 					// same thing as above but for the east/west wall
-					if (((posX >= 0) == (wallTranslation[0] >= 0)) && (Math.abs(posX - wallTranslation[0]) <= padding + 5)
-												&& Math.abs(posZ - wallTranslation[2] - 7) >= doorwidth/2) {
+					if (((posX >= 0) == (doorTranslation[0] >= 0)) && (Math.abs(posX - doorTranslation[0]) <= padding)
+												&& Math.abs(posZ - doorTranslation[2] - 7) >= doorwidth/2) {
 						posX -= x;
 						posZ -= z;
 						return;
@@ -321,7 +319,13 @@ window.onload = function(){
 		if(map[83]) movePlayer(0,0, -playerSpeed * 1);  // S
  		if(map[68]) movePlayer(-playerSpeed * 1, 0, 0);  // D
 		if(map[65]) movePlayer(playerSpeed * 1, 0, 0); // A
-		if(map[65] || map[87] || map[83] || map[68]) footsteps_audio.play(); else footsteps_audio.pause();
+		if(map[65] || map[87] || map[83] || map[68]) {
+			var playpromise = footsteps_audio.play();
+			if (playpromise !== undefined){
+				playpromise.then().catch(function(error){});
+			}
+		}
+		else footsteps_audio.pause();
 
 		if(map[37]) rotateCamera(-N, 0);
 		if(map[39]) rotateCamera(N, 0);
@@ -532,6 +536,7 @@ window.onload = function(){
 	var maxRooms = 2; // The maximum number of rooms that can be loaded at once.
 	//loadLivingRoom([0, 0], [0,0,1,0], [0,0,1,0]);
 	loadBedroom([0, 0], [0,0,1,0], [0,0,1,0]);
+	Rooms[0].loadWallCoords();
 
 
 	// @entryPoint is the direction of entry from the perspective of the previous room.
@@ -622,6 +627,7 @@ window.onload = function(){
 		if(Rooms.length > maxRooms){
 			Rooms.shift();
 		}
+		Rooms.forEach(function(room){room.loadWallCoords();});
 	}
 
 	function loadDoors(doors, ceilingHeight = 55){
