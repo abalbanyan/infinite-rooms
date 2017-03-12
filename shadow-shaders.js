@@ -108,9 +108,10 @@ void main(){
 	vec3 bumped_N = N; // numped_N is just the normal N if USE_NORMAL_MAP is off.
 	vec4 normalMap_color;
 	if(USE_NORMAL_MAP && USE_TEXTURE){
-		//bumped_N = normalize(fragWorldNormal * texture2D(normalMap, fragTexCoord).rgb);
 		bumped_N = texture2D(normalMap, fragTexCoord).rgb;
 		bumped_N = normalize(bumped_N * 2.0 - 1.0);
+		bumped_N = normalize(fragWorldNormal * bumped_N);
+		bumped_N = vec3(-bumped_N.x, bumped_N.y, -bumped_N.z);
 	}
 
 	for( int i = 0; i < N_LIGHTS; i++ ){
