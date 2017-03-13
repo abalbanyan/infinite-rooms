@@ -45,38 +45,60 @@ window.onload = function(){
 	}
 	// Add scrolls
 	scrollTextArray.push(
-		`Note 1: Welcome to Infinite Rooms.<br>Traverse the Rooms and eat food to survive.<br>
+		`<center> Note 1: Welcome to Infinite Rooms.</center>
+		<br><br>Traverse the Rooms and eat food to survive.<br>
 		Various notes have a certain chance of spawning in rooms.<br>Collect them... carefully.<br>
 		Collected notes can be toggle viewed by pressing their corresponding function number.
-		<br>Press F1 now to exit this note.`);
+		<br>Press '1' now to exit this note.`);
 	scrollTextArray.push(
-		`Note 2: Infinite rooms and technically, infinite food.<br>
-		Everything you need to survive.`
+		`<center> Note 2 
+		<br><br><br><br>
+		Infinite rooms and technically, infinite food.<br>
+		Everything you need to survive.
+		</center> `
 	);
 	scrollTextArray.push(
-		`Note 3: Getting bored yet? Feeling a little existential?<br>
+		`<center>Note 3
+		<br><br><br>
+		Getting bored yet? Feeling a little existential?<br>
 		Press on for more answers, but remember to be careful.<br>
-		This world is pretty safe for now.`
+		This world is pretty safe for now.
+		</center>`
 	);
 	scrollTextArray.push(
-		`Note 4: Go explore a couple of more rooms, notice anything different?`
+		`<center>
+		Note 4
+		<br><br><br><br>
+		Go explore a couple of more rooms, notice anything different?
+		</center>`
 	);
 	scrollTextArray.push(
-		`Note 5: Things might not look nice now, but they really aren't that bad.<br>
-		You've still got food and an infinite number of places to explore.<br>
-		Knowledge can be bad sometimes. Just look at where these notes have gotten you so far.`
+		`<center>
+		Note 5
+		<br><br> Things might not look nice now, but they really aren't that bad.<br>
+		You've still got food and an infinite number of places to explore.<br><br>
+		Knowledge can be bad sometimes. Just look at where these notes have gotten you so far.
+		</center>`
 	);
 	scrollTextArray.push(
-		`Note 6: Last chance. If you read the next note then your journey will inevitably end.`
+		`<center> Note 6 <br><br><br><br>
+			Last chance. If you read the next note then your journey will inevitably end.
+		</center>`
 	);
 	scrollTextArray.push(
-		`Note 7: Well that's it. The rooms and food are finite now. Only one way to go now really.`
+		`<center>
+			Note 7 
+			<br><br><br>
+			Well that's it. The rooms and food are finite now. Only one way to go now really.
+			</center>`
 	);
 	scrollTextArray.push(
-		`Some people say that every journey comes to an end.<br>
+		`<center> 
+		Some people say that every journey comes to an end.<br>
 		Did this one have to though?<br>
 		Make peace with yourself.<br>
-		This is the end.`
+		This is the end.
+		</center>`
 	);
 
 	function setScrollText(string){
@@ -413,14 +435,16 @@ window.onload = function(){
 				var doorTranslation = room.doorCoords[j][0];
 				var doorRotation = room.doorCoords[j][1];
 				if (doorRotation % Math.PI == 0){
-					if (zValid && ((posZ >= 0) == (doorTranslation[2] >= 0)) && (Math.abs(posZ - doorTranslation[2]) <= padding)
-												&& Math.abs(posX - doorTranslation[0])  >= doorwidth/2) {
+					if (zValid && ((posZ >= 0) == (doorTranslation[2] >= 0)) && (Math.abs(posZ - doorTranslation[2]) <= padding)){
+						if (Math.abs(posX - doorTranslation[0])  <= doorwidth/2 && room.openDoors == "north" && doorRotation == 0) continue; 
+						if (Math.abs(posX - doorTranslation[0])  <= doorwidth/2 && room.openDoors == "south" && doorRotation == -Math.PI) continue;
 						zValid = false;
 					}
 				} else { // if wall rotation is 90 (east) or 270 (west)
 					// same thing as above but for the east/west wall
-					if (xValid && ((posX >= 0) == (doorTranslation[0] >= 0)) && (Math.abs(posX - doorTranslation[0]) <= padding)
-												&& Math.abs(posZ - doorTranslation[2]) >= doorwidth/2) {
+					if (xValid && ((posX >= 0) == (doorTranslation[0] >= 0)) && (Math.abs(posX - doorTranslation[0]) <= padding)){
+						if (Math.abs(posZ - doorTranslation[2])  <= doorwidth/2 && room.openDoors == "east" && doorRotation == -Math.PI/2) continue; 
+ 						if (Math.abs(posZ - doorTranslation[2])  <= doorwidth/2 && room.openDoors == "west" && doorRotation == -3*Math.PI/2) continue;
 						xValid = false;
 					}
 				}
@@ -484,13 +508,15 @@ window.onload = function(){
 		if(map[40]) rotateCamera(0, N);
 		if(map[32]) interact();
 		if(map[82]) resetCamera();
-		if(map[187]){
-			ambience += 0.1;
-			light.setAmbience(ambience);
+		if(map[187]){ // +
+			N = Math.max(N + 0.5, 10);
+			// ambience += 0.1;
+			// light.setAmbience(ambience);
 		}
-		if(map[189]){
-			ambience -= 0.1;
-			light.setAmbience(ambience);
+		if(map[189]){ // -
+			N = Math.max(N - 0.5, 0);
+			// ambience -= 0.1;
+			// light.setAmbience(ambience);
 		}
 		if(map[192]) swimMode = ~swimMode;
 
@@ -499,18 +525,16 @@ window.onload = function(){
 			utils.fade(document.getElementById("heart"));
 		}
 
-		if(map[49]) N = 1	;
-		if(map[57]) N = 9;
 		if(map[80]) interact();
 		if(map[75]) testKeys = 1;
 		if(map[16]) keyboard_crouch = 1; else keyboard_crouch = 0;
-		if(map[112] && scrollSeen[0] && scrollDebounce) toggleScrollText(scrollTextArray[0]);
-		if(map[113] && scrollSeen[1] && scrollDebounce) toggleScrollText(scrollTextArray[1]);
-		if(map[114] && scrollSeen[2] && scrollDebounce) toggleScrollText(scrollTextArray[2]);
-		if(map[115] && scrollSeen[3] && scrollDebounce) toggleScrollText(scrollTextArray[3]);
-		if(map[116] && scrollSeen[4] && scrollDebounce) toggleScrollText(scrollTextArray[4]);
-		if(map[117] && scrollSeen[5] && scrollDebounce) toggleScrollText(scrollTextArray[5]);
-		if(map[118] && scrollSeen[6] && scrollDebounce) toggleScrollText(scrollTextArray[6]);
+		if(map[49] && scrollSeen[0] && scrollDebounce) toggleScrollText(scrollTextArray[0]);
+		if(map[50] && scrollSeen[1] && scrollDebounce) toggleScrollText(scrollTextArray[1]);
+		if(map[51] && scrollSeen[2] && scrollDebounce) toggleScrollText(scrollTextArray[2]);
+		if(map[52] && scrollSeen[3] && scrollDebounce) toggleScrollText(scrollTextArray[3]);
+		if(map[53] && scrollSeen[4] && scrollDebounce) toggleScrollText(scrollTextArray[4]);
+		if(map[54] && scrollSeen[5] && scrollDebounce) toggleScrollText(scrollTextArray[5]);
+		if(map[55] && scrollSeen[6] && scrollDebounce) toggleScrollText(scrollTextArray[6]);
 		if (map[73] && scrollDebounce) toggleScrollText(gameInstructions);
 
 		if(keyboard_crouch && keyboard_crouch != keyboard_prevcrouch){ // When crouch is pressed.
@@ -573,7 +597,7 @@ window.onload = function(){
 
 	////////////////////// Objects /////////////////////
 
-	unitsphere = new Shape(sphereMesh.vertices, sphereMesh.indices, sphereMesh.normals, sphereMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
+	//unitsphere = new Shape(sphereMesh.vertices, sphereMesh.indices, sphereMesh.normals, sphereMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 
 	var Rooms = [];
 
@@ -597,15 +621,16 @@ window.onload = function(){
 	{
 		var jsonObjects = [
 
-			["meshes/fence.json",		[98,3,40], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1]],
-			["meshes/fence.json",		[98,3,-75], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1]],
-			["meshes/fence.json",		[-95,3,40], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1]],
-			["meshes/fence.json",		[-95,3,-75], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1]],
-			["meshes/fence.json",		[40,3,95], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1]],
-			["meshes/fence.json",		[-75,3,95], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1]],
-			["meshes/fence.json",		[40,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1]],
-			["meshes/fence.json",		[-75,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1]],			
-			["meshes/wheelbarrow.json",		[0,-2,0], [3,1.7,2],  45, [0,1,0], ["textures/door1.png"], [1,1,1,1]],
+			["meshes/fence.json",		[98,3,40], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[98,3,-75], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[-95,3,40], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[-95,3,-75], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[40,3,95], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[-75,3,95], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[40,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[-75,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+
+			["meshes/wheelbarrow.json",		[0,-2,0], [3,1.7,2],  45, [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
 			["meshes/apple.json",			[22,10,38], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
 			["meshes/apple.json",			[22,10,42], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
 			["meshes/apple.json",			[26,10,38], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
@@ -615,12 +640,15 @@ window.onload = function(){
 
 			["meshes/key.json",		[80,1,76.5], [15,15,15], 		30,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
 			["meshes/wateringcan.json",		[80,-2,80], [0.25,0.25,0.25], 45,  [0,1,0], ["textures/wateringcan.png"], [1,1,1,1], null, null, null]
-
 		];
 		jsonObjects.push(["meshes/tombstone1.json",	   [-70,-2,90], [20,20,20], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
 		if (demo){
 			jsonObjects.push(["meshes/papyrus.json",		[-70,0,89], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
 		}
+		else if (Math.random() > scrollSpawnProbability){
+			jsonObjects.push(["meshes/papyrus.json",		[-70,0,89], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+		}
+
 		var otherObjects = loadBox(["textures/dirtfloor.png", "textures/leaf.png", "textures/leaf.png"], doorways);
 
 		for(var i = 1; i < 6; i++){
@@ -704,6 +732,10 @@ window.onload = function(){
 		if (demo){
 			jsonObjects.push(["meshes/papyrus.json",		[42.5,5,13], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
 		}
+		else if (Math.random() > scrollSpawnProbability){
+			console.log("fk");
+			jsonObjects.push(["meshes/papyrus.json",		[42.5,5,13], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+		}
 
 		var otherObjects = loadBox(["textures/bathroomfloor.png", "textures/tile.png", "textures/tile.png"], doorways);
 
@@ -733,6 +765,9 @@ window.onload = function(){
 				];
 
 		if (demo){
+			jsonObjects.push(["meshes/papyrus.json",		[-8,5,10], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+		}
+		else if (Math.random() > scrollSpawnProbability){
 			jsonObjects.push(["meshes/papyrus.json",		[-8,0,10], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
 		}
 
@@ -779,6 +814,10 @@ window.onload = function(){
 			if (demo){
 				jsonObjects.push(["meshes/papyrus.json",		[-33.7,22,22], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
 			}
+			else if (Math.random() > scrollSpawnProbability){
+				jsonObjects.push(["meshes/papyrus.json",		[-33.7,22,22], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+			}
+
 		var otherObjects = loadBox(["textures/tile.png", "textures/crate.png", "textures/kitchenwall.jpg"], doorways);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
@@ -811,6 +850,9 @@ window.onload = function(){
 
 					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false]];
 			if (demo){
+				jsonObjects.push(["meshes/papyrus.json",		[-33.7,22,22], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+			}
+			else if (Math.random() > scrollSpawnProbability){
 				jsonObjects.push(["meshes/papyrus.json",		[-33.7,22,22], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
 			}
 		var otherObjects = loadBox(["textures/space.png", "textures/space.png", "textures/space.png"], doorways, [], true);
@@ -851,6 +893,9 @@ window.onload = function(){
 		jsonObjects.push(["meshes/board.json",	[0,55,0], [0.5,0.5,0.7], 0,  [0,0,1], null, [1,1,1,1], null, null, null]);
 
 		if (demo){
+			jsonObjects.push(["meshes/papyrus.json",		[-90.7,0,-23], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+		}
+		else if (Math.random() > scrollSpawnProbability){
 			jsonObjects.push(["meshes/papyrus.json",		[-90.7,0,-23], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
 		}
 
