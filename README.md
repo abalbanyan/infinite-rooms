@@ -24,7 +24,8 @@ and draws to a textured cube. This is done by using six different view matrices 
 the light position for the different objects and codifies this as a color to be processed by the normal drawing program. The normal drawing program takes these values
 and compares them and applies specular and diffuse lighting depending on whether or not the object is behind something depth wise (from the light's perspective).
 In some areas (especially with high-poly models), certain objects have shadows turned off. This means that these objects don't participate in the shadow mapping
-render to avoid the 6 additional renders.
+render to avoid the 6 additional renders. Note that objects that have shadows turned off will not have shadows from other objects on their surface. This is due
+to them not having a depth value because they aren't run through the shadow mapping render.
 #### Normal Mapping
 Simple normal mapping was implemented on some objects in the scene, such as the carpets and brick floor in the living room. This was accomplished by passing in a seperate texture, a normal map, into the shader for the particular objects that were normal mapped. We use the rgb values of the normal maps to create per-fragment normals for the objects. We intended to also pass in bitangents and tangents to improve the normal mapping for these objects; however, buffering in two additional attributes into the shader proved to be too costly in terms of performance.
 #### Collisions
@@ -37,4 +38,5 @@ One way we dealt with this performance problem was to also limit the amount of r
 
 ### Installation
 
-Use python -m http.server to run this on localhost:8000. A live version can also be accessed at https://abalbanyan.github.io/infinite-rooms/.
+Use python -m http.server to run this on localhost:8000. A live version can also be accessed at https://abalbanyan.github.io/infinite-rooms/. It's recommended that you use a browser optimized for
+javascript and WebGL. Chrome is a pretty good bet and Safari might work well too.
