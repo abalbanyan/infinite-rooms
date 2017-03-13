@@ -51,7 +51,7 @@ window.onload = function(){
 		Collected notes can be toggle viewed by pressing their corresponding function number.
 		<br>Press '1' now to exit this note.`);
 	scrollTextArray.push(
-		`<center> Note 2 
+		`<center> Note 2
 		<br><br><br><br>
 		Infinite rooms and technically, infinite food.<br>
 		Everything you need to survive.
@@ -87,13 +87,13 @@ window.onload = function(){
 	);
 	scrollTextArray.push(
 		`<center>
-			Note 7 
+			Note 7
 			<br><br><br>
 			Well that's it. The rooms and food are finite now. Only one way to go now really.
 			</center>`
 	);
 	scrollTextArray.push(
-		`<center> 
+		`<center>
 		Some people say that every journey comes to an end.<br>
 		Did this one have to though?<br>
 		Make peace with yourself.<br>
@@ -378,14 +378,14 @@ window.onload = function(){
 				var doorRotation = room.doorCoords[j][1];
 				if (doorRotation % Math.PI == 0){
 					if (zValid && ((posZ >= 0) == (doorTranslation[2] >= 0)) && (Math.abs(posZ - doorTranslation[2]) <= padding)){
-						if (Math.abs(posX - doorTranslation[0])  <= doorwidth/2 && room.openDoors == "north" && doorRotation == 0) continue; 
+						if (Math.abs(posX - doorTranslation[0])  <= doorwidth/2 && room.openDoors == "north" && doorRotation == 0) continue;
 						if (Math.abs(posX - doorTranslation[0])  <= doorwidth/2 && room.openDoors == "south" && doorRotation == -Math.PI) continue;
 						zValid = false;
 					}
 				} else { // if wall rotation is 90 (east) or 270 (west)
 					// same thing as above but for the east/west wall
 					if (xValid && ((posX >= 0) == (doorTranslation[0] >= 0)) && (Math.abs(posX - doorTranslation[0]) <= padding)){
-						if (Math.abs(posZ - doorTranslation[2])  <= doorwidth/2 && room.openDoors == "east" && doorRotation == -Math.PI/2) continue; 
+						if (Math.abs(posZ - doorTranslation[2])  <= doorwidth/2 && room.openDoors == "east" && doorRotation == -Math.PI/2) continue;
  						if (Math.abs(posZ - doorTranslation[2])  <= doorwidth/2 && room.openDoors == "west" && doorRotation == -3*Math.PI/2) continue;
 						xValid = false;
 					}
@@ -794,10 +794,10 @@ window.onload = function(){
 
 					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false]];
 			if (demo){
-				jsonObjects.push(["meshes/papyrus.json",		[-33.7,22,22], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+				jsonObjects.push(["meshes/papyrus.json",		[-47.3,30,-98], [0.03,0.03,0.03], 0, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
 			}
 			else if (Math.random() > scrollSpawnProbability){
-				jsonObjects.push(["meshes/papyrus.json",		[-33.7,22,22], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+				jsonObjects.push(["meshes/papyrus.json",		[-47.3,30,-98], [0.03,0.03,0.03], 0, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
 			}
 		var otherObjects = loadBox(["textures/space.png", "textures/space.png", "textures/space.png"], doorways, [], true);
 
