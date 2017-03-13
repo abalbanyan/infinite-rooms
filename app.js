@@ -197,6 +197,16 @@ window.onload = function(){
 	var posX = 0;
 	var posZ = -10;
 
+	//set initial transformation matrix for player
+	var pScale = [5, 15, 5];
+	var pTranslation = [0, 15, 0];
+	var identity = mat4.create();
+	var psMat = mat4.create();
+	var ptMat = mat4.create();
+	mat4.scale(psMat, identity, pScale);
+	mat4.translate(ptMat, identity, pTranslation);
+	
+
 	var currentDirectionX = [];
 	var currentDirectionY = [];
 	var currentDirectionZ = [];
@@ -236,6 +246,13 @@ window.onload = function(){
 			doorwidth = 16;
 		for (var i = 0; i < Rooms.length; i++){
 			var room = Rooms[i];
+			// for (var j = 0; j < room.collidables.length; j++){
+			// 	if(checkcollision(room.collidables[j])){
+			// 		posX -= x;
+			// 		posZ -= z;
+			// 		return;
+			// 	}
+			// }
 			for (var j = 0; j < room.wallCoords.length; j++) {
 				var wallTranslation = room.wallCoords[j][0];
 				var wallRotation = room.wallCoords[j][1];
@@ -446,6 +463,9 @@ window.onload = function(){
 			otherObjects[i].texture_scale[1] *= 5/3;
 			otherObjects[i].shape.setMaterialProperties(2, 2.5, 30);
 		}
+
+		otherObjects.push(new Object(new Shape(sphereMesh.vertices, sphereMesh.indices, sphereMesh.normals, sphereMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers),
+			[0, 15, 0], [8, 20, 8], 0, [0, 1, 0]));
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 

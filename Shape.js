@@ -11,10 +11,13 @@ class Object{
 		this.isDrawn = true;
 		this.shadows = shadows;
 		this.truetranslation = truetranslation;
-		this.unitscale = [1, 1, 1];
-		this.collisionMatrix = this.genCollisionMat();
-		this.showcollision = true;
-		this.collisionsphere = unitsphere;
+		this.collidable = (unitscale !== undefined);
+		if(this.collidable){
+			this.unitscale = unitscale;
+			this.collisionMatrix = this.genCollisionMat();
+			this.showcollision = true;
+			this.collisionsphere = unitsphere;
+		}
 	}
 
 	genCollisionMat(){
