@@ -525,7 +525,7 @@ window.onload = function(){
 		if(map[32]) interact();
 		if(map[82]) resetCamera();
 		if(map[187]){ // +
-			N = Math.max(N + 0.1, 10);
+			N = Math.min(N + 0.1, 10);
 			// ambience += 0.1;
 			// light.setAmbience(ambience);
 		}
