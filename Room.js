@@ -16,7 +16,7 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
     for(var i = 0; i < this.objects.length; i++){
         this.objects[i].translation[0] += delx;
         this.objects[i].translation[2] += delz;
-        
+
         if (!this.objects[i].truetranslation) continue;
         this.objects[i].truetranslation[0] += this.coords[0] * 200;
         this.objects[i].truetranslation[2] += this.coords[1] * 200;
@@ -60,11 +60,10 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
                     if(normalMap != null) {
                         shape.attachNormalMap(normalMap);
                     }
-                    var object = new Object(shape, translation, scale, rotation, axis);
+                    var object = new Object(shape, translation, scale, rotation, axis, null, null, true, null, unitscale);
 
                     if(pickID != null)
                         object.shape.makePickable(pickID);
-                    object.unitscale = unitscale;
                     object.itemType = itemType;
                     object.shadows = shadows;
                     self.objects.push(object);
