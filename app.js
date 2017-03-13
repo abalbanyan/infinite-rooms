@@ -432,7 +432,6 @@ window.onload = function(){
 			doorwidth = 16;
 		for (var i = 0; i < Rooms.length; i++){
 			var room = Rooms[i];
-			console.log(room.collidables)
 			for (var j = 0; j < room.collidables.length; j++){
 				if(checkCollision(room.collidables[j])){
 					posX -= x;
@@ -792,7 +791,6 @@ window.onload = function(){
 			jsonObjects.push(["meshes/papyrus.json",		[42.5,5,13], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1],[], "scroll", getID()]);
 		}
 		else if (Math.random() > scrollSpawnProbability){
-			console.log("fk");
 			jsonObjects.push(["meshes/papyrus.json",		[42.5,5,13], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1],[], "scroll", getID()]);
 		}
 
@@ -902,10 +900,10 @@ window.onload = function(){
 
 		if(spooky)
 		{
-			jsonObjects.push(["meshes/painting.json",		[-45,25,-98.5], [2,2,2], -270,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/sans.jpg"], [1,1,1,1], null, null, null, null, false]);
-			jsonObjects.push(["meshes/painting.json",		[-98,25,-35.5], [2,2,2], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/spooky.jpg"], [1,1,1,1], null, null, null, null, false]);
-			jsonObjects.push(["meshes/painting.json",		[85,25,98.5], [2,2,2], -90,   [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/papyrus.png"], [1,1,1,1], null, null, null, null, false]);
-			jsonObjects.push(["meshes/painting.json",		[98,25,-35.5], [2,2,2], 0,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/boo.jpg"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[-45,25,-98.5], [2,2,2], -270,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/sans.jpg"], [1,1,1,1], [],null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[-98,25,-35.5], [2,2,2], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/spooky.jpg"], [1,1,1,1],[], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[85,25,98.5], [2,2,2], -90,   [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/papyrus.png"], [1,1,1,1], [],null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[98,25,-35.5], [2,2,2], 0,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/boo.jpg"], [1,1,1,1], null, [],null, null, null, false]);
 			var otherObjects = loadBox(["textures/tile.png", "textures/crate.png", "textures/kitchenwallspook.jpg"], doorways);
 
 		}
@@ -1001,17 +999,17 @@ window.onload = function(){
 
 		if(spooky)
 		{
-			jsonObjects.push(["meshes/painting.json",		[-45,25,-98.5], [2,2,2], -270,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/sans.jpg"], [1,1,1,1], null, null, null, null, false]);
-			jsonObjects.push(["meshes/painting.json",		[-98,25,35.5], [2,2,2], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/spooky.jpg"], [1,1,1,1], null, null, null, null, false]);
-			jsonObjects.push(["meshes/painting.json",		[85,25,98.5], [2,2,2], -90,   [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/papyrus.png"], [1,1,1,1], null, null, null, null, false]);
-			jsonObjects.push(["meshes/painting.json",		[98,25,-35.5], [2,2,2], 0,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/boo.jpg"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[-45,25,-98.5], [2,2,2], -270,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/sans.jpg"], [],[1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[-98,25,35.5], [2,2,2], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/spooky.jpg"], [],[1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[85,25,98.5], [2,2,2], -90,   [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/papyrus.png"], [],[1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[98,25,-35.5], [2,2,2], 0,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/boo.jpg"], [],[1,1,1,1], null, null, null, null, false]);
 		}
 
 		if (demo){
-			jsonObjects.push(["meshes/papyrus.json",		[-90.7,0,-23], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", [],getID()]);
+			jsonObjects.push(["meshes/papyrus.json",		[-90.7,0,-23], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], [],"scroll", getID()]);
 		}
 		else if (Math.random() > scrollSpawnProbability){
-			jsonObjects.push(["meshes/papyrus.json",		[-90.7,0,-23], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", [],getID()]);
+			jsonObjects.push(["meshes/papyrus.json",		[-90.7,0,-23], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], [],"scroll", getID()]);
 		}
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
