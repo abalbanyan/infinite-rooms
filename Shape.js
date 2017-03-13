@@ -1,6 +1,6 @@
 // The shape of an object, along with its state within the world (i.e, translations, rotations, scales) is stored here.
 class Object{
-	constructor(shape, translation, scale, rotation, axis = [0,1,0], texture_scale = null, itemType = null, shadows = true, truetranslation = null){
+	constructor(shape, translation, scale, rotation, axis = [0,1,0], texture_scale = null, itemType = null, shadows = true, truetranslation = null, collidable = false){
 		this.shape = shape;
 		this.translation = translation;
 		this.scale = scale;
@@ -11,6 +11,41 @@ class Object{
 		this.isDrawn = true;
 		this.shadows = shadows;
 		this.truetranslation = truetranslation;
+		// this.collidable = (unitscale != undefined);
+		this.collidable = collidable;
+		this.collisionSpheres;
+		// if(this.collidable){
+		// 	this.unitscale = unitscale;
+		// 	this.collisionMatrix = this.genCollisionMat();
+		// 	this.showcollision = true;
+		// 	this.collisionsphere = unitsphere;
+		// }
+	}
+
+	setCollisionSpheres(collisionSpheres){
+		this.collisionSpheres = collisionSpheres;
+	}
+
+	genCollisionMat(){
+		var identity = mat4.create();
+		var unitscale = mat4.create();
+		var translation = mat4.create();
+		var scale = mat4.create();
+		var rotation = mat4.create();
+		var collision = mat4.create();
+		mat4.identity(collision);
+		mat4.scale(unitscale, identity, this.unitscale);
+		mat4.invert(unitscale, unitscale);
+		mat4.scale(scale, identity, this.scale);
+		mat4.rotate(rotation, identity, this.rotation, this.axis);
+		mat4.translate(translation, identity, this.translation);
+
+		mat4.mul(collision, unitscale, collision);
+		mat4.mul(collision, scale, collision);
+		mat4.mul(collision, rotation, collision);
+		mat4.mul(collision, translation, collision);
+
+		return collision;
 	}
 
 	draw(){

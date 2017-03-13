@@ -316,10 +316,57 @@ window.onload = function(){
 	var posX = 0;
 	var posZ = -10;
 
+	//set initial transformation matrix for player
+	// var pScale = [5, 15, 5];
+	// var pTranslation = [0, 15, 0];
+	// var identity = mat4.create();
+	// var psMat = mat4.create();
+	// var ptMat = mat4.create();
+	// mat4.scale(psMat, identity, pScale);
+	// mat4.translate(ptMat, identity, pTranslation);
+
+	// mat4.mul(playerCollisionMat, psMat, playerCollisionMat);
+	// mat4.mul(playerCollisionMat, ptMat, playerCollisionMat);
+	
+
 	var currentDirectionX = [];
 	var currentDirectionY = [];
 	var currentDirectionZ = [];
 	var tempViewMatrix = new Float32Array(16);
+
+	// This is the implementation of collision detection as mentioned in the TA's slides, but we found this to be too expensive to be practical
+
+	// var vectorizedSphere = vectorizeSphere();
+	// function vectorizeSphere(){
+	// 	var vex = []
+	// 	for(var i = 0; i < sphereMesh.vertices.length; i+=3){
+	// 		var temp = vec3.create();
+	// 		vec3.set(temp, sphereMesh.vertices[i], sphereMesh.vertices[i+1], sphereMesh.vertices[i+2])
+	// 		vex.push(temp);
+	// 	}
+	// 	return vex;
+	// }
+	// function checkCollision(collisionmatrix, playerMat){
+	// 	var sphereVectors = vectorizedSphere;
+	// 	var apply = mat4.create();
+	// 	var temp = playerMat;
+	// 	mat4.invert(apply, collisionmatrix);
+	// 	mat4.mul(temp, playerMat, apply);
+	// 	var origin = vec3.create();
+	// 	vec3.set(origin, 0, 0, 0);
+	// 	for(var i = 0; i < sphereVectors.length; i++){
+	// 		var transformed = vec3.create();
+	// 		vec3.transformMat4(transformed, sphereVectors[i], playerMat);
+	// 		vec3.transformMat4(transformed, transformed, apply);
+	// 		var dist = vec3.distance(origin, transformed);
+	// 		console.log(dist);
+	// 		if ( dist <= 1) return true;
+	// 	}
+	// 	return false;
+
+	// }
+
+
 	function movePlayer(xDelta, yDelta, zDelta){
 		currentDirectionX = [0,0,0]; currentDirectionY = [0,0,0]; currentDirectionZ = [0,0,0];
 
@@ -352,14 +399,34 @@ window.onload = function(){
 		posX += x;
 		posZ += z;
 
+		// var temptrans = mat4.create();
+		// var transformedPlayer = mat4.create();
+		// mat4.translate(temptrans, identity, [posX, 0, (posZ + 10)]);
+		// mat4.mul(transformedPlayer, playerCollisionMat, temptrans);
+
 		var xValid = true;
 		var yValid = true; // Always true in this implementation.
 		var zValid = true;
+
+		function checkCollision(collidable){
+			// var player
+			// for(var i = 0; i < collidable.collisionSpheres.length; i++){
+			// 	var center = 
+			// }
+			return false;
+		}
 
 		var padding = 10,
 			doorwidth = 16;
 		for (var i = 0; i < Rooms.length; i++){
 			var room = Rooms[i];
+			for (var j = 0; j < room.collidables.length; j++){
+				if(checkCollision(room.collidables[j])){
+					posX -= x;
+					posZ -= z;
+					return;
+				}
+			}
 			for (var j = 0; j < room.wallCoords.length; j++) {
 				var wallTranslation = room.wallCoords[j][0];
 				var wallRotation = room.wallCoords[j][1];
@@ -384,14 +451,16 @@ window.onload = function(){
 				var doorTranslation = room.doorCoords[j][0];
 				var doorRotation = room.doorCoords[j][1];
 				if (doorRotation % Math.PI == 0){
-					if (zValid && ((posZ >= 0) == (doorTranslation[2] >= 0)) && (Math.abs(posZ - doorTranslation[2]) <= padding)
-												&& Math.abs(posX - doorTranslation[0])  >= doorwidth/2) {
+					if (zValid && ((posZ >= 0) == (doorTranslation[2] >= 0)) && (Math.abs(posZ - doorTranslation[2]) <= padding)){
+						if (Math.abs(posX - doorTranslation[0])  <= doorwidth/2 && room.openDoors == "north" && doorRotation == 0) continue; 
+						if (Math.abs(posX - doorTranslation[0])  <= doorwidth/2 && room.openDoors == "south" && doorRotation == -Math.PI) continue;
 						zValid = false;
 					}
 				} else { // if wall rotation is 90 (east) or 270 (west)
 					// same thing as above but for the east/west wall
-					if (xValid && ((posX >= 0) == (doorTranslation[0] >= 0)) && (Math.abs(posX - doorTranslation[0]) <= padding)
-												&& Math.abs(posZ - doorTranslation[2]) >= doorwidth/2) {
+					if (xValid && ((posX >= 0) == (doorTranslation[0] >= 0)) && (Math.abs(posX - doorTranslation[0]) <= padding)){
+						if (Math.abs(posZ - doorTranslation[2])  <= doorwidth/2 && room.openDoors == "east" && doorRotation == -Math.PI/2) continue; 
+ 						if (Math.abs(posZ - doorTranslation[2])  <= doorwidth/2 && room.openDoors == "west" && doorRotation == -3*Math.PI/2) continue;
 						xValid = false;
 					}
 				}
@@ -540,9 +609,11 @@ window.onload = function(){
 
 	////////////////////// Objects /////////////////////
 
+	//unitsphere = new Shape(sphereMesh.vertices, sphereMesh.indices, sphereMesh.normals, sphereMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
+
 	var Rooms = [];
 
-	var templates = [loadMeme, loadBathroom, loadKitchen, loadLivingRoom, loadPool, loadGarden];
+	var templates = [loadMeme, loadBathroom, loadKitchen, loadLivingRoom, loadPool, loadGarden, loadTomb];
 
 	var ID = -1;
 	function getID(){
@@ -609,25 +680,21 @@ window.onload = function(){
 		];
 
 		for(var i = -4; i < 0; i++){
-			jsonObjects.push(["meshes/tombstone1.json",	   [i * 20 - 5,-2,95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
-			jsonObjects.push(["meshes/tombstone1.json",	   [-i * 20 + 5,-2,95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
-			jsonObjects.push(["meshes/tombstone1.json",	   [i * 20 - 5,-2,-95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
-			jsonObjects.push(["meshes/tombstone1.json",	   [-i * 20 + 5,-2,-95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
-			jsonObjects.push(["meshes/tombstone1.json",	   [95,-2,i * 20 - 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
-			jsonObjects.push(["meshes/tombstone1.json",	   [95,-2,-i * 20 + 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
-			jsonObjects.push(["meshes/tombstone1.json",	   [-95,-2,i * 20 - 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
-			jsonObjects.push(["meshes/tombstone1.json",	   [-95,-2,-i * 20 + 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [i * 20 - 5,-2,95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [-i * 20 + 5,-2,95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [i * 20 - 5,-2,-95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [-i * 20 + 5,-2,-95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [95,-2,i * 20 - 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [95,-2,-i * 20 + 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [-95,-2,i * 20 - 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [-95,-2,-i * 20 + 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
 		}
-
 		jsonObjects.push(["meshes/painting.json",		[-92,10,23.5], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/will.png"], [1,1,1,1], null, null, null, null, false]);
 		jsonObjects.push(["meshes/painting.json",		[-92,10,43.5], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/eric.png"], [1,1,1,1], null, null, null, null, false]);
 		jsonObjects.push(["meshes/painting.json",		[-92,10,-45.5], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/christine.png"], [1,1,1,1], null, null, null, null, false]);
 		jsonObjects.push(["meshes/painting.json",		[-92,10,-25], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/abdullah.png"], [1,1,1,1], null, null, null, null, false]);
 		jsonObjects.push(["meshes/painting.json",		[-40,6,-2], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/chris.png"], [1,1,1,1], null, null, null, null, false]);
-    jsonObjects.push(["meshes/grave.json",	[-8,-13,0], [10,12,10], -90,  [1,0,0], ["textures/tv.png"], [1,1,1,1], "grave", getID(), null]);
-
-
-
+   		jsonObjects.push(["meshes/grave.json",	[-8,-13,0], [10,12,10], -90,  [1,0,0], ["textures/tv.png"], [1,1,1,1], "grave", getID(), null]);
 
 		var otherObjects = loadBox(["textures/dirtfloor.png", "textures/dirtfloor.png", "textures/tv.png"], doorways);
 		otherObjects[3].shape.useWater(); otherObjects[4].shape.useWater(); otherObjects[5].shape.useWater(); otherObjects[2].shape.useWater();
@@ -645,7 +712,7 @@ window.onload = function(){
 					["meshes/bedside-table.json", 	[36,0,88], [1,1,1], 		   -90, [0,1,0], ["textures/bedwood.png"], [1,1,1,1]],
 					["meshes/commode.json",		[65,-3,-89], [1.6,1.4,1.0], 0,  [0,1,0], ["textures/bedwood.png", "textures/bedwood.png","textures/bedwood.png", "textures/bedwood.png", "textures/stone.png" ], [1,1,1,1], null, null, null, null, false],
 					["meshes/carpet.json",		[0,-2.2,0], [1,1,1], 0,  [0,1,0], ["textures/blue_carpet.png"], [1,1,1,1], null, null, null, "normalmaps/carpet.png", false],
-					["meshes/bodypillow.json", 	[80,17,78], [22,22,24], 		   0, [0,1,0], ["textures/bodypillow.png"], [1,1,1,1]],
+					["meshes/bodypillow.json", 	[80,17,78], [22,22,24], 		   0, [0,1,0], ["textures/bodypillow.png"], [1,1,1,1], null, null, null, null, true, [2, 2, 2]],
 					["meshes/window1.json", 		[-99,10,-10], [0.6,0.6,0.6],    -90,	[0,1,0], ["textures/wood2.png"],					 [90/255,67/255,80/255,1], null, null, null, null, false],
 					["meshes/window1.json", 		[-99,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], ["textures/wood2.png"],					 [90/255,67/255,80/255,1], null, null, null, null, false],
 					["meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], ["textures/wood2.png"],   [90/255,67/255,80/255,1], null, null,null, null, false],
@@ -824,7 +891,7 @@ window.onload = function(){
 			var offset = i*20;
 			jsonObjects.push(["meshes/sink.json", [offset, 20, 92], [38, 38, 38], 0, [1, 0, 0], ["textures/steel.png"], [1, 1, 1, 1]]);
 		};
-		jsonObjects.push(["meshes/toilet.json", [90, 0, -30], [0.8, 0.8, 0.73], -90, [0, 1, 0], ["textures/porcelain.png"], [1, 1, 1, 1], null, null, null, null, false]);
+		 jsonObjects.push(["meshes/toilet.json", [90, 0, -30], [0.8, 0.8, 0.73], -90, [0, 1, 0], ["textures/porcelain.png"], [1, 1, 1, 1], null, null, null, null, false]);
 		jsonObjects.push(["meshes/tp.json", [93, 0, -20], [0.7, 0.7, 0.73], -90, [0, 1, 0], ["textures/wood2.png"], [0.5, 0.5, 0.5, 1]]);
 		jsonObjects.push(["meshes/painting.json",		[58,23,99], [1,1.5,1], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/obama.png"], [1,1,1,1], null, null, null, null, false]);
 		jsonObjects.push(["meshes/key.json",		[60,16.6,93.1], [11,11,11], 		65,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key_obama", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}])
@@ -874,7 +941,9 @@ window.onload = function(){
 		}
 		prevRoom = newRoom; // no room should be selected twice in a row.
 
+		var opening = "";
 		if(entryPoint == "north"){
+			opening = "south";
 			light.translateLight([0,0,200]);
 			currentOrigin.y++;
 			doorways[2] = 1;
@@ -882,6 +951,7 @@ window.onload = function(){
 			templates[newRoom]([currentOrigin.x, currentOrigin.y], doors, doorways);
 		}
 		if(entryPoint == "east"){
+			opening = "west";
 			light.translateLight([-200,0,0]);
 			currentOrigin.x--
 			doorways[3] = 1;
@@ -889,18 +959,22 @@ window.onload = function(){
 			templates[newRoom]([currentOrigin.x, currentOrigin.y], doors, doorways);
 		}
 		if(entryPoint == "south"){
+			opening = "north";
 			light.translateLight([0,0,-200]);
 			currentOrigin.y--;
 			doorways[0] = 1;
 			doors[0] = 0;
 			templates[newRoom]([currentOrigin.x, currentOrigin.y], doors, doorways);
 		}else if(entryPoint == "west"){
+			opening = "east";
 			light.translateLight([200,0,0]);
 			currentOrigin.x++;
 			doorways[1] = 1;
 			doors[1] = 0;
 			templates[newRoom]([currentOrigin.x, currentOrigin.y], doors, doorways);
 		}
+		Rooms[Rooms.length - 1].openDoors = opening;
+
 
 		// Update lighting for shadow mapping
 		vec3LightPositions = vec3.fromValues(light.lightPosition[0], light.lightPosition[1], light.lightPosition[2]);
@@ -983,14 +1057,14 @@ window.onload = function(){
 		floor.attachTexture(textures[0]);
 		if(distorted) floor.distortTextures();
 		if(normalmaps[0] != null) floor.attachNormalMap(normalmaps[0]);
-		roomBox.push(new Object(floor, [0,-2,0], [100,1,100], 0, [0,1,0], [4,4], null));
+		roomBox.push(new Object(floor, [0,-2,0], [100,1,100], 0, [0,1,0], [4,4], "floor"));
 
 		var ceilingHeight = 55.0;
 		var ceiling = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 		ceiling.attachTexture(textures[1]);
 		if(normalmaps[1] != null) ceiling.attachNormalMap(normalmaps[1])
 		if(distorted) ceiling.distortTextures();
-		roomBox.push(new Object(ceiling, [0,ceilingHeight +  2,0], [100,1,100], glMatrix.toRadian(180), [0,0,1], [8,8], null));
+		roomBox.push(new Object(ceiling, [0,ceilingHeight +  2,0], [100,1,100], glMatrix.toRadian(180), [0,0,1], [8,8], "ceiling"));
 
 		for(var j = 0; j < 4; j++){
 			var wall;
@@ -1235,7 +1309,8 @@ window.onload = function(){
               room.objects[i].translation[0] = room.objects[i].translation[0] + 1.0;
               room.objects[i].translation[2] = room.objects[i].translation[2] + 0.78;
               room.objects[i].rotation = room.objects[i].rotation + glMatrix.toRadian(100);
-              room.objects[i].itemType = "open_door"
+              room.objects[i].itemType = "open_door";
+			  room.openDoors = "south";
               door_audio.play();
               setTimeout(function(){ // This is necessary because the door is composed of multiple pickable meshes.
                 holdingKey = 0;
@@ -1256,7 +1331,8 @@ window.onload = function(){
               room.objects[i].translation[0] = room.objects[i].translation[0] -1.0;
               room.objects[i].translation[2] = room.objects[i].translation[2] - 0.78;
               room.objects[i].rotation = room.objects[i].rotation + glMatrix.toRadian(-100);
-              room.objects[i].itemType = "open_door"
+              room.objects[i].itemType = "open_door";
+			  room.openDoors = "north";
               door_audio.play();
               setTimeout(function(){ // This is necessary because the door is composed of multiple pickable meshes.
                 holdingKey = 0;
@@ -1277,6 +1353,7 @@ window.onload = function(){
               room.objects[i].translation[2] = room.objects[i].translation[0] - 0.78;
               room.objects[i].rotation = room.objects[i].rotation + glMatrix.toRadian(100);
               room.objects[i].itemType = "open_door"
+			  room.openDoors = "east";
               door_audio.play();
               setTimeout(function(){ // This is necessary because the door is composed of multiple pickable meshes.
                 holdingKey = 0;
@@ -1298,6 +1375,7 @@ window.onload = function(){
               room.objects[i].translation[0] = room.objects[i].translation[0] - 0.78;
               room.objects[i].rotation = room.objects[i].rotation + glMatrix.toRadian(-80);
               room.objects[i].itemType = "open_door"
+			  room.openDoors = "west";
               door_audio.play();
               setTimeout(function(){ // This is necessary because the door is composed of multiple pickable meshes.
                 holdingKey = 0;
@@ -1523,6 +1601,7 @@ window.onload = function(){
 						gl.uniform1i(shadowUniforms.SHADOWS_OFF_Location, 0);
 					else
 						gl.uniform1i(shadowUniforms.SHADOWS_OFF_Location, 1);
+
 					// Begin transformations.
 					mat4.identity(worldMatrix);
 					mat4.scale(scalingMatrix, identityMatrix, object.scale);
@@ -1563,6 +1642,16 @@ window.onload = function(){
 
 					if(object.isDrawn)
 						object.shadowDraw(shadowUniforms, shadowAttributes);
+
+					if (object.showcollision){
+						mat4.identity(worldMatrix);
+						mat4.mul(worldMatrix, object.collisionMatrix, worldMatrix);
+
+						gl.uniformMatrix4fv(shadowUniforms.mWorld, gl.FALSE, worldMatrix);
+						if(object.itemType != "wall" && object.itemType != "doorWall" && object.itemType != "ceiling" && object.itemType != "floor" && object.collidable){
+							object.collisionsphere.draw();
+						}
+					}
 				}
 			}
 		}
