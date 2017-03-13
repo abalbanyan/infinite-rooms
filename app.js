@@ -127,13 +127,14 @@ window.onload = function(){
 		}
 	}
 
+	var intervalID;
 	var startGame = function(){
 		gameStart = 1;
 		utils.fade(document.getElementById("landingPageBackground"));
 		utils.fade(document.getElementById("landingPageText"));
 		utils.fade(document.getElementById("landingPageSubtext"));
 		setScrollText(gameInstructions);
-		setInterval(function(){ // Decrease health over time.
+		intervalID = setInterval(function(){ // Decrease health over time.
 			decrementHealth(spooky? 0.5: 0.25);
 			if(healthleft <= 10.0 && healthleft	> 0.0){
 				utils.fadein(document.getElementById(spooky? "spooky_heart" : "heart"));
@@ -143,6 +144,13 @@ window.onload = function(){
 				utils.fade(document.getElementById("spooky_heart"));
 				utils.fade(document.getElementById("heart"));
 				utils.fadein(document.getElementById("skull"));
+				setScrollText(gameOverText);
+				// Add black screen
+				fadeToBlack = true;
+			}
+
+			if(fadeToBlack){
+				clearInterval(intervalID);
 			}
 		}, 1000);
 	}
@@ -327,7 +335,7 @@ window.onload = function(){
 
 	// mat4.mul(playerCollisionMat, psMat, playerCollisionMat);
 	// mat4.mul(playerCollisionMat, ptMat, playerCollisionMat);
-	
+
 
 	var currentDirectionX = [];
 	var currentDirectionY = [];
@@ -411,7 +419,7 @@ window.onload = function(){
 		function checkCollision(collidable){
 			// var player
 			// for(var i = 0; i < collidable.collisionSpheres.length; i++){
-			// 	var center = 
+			// 	var center =
 			// }
 			return false;
 		}
@@ -537,7 +545,6 @@ window.onload = function(){
 		if(map[192]) swimMode = ~swimMode;
 
 		if(map[80]) interact();
-		if(map[75]) testKeys = 1;
 		if(map[16]) keyboard_crouch = 1; else keyboard_crouch = 0;
 		if(map[49] && scrollSeen[0] && scrollDebounce) toggleScrollText(scrollTextArray[0]);
 		if(map[50] && scrollSeen[1] && scrollDebounce) toggleScrollText(scrollTextArray[1]);
@@ -762,7 +769,7 @@ window.onload = function(){
 			jsonObjects.push(["meshes/painting.json",		[85,25,98.5], [2,2,2], -90,   [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/papyrus.png"], [1,1,1,1], null, null, null, null, false]);
 			jsonObjects.push(["meshes/painting.json",		[98,25,-35.5], [2,2,2], 0,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/boo.jpg"], [1,1,1,1], null, null, null, null, false]);
 		var otherObjects = loadBox(["textures/bathroomfloor.png", "textures/tile.png", "textures/tilespooky.png"], doorways);
-		
+
 		}
 		else
 			var otherObjects = loadBox(["textures/bathroomfloor.png", "textures/tile.png", "textures/tile.png"], doorways);
@@ -946,7 +953,7 @@ window.onload = function(){
 		}
 		else
 			var boxObjects = loadBox(["textures/bathroomfloor.png","textures/bathroomfloor.png","textures/bathroomfloor.png"], doorways)
-	
+
 		otherObjects = boxObjects;
 		for (var i = -3; i < 4; i++){
 			if(!i || i == 1 || i == -1)  continue;
