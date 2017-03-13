@@ -881,7 +881,7 @@ window.onload = function(){
 					["meshes/table.json", [-28,0,31], [8,15,12], 0, [0,1,1], null, [1,1,1,1], [.65,.5,.6], null, null, null, null, true],
 					// a box for a unit sphere inside other half of the kitchen mesh
 					["meshes/table.json", [32,0,33], [9,15,34], 0, [0,1,1], null, [1,1,1,1], [.65,.5,.6], null, null, null, null, true],
-					["meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1], []],
+					["meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]]
 					["meshes/apple.json",			[-48,18,0], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1],[], "food", getID()],
 					["meshes/cookie.json",			[25,24,-10], [1.3,1.3,1.3], 	90, [0,1,0], ["textures/cookie.png"],  [90/255,67/255,80/255,1],[], "food", getID()],
 
