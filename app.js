@@ -321,6 +321,11 @@ window.onload = function(){
 
 		posX += x;
 		posZ += z;
+
+		var xValid = true;
+		var yValid = true; // Always true in this implementation.
+		var zValid = true;
+
 		var padding = 10,
 			doorwidth = 16;
 		for (var i = 0; i < Rooms.length; i++){
@@ -332,47 +337,49 @@ window.onload = function(){
 					// if posZ and north/south wall position are both positive or both negative
 					// if both positive, then if posZ > wall you can't move
 					// if both negative, then if posZ < wall you can't move past wall either
-					if (((posZ >= 0) == (wallTranslation[2] >= 0)) && (Math.abs(posZ - wallTranslation[2]) <= padding)) {
-						posX -= x;
-						posZ -= z;
-						return;
+					if (zValid && ((posZ >= 0) == (wallTranslation[2] >= 0)) && (Math.abs(posZ - wallTranslation[2]) <= padding)) {
+						zValid = false;
 					}
 				} else { // if wall rotation is 90 (east) or 270 (west)
 					// same thing as above but for the east/west wall
-					if (((posX >= 0) == (wallTranslation[0] >= 0)) && (Math.abs(posX - wallTranslation[0]) <= padding)) {
-						posX -= x;
-						posZ -= z;
-						return;
+					if (xValid && ((posX >= 0) == (wallTranslation[0] >= 0)) && (Math.abs(posX - wallTranslation[0]) <= padding)) {
+						xValid = false;
 					}
 				}
+
+				if(!xValid && !zValid)
+					break;
 			}
 			for (var j = 0; j < room.doorCoords.length; j++) {
 				var doorTranslation = room.doorCoords[j][0];
 				var doorRotation = room.doorCoords[j][1];
 				if (doorRotation % Math.PI == 0){
-					if (((posZ >= 0) == (doorTranslation[2] >= 0)) && (Math.abs(posZ - doorTranslation[2]) <= padding)
+					if (zValid && ((posZ >= 0) == (doorTranslation[2] >= 0)) && (Math.abs(posZ - doorTranslation[2]) <= padding)
 												&& Math.abs(posX - doorTranslation[0])  >= doorwidth/2) {
-						posX -= x;
-						posZ -= z;
-						return;
+						zValid = false;
 					}
 				} else { // if wall rotation is 90 (east) or 270 (west)
 					// same thing as above but for the east/west wall
-					if (((posX >= 0) == (doorTranslation[0] >= 0)) && (Math.abs(posX - doorTranslation[0]) <= padding)
+					if (xValid && ((posX >= 0) == (doorTranslation[0] >= 0)) && (Math.abs(posX - doorTranslation[0]) <= padding)
 												&& Math.abs(posZ - doorTranslation[2]) >= doorwidth/2) {
-						posX -= x;
-						posZ -= z;
-						return;
+						xValid = false;
 					}
 				}
+
+				if(!xValid && !zValid)
+					break;
 			}
 		}
 
+
+		if(!xValid)	posX -= x;
+		if(!zValid) posZ -= z;
+
 		// Multiply everything by the deltas here to account for the magnitude of the movement.
 		mat4.translate(translationMatrix, identityMatrix, [
-			currentDirectionX[0] * xDelta + currentDirectionY[0] * yDelta + currentDirectionZ[0] * zDelta,
-			currentDirectionX[1] * xDelta + currentDirectionY[1] * yDelta + currentDirectionZ[1] * zDelta,
-			currentDirectionX[2] * xDelta + currentDirectionY[2] * yDelta + currentDirectionZ[2] * zDelta
+			xValid? currentDirectionX[0] * xDelta + currentDirectionY[0] * yDelta + currentDirectionZ[0] * zDelta : 0,
+			yValid? currentDirectionX[1] * xDelta + currentDirectionY[1] * yDelta + currentDirectionZ[1] * zDelta : 0,
+			zValid? currentDirectionX[2] * xDelta + currentDirectionY[2] * yDelta + currentDirectionZ[2] * zDelta : 0
 		]);
 		mat4.mul(testViewMatrix, translationMatrix, testViewMatrix);
 	}
