@@ -143,7 +143,7 @@ void main(){
 		bumped_N = texture2D(normalMap, fragTexCoord).rgb;
 		bumped_N = normalize(bumped_N * 2.0 - 1.0);
 		bumped_N = normalize(fragWorldNormal * bumped_N);
-	}
+  }
 
 	for( int i = 0; i < N_LIGHTS; i++ ){
 		float attenuation_multiplier = 1.0 / (1.0 + attenuation_factor[i] * (dist[i] * dist[i]));
