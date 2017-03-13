@@ -45,38 +45,60 @@ window.onload = function(){
 	}
 	// Add scrolls
 	scrollTextArray.push(
-		`Note 1: Welcome to Infinite Rooms.<br>Traverse the Rooms and eat food to survive.<br>
+		`<center> Note 1: Welcome to Infinite Rooms.</center>
+		<br><br>Traverse the Rooms and eat food to survive.<br>
 		Various notes have a certain chance of spawning in rooms.<br>Collect them... carefully.<br>
 		Collected notes can be toggle viewed by pressing their corresponding function number.
-		<br>Press F1 now to exit this note.`);
+		<br>Press '1' now to exit this note.`);
 	scrollTextArray.push(
-		`Note 2: Infinite rooms and technically, infinite food.<br>
-		Everything you need to survive.`
+		`<center> Note 2
+		<br><br><br><br>
+		Infinite rooms and technically, infinite food.<br>
+		Everything you need to survive.
+		</center> `
 	);
 	scrollTextArray.push(
-		`Note 3: Getting bored yet? Feeling a little existential?<br>
+		`<center>Note 3
+		<br><br><br>
+		Getting bored yet? Feeling a little existential?<br>
 		Press on for more answers, but remember to be careful.<br>
-		This world is pretty safe for now.`
+		This world is pretty safe for now.
+		</center>`
 	);
 	scrollTextArray.push(
-		`Note 4: Go explore a couple of more rooms, notice anything different?`
+		`<center>
+		Note 4
+		<br><br><br><br>
+		Go explore a couple of more rooms, notice anything different?
+		</center>`
 	);
 	scrollTextArray.push(
-		`Note 5: Things might not look nice now, but they really aren't that bad.<br>
-		You've still got food and an infinite number of places to explore.<br>
-		Knowledge can be bad sometimes. Just look at where these notes have gotten you so far.`
+		`<center>
+		Note 5
+		<br><br> Things might not look nice now, but they really aren't that bad.<br>
+		You've still got food and an infinite number of places to explore.<br><br>
+		Knowledge can be bad sometimes. Just look at where these notes have gotten you so far.
+		</center>`
 	);
 	scrollTextArray.push(
-		`Note 6: Last chance. If you read the next note then your journey will inevitably end.`
+		`<center> Note 6 <br><br><br><br>
+			Last chance. If you read the next note then your journey will inevitably end.
+		</center>`
 	);
 	scrollTextArray.push(
-		`Note 7: Well that's it. The rooms and food are finite now. Only one way to go now really.`
+		`<center>
+			Note 7
+			<br><br><br>
+			Well that's it. The rooms and food are finite now. Only one way to go now really.
+			</center>`
 	);
 	scrollTextArray.push(
-		`Some people say that every journey comes to an end.<br>
+		`<center>
+		Some people say that every journey comes to an end.<br>
 		Did this one have to though?<br>
 		Make peace with yourself.<br>
-		This is the end.`
+		This is the end.
+		</center>`
 	);
 
 	function setScrollText(string){
@@ -287,20 +309,56 @@ window.onload = function(){
 	var posX = 0;
 	var posZ = -10;
 
-	//set initial transformation matrix for player
-	var pScale = [5, 15, 5];
-	var pTranslation = [0, 15, 0];
-	var identity = mat4.create();
-	var psMat = mat4.create();
-	var ptMat = mat4.create();
-	mat4.scale(psMat, identity, pScale);
-	mat4.translate(ptMat, identity, pTranslation);
 
+	// var pScale = [5, 15, 5];
+	// var pTranslation = [0, 15, 0];
+	// var identity = mat4.create();
+	// var psMat = mat4.create();
+	// var ptMat = mat4.create();
+	// mat4.scale(psMat, identity, pScale);
+	// mat4.translate(ptMat, identity, pTranslation);
+
+	// mat4.mul(playerCollisionMat, psMat, playerCollisionMat);
+	// mat4.mul(playerCollisionMat, ptMat, playerCollisionMat);
 
 	var currentDirectionX = [];
 	var currentDirectionY = [];
 	var currentDirectionZ = [];
 	var tempViewMatrix = new Float32Array(16);
+
+	// This is the implementation of collision detection as mentioned in the TA's slides, but we found this to be too expensive to be practical
+
+	// var vectorizedSphere = vectorizeSphere();
+	// function vectorizeSphere(){
+	// 	var vex = []
+	// 	for(var i = 0; i < sphereMesh.vertices.length; i+=3){
+	// 		var temp = vec3.create();
+	// 		vec3.set(temp, sphereMesh.vertices[i], sphereMesh.vertices[i+1], sphereMesh.vertices[i+2])
+	// 		vex.push(temp);
+	// 	}
+	// 	return vex;
+	// }
+	// function checkCollision(collisionmatrix, playerMat){
+	// 	var sphereVectors = vectorizedSphere;
+	// 	var apply = mat4.create();
+	// 	var temp = playerMat;
+	// 	mat4.invert(apply, collisionmatrix);
+	// 	mat4.mul(temp, playerMat, apply);
+	// 	var origin = vec3.create();
+	// 	vec3.set(origin, 0, 0, 0);
+	// 	for(var i = 0; i < sphereVectors.length; i++){
+	// 		var transformed = vec3.create();
+	// 		vec3.transformMat4(transformed, sphereVectors[i], playerMat);
+	// 		vec3.transformMat4(transformed, transformed, apply);
+	// 		var dist = vec3.distance(origin, transformed);
+	// 		console.log(dist);
+	// 		if ( dist <= 1) return true;
+	// 	}
+	// 	return false;
+
+	// }
+
+
 	function movePlayer(xDelta, yDelta, zDelta){
 		currentDirectionX = [0,0,0]; currentDirectionY = [0,0,0]; currentDirectionZ = [0,0,0];
 
@@ -333,21 +391,40 @@ window.onload = function(){
 		posX += x;
 		posZ += z;
 
+		// var temptrans = mat4.create();
+		// var transformedPlayer = mat4.create();
+		// mat4.translate(temptrans, identity, [posX, 0, (posZ + 10)]);
+		// mat4.mul(transformedPlayer, playerCollisionMat, temptrans);
+
 		var xValid = true;
 		var yValid = true; // Always true in this implementation.
 		var zValid = true;
+
+		function checkCollision(collidable){
+			if(!collidable) return false;
+			var playerLoc = [posX, 10, posZ];
+			var center = collidable[0];
+			var rad = collidable[1];
+			var dist = (center[0]-playerLoc[0])**2
+						+ (center[1]-playerLoc[1])**2
+						+ (center[2]-playerLoc[2])**2;
+			console.log(dist)
+			if (dist < rad) return true;
+			return false;
+		}
 
 		var padding = 10,
 			doorwidth = 16;
 		for (var i = 0; i < Rooms.length; i++){
 			var room = Rooms[i];
-			// for (var j = 0; j < room.collidables.length; j++){
-			// 	if(checkcollision(room.collidables[j])){
-			// 		posX -= x;
-			// 		posZ -= z;
-			// 		return;
-			// 	}
-			// }
+			console.log(room.collidables)
+			for (var j = 0; j < room.collidables.length; j++){
+				if(checkCollision(room.collidables[j])){
+					posX -= x;
+					posZ -= z;
+					return;
+				}
+			}
 			for (var j = 0; j < room.wallCoords.length; j++) {
 				var wallTranslation = room.wallCoords[j][0];
 				var wallRotation = room.wallCoords[j][1];
@@ -373,14 +450,16 @@ window.onload = function(){
 				var doorRotation = room.doorCoords[j][1];
 				if (doorRotation % Math.PI == 0){
 
-					if (zValid && ((posZ >= 0) == (doorTranslation[2] >= 0)) && (Math.abs(posZ - doorTranslation[2]) <= padding)
-												&& Math.abs(posX - doorTranslation[0])  >= doorwidth/2) {
+					if (zValid && ((posZ >= 0) == (doorTranslation[2] >= 0)) && (Math.abs(posZ - doorTranslation[2]) <= padding)){
+						if (Math.abs(posX - doorTranslation[0])  <= doorwidth/2 && room.openDoors == "north" && doorRotation == 0) continue;
+						if (Math.abs(posX - doorTranslation[0])  <= doorwidth/2 && room.openDoors == "south" && doorRotation == -Math.PI) continue;
 						zValid = false;
 					}
 				} else { // if wall rotation is 90 (east) or 270 (west)
 					// same thing as above but for the east/west wall
-					if (xValid && ((posX >= 0) == (doorTranslation[0] >= 0)) && (Math.abs(posX - doorTranslation[0]) <= padding)
-												&& Math.abs(posZ - doorTranslation[2]) >= doorwidth/2) {
+					if (xValid && ((posX >= 0) == (doorTranslation[0] >= 0)) && (Math.abs(posX - doorTranslation[0]) <= padding)){
+						if (Math.abs(posZ - doorTranslation[2])  <= doorwidth/2 && room.openDoors == "east" && doorRotation == -Math.PI/2) continue;
+ 						if (Math.abs(posZ - doorTranslation[2])  <= doorwidth/2 && room.openDoors == "west" && doorRotation == -3*Math.PI/2) continue;
 						xValid = false;
 					}
 				}
@@ -444,13 +523,15 @@ window.onload = function(){
 		if(map[40]) rotateCamera(0, N);
 		if(map[32]) interact();
 		if(map[82]) resetCamera();
-		if(map[187]){
-			ambience += 0.1;
-			light.setAmbience(ambience);
+		if(map[187]){ // +
+			N = Math.max(N + 0.5, 10);
+			// ambience += 0.1;
+			// light.setAmbience(ambience);
 		}
-		if(map[189]){
-			ambience -= 0.1;
-			light.setAmbience(ambience);
+		if(map[189]){ // -
+			N = Math.max(N - 0.5, 0);
+			// ambience -= 0.1;
+			// light.setAmbience(ambience);
 		}
 		if(map[192]) swimMode = ~swimMode;
 
@@ -459,18 +540,16 @@ window.onload = function(){
 			utils.fade(document.getElementById("heart"));
 		}
 
-		if(map[49]) N = 1	;
-		if(map[57]) N = 9;
 		if(map[80]) interact();
 		if(map[75]) testKeys = 1;
 		if(map[16]) keyboard_crouch = 1; else keyboard_crouch = 0;
-		if(map[112] && scrollSeen[0] && scrollDebounce) toggleScrollText(scrollTextArray[0]);
-		if(map[113] && scrollSeen[1] && scrollDebounce) toggleScrollText(scrollTextArray[1]);
-		if(map[114] && scrollSeen[2] && scrollDebounce) toggleScrollText(scrollTextArray[2]);
-		if(map[115] && scrollSeen[3] && scrollDebounce) toggleScrollText(scrollTextArray[3]);
-		if(map[116] && scrollSeen[4] && scrollDebounce) toggleScrollText(scrollTextArray[4]);
-		if(map[117] && scrollSeen[5] && scrollDebounce) toggleScrollText(scrollTextArray[5]);
-		if(map[118] && scrollSeen[6] && scrollDebounce) toggleScrollText(scrollTextArray[6]);
+		if(map[49] && scrollSeen[0] && scrollDebounce) toggleScrollText(scrollTextArray[0]);
+		if(map[50] && scrollSeen[1] && scrollDebounce) toggleScrollText(scrollTextArray[1]);
+		if(map[51] && scrollSeen[2] && scrollDebounce) toggleScrollText(scrollTextArray[2]);
+		if(map[52] && scrollSeen[3] && scrollDebounce) toggleScrollText(scrollTextArray[3]);
+		if(map[53] && scrollSeen[4] && scrollDebounce) toggleScrollText(scrollTextArray[4]);
+		if(map[54] && scrollSeen[5] && scrollDebounce) toggleScrollText(scrollTextArray[5]);
+		if(map[55] && scrollSeen[6] && scrollDebounce) toggleScrollText(scrollTextArray[6]);
 		if (map[73] && scrollDebounce) toggleScrollText(gameInstructions);
 
 		if(keyboard_crouch && keyboard_crouch != keyboard_prevcrouch){ // When crouch is pressed.
@@ -533,7 +612,7 @@ window.onload = function(){
 
 	////////////////////// Objects /////////////////////
 
-	unitsphere = new Shape(sphereMesh.vertices, sphereMesh.indices, sphereMesh.normals, sphereMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
+	//unitsphere = new Shape(sphereMesh.vertices, sphereMesh.indices, sphereMesh.normals, sphereMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 
 	var Rooms = [];
 
@@ -556,17 +635,17 @@ window.onload = function(){
 	function loadGarden(coords, doors, doorways)
 	{
 		var jsonObjects = [
-
-			["meshes/fence.json",		[98,3,40], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null, null, null, []],
-			["meshes/fence.json",		[98,3,-75], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null, null, null, []],
-			["meshes/fence.json",		[-95,3,40], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null, null, null, []],
-			["meshes/fence.json",		[-95,3,-75], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null, null, null, []],
-			["meshes/fence.json",		[40,3,95], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null, null, null, []],
-			["meshes/fence.json",		[-75,3,95], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null, null, null, []],
-			["meshes/fence.json",		[40,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null, null, null, []],
-
-			["meshes/fence.json",		[-75,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null, null, null, []],
-			["meshes/wheelbarrow.json",		[0,-2,0], [3,1.7,2],  45, [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null, null, false, [.24,.1,.12]],
+			["meshes/fence.json",		[98,3,40], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[98,3,-75], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[-95,3,40], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[-95,3,-75], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[40,3,95], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[-75,3,95], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[40,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[-75,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			// old coordinates for sphere at wheelbarrow
+			// ["meshes/wheelbarrow.json",		[0,-2,0], [3,1.7,2],  45, [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null, null, false, [.24,.1,.12]],
+			["meshes/wheelbarrow.json",		[0,-2,0], [3,1.7,2],  45, [0,1,0], ["textures/door1.png"], [1,1,1,1],[[[0, -2, 0], 5]], null, null, null],
 			["meshes/apple.json",			[22,10,38], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
 			["meshes/apple.json",			[22,10,42], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
 			["meshes/apple.json",			[26,10,38], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
@@ -576,12 +655,15 @@ window.onload = function(){
 
 			["meshes/key.json",		[80,1,76.5], [15,15,15], 		30,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
 			["meshes/wateringcan.json",		[80,-2,80], [0.25,0.25,0.25], 45,  [0,1,0], ["textures/wateringcan.png"], [1,1,1,1], null, null, null]
-
 		];
 		jsonObjects.push(["meshes/tombstone1.json",	   [-70,-2,90], [20,20,20], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
 		if (demo){
 			jsonObjects.push(["meshes/papyrus.json",		[-70,0,89], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
 		}
+		else if (Math.random() > scrollSpawnProbability){
+			jsonObjects.push(["meshes/papyrus.json",		[-70,0,89], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+		}
+
 		var otherObjects = loadBox(["textures/dirtfloor.png", "textures/leaf.png", "textures/leaf.png"], doorways);
 
 		for(var i = 1; i < 6; i++){
@@ -601,21 +683,22 @@ window.onload = function(){
 		];
 
 		for(var i = -4; i < 0; i++){
-			jsonObjects.push(["meshes/tombstone1.json",	   [i * 20 - 5,-2,95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null, null, null, []]);
-			jsonObjects.push(["meshes/tombstone1.json",	   [-i * 20 + 5,-2,95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null, null, null, []]);
-			jsonObjects.push(["meshes/tombstone1.json",	   [i * 20 - 5,-2,-95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null, null, null, []]);
-			jsonObjects.push(["meshes/tombstone1.json",	   [-i * 20 + 5,-2,-95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null, null, null, []]);
-			jsonObjects.push(["meshes/tombstone1.json",	   [95,-2,i * 20 - 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null, null, null, []]);
-			jsonObjects.push(["meshes/tombstone1.json",	   [95,-2,-i * 20 + 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null, null, null, []]);
-			jsonObjects.push(["meshes/tombstone1.json",	   [-95,-2,i * 20 - 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null, null, null, []]);
-			jsonObjects.push(["meshes/tombstone1.json",	   [-95,-2,-i * 20 + 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null, null, null, []]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [i * 20 - 5,-2,95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [-i * 20 + 5,-2,95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [i * 20 - 5,-2,-95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [-i * 20 + 5,-2,-95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [95,-2,i * 20 - 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [95,-2,-i * 20 + 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [-95,-2,i * 20 - 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [-95,-2,-i * 20 + 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
 		}
 		jsonObjects.push(["meshes/painting.json",		[-92,10,23.5], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/will.png"], [1,1,1,1], null, null, null, null, false]);
 		jsonObjects.push(["meshes/painting.json",		[-92,10,43.5], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/eric.png"], [1,1,1,1], null, null, null, null, false]);
 		jsonObjects.push(["meshes/painting.json",		[-92,10,-45.5], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/christine.png"], [1,1,1,1], null, null, null, null, false]);
 		jsonObjects.push(["meshes/painting.json",		[-92,10,-25], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/abdullah.png"], [1,1,1,1], null, null, null, null, false]);
 		jsonObjects.push(["meshes/painting.json",		[-40,6,-2], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/chris.png"], [1,1,1,1], null, null, null, null, false]);
-    jsonObjects.push(["meshes/grave.json",	[-8,-13,0], [10,12,10], -90,  [1,0,0], ["textures/tv.png"], [1,1,1,1], "grave", getID(), null, null, false, [.24,.5,.22]]);
+    // jsonObjects.push(["meshes/grave.json",	[-8,-13,0], [10,12,10], -90,  [1,0,0], ["textures/tv.png"], [1,1,1,1], "grave", getID(), null, null, false, [.24,.5,.22]]);
+		jsonObjects.push(["meshes/grave.json",	[-8,-13,0], [10,12,10], -90,  [1,0,0], ["textures/tv.png"], [1,1,1,1], [[[-8,-13,0],0.5]], "grave", getID(), null, null, false]);
 
 		var otherObjects = loadBox(["textures/dirtfloor.png", "textures/dirtfloor.png", "textures/tv.png"], doorways);
 		otherObjects[3].shape.useWater(); otherObjects[4].shape.useWater(); otherObjects[5].shape.useWater(); otherObjects[2].shape.useWater();
@@ -629,11 +712,15 @@ window.onload = function(){
 
 	function loadBedroom(coords, doors, doorways)
 	{
-		var jsonObjects = [["meshes/bed.json", 			[75,-4,65], [0.75, .75, .75],   180, [0,1,0], ["textures/bedwood.png"], [0.8,1,1,1], null, null, null, "normalmaps/wood.png", false, [.023,.03,.023]],
-					["meshes/bedside-table.json", 	[36,0,88], [1,1,1], 		   -90, [0,1,0], ["textures/bedwood.png"], [1,1,1,1], null, null, null, null, false, [.08, .05, .08]],
-					["meshes/commode.json",		[65,-3,-89], [1.6,1.4,1.0], 0,  [0,1,0], ["textures/bedwood.png", "textures/bedwood.png","textures/bedwood.png", "textures/bedwood.png", "textures/stone.png" ], [1,1,1,1], null, null, null, null, false, [.045,.028,.053]],
+		var jsonObjects = [
+					// ["meshes/bed.json", 			[75,-4,65], [0.75, .75, .75],   180, [0,1,0], ["textures/bedwood.png"], [0.8,1,1,1], null, null, null, "normalmaps/wood.png", false, [.023,.03,.023]],
+					["meshes/bed.json", 			[75,-4,65], [0.75, .75, .75],   180, [0,1,0], ["textures/bedwood.png"], [0.8,1,1,1], [[[75, 0,65],0.03],[[40, 0, 65],0.03]], null, null, null, "normalmaps/wood.png", false],
+					// ["meshes/bedside-table.json", 	[36,0,88], [1,1,1], 		   -90, [0,1,0], ["textures/bedwood.png"], [1,1,1,1], null, null, null, null, false, [.08, .05, .08]],
+					["meshes/bedside-table.json", 	[36,0,88], [1,1,1], 		   -90, [0,1,0], ["textures/bedwood.png"], [1,1,1,1], [[[36, 0, 88], 1]], null, null, null],
+					// ["meshes/commode.json",		[65,-3,-89], [1.6,1.4,1.0], 0,  [0,1,0], ["textures/bedwood.png", "textures/bedwood.png","textures/bedwood.png", "textures/bedwood.png", "textures/stone.png" ], [1,1,1,1], null, null, null, null, false, [.045,.028,.053]],
+					["meshes/commode.json",		[65,-3,-89], [1.6,1.4,1.0], 0,  [0,1,0], ["textures/bedwood.png", "textures/bedwood.png","textures/bedwood.png", "textures/bedwood.png", "textures/stone.png" ], [1,1,1,1], [null, null, null],
 					["meshes/carpet.json",		[0,-2.2,0], [1,1,1], 0,  [0,1,0], ["textures/blue_carpet.png"], [1,1,1,1], null, null, null, "normalmaps/carpet.png", false],
-					["meshes/bodypillow.json", 	[80,17,78], [22,22,24], 		   0, [0,1,0], ["textures/bodypillow.png"], [1,1,1,1]],
+					["meshes/bodypillow.json", 	[80,17,78], [22,22,24], 		   0, [0,1,0], ["textures/bodypillow.png"], [1,1,1,1], null, null, null, null, true, [2, 2, 2]],
 					["meshes/window1.json", 		[-99,10,-10], [0.6,0.6,0.6],    -90,	[0,1,0], ["textures/wood2.png"],					 [90/255,67/255,80/255,1], null, null, null, null, false],
 					["meshes/window1.json", 		[-99,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], ["textures/wood2.png"],					 [90/255,67/255,80/255,1], null, null, null, null, false],
 					["meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], ["textures/wood2.png"],   [90/255,67/255,80/255,1], null, null,null, null, false, [.17,.17,.09]],
@@ -668,6 +755,10 @@ window.onload = function(){
 		if (demo){
 			jsonObjects.push(["meshes/papyrus.json",		[42.5,5,13], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
 		}
+		else if (Math.random() > scrollSpawnProbability){
+			console.log("fk");
+			jsonObjects.push(["meshes/papyrus.json",		[42.5,5,13], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+		}
 
 		var otherObjects = loadBox(["textures/bathroomfloor.png", "textures/tile.png", "textures/tile.png"], doorways);
 
@@ -697,6 +788,9 @@ window.onload = function(){
 				];
 
 		if (demo){
+			jsonObjects.push(["meshes/papyrus.json",		[-8,5,10], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+		}
+		else if (Math.random() > scrollSpawnProbability){
 			jsonObjects.push(["meshes/papyrus.json",		[-8,0,10], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
 		}
 
@@ -748,6 +842,10 @@ window.onload = function(){
 			if (demo){
 				jsonObjects.push(["meshes/papyrus.json",		[-33.7,22,22], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
 			}
+			else if (Math.random() > scrollSpawnProbability){
+				jsonObjects.push(["meshes/papyrus.json",		[-33.7,22,22], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+			}
+
 		var otherObjects = loadBox(["textures/tile.png", "textures/crate.png", "textures/kitchenwall.jpg"], doorways);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
@@ -780,6 +878,9 @@ window.onload = function(){
 
 					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false]];
 			if (demo){
+				jsonObjects.push(["meshes/papyrus.json",		[-33.7,22,22], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+			}
+			else if (Math.random() > scrollSpawnProbability){
 				jsonObjects.push(["meshes/papyrus.json",		[-33.7,22,22], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
 			}
 		var otherObjects = loadBox(["textures/space.png", "textures/space.png", "textures/space.png"], doorways, [], true);
@@ -822,6 +923,9 @@ window.onload = function(){
 		if (demo){
 			jsonObjects.push(["meshes/papyrus.json",		[-90.7,0,-23], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
 		}
+		else if (Math.random() > scrollSpawnProbability){
+			jsonObjects.push(["meshes/papyrus.json",		[-90.7,0,-23], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+		}
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
@@ -832,7 +936,7 @@ window.onload = function(){
 	var maxRooms = 2; // The maximum number of rooms that can be loaded at once.
 
 // first room that's loaded
-	loadKitchen([0, 0], [0,0,1,0], [0,0,1,0]);
+	loadTomb([0, 0], [0,0,1,0], [0,0,1,0]);
 
 	Rooms[0].loadWallCoords();
 
@@ -1552,16 +1656,6 @@ window.onload = function(){
 
 					if(object.isDrawn)
 						object.shadowDraw(shadowUniforms, shadowAttributes);
-
-					if (object.showcollision){
-						mat4.identity(worldMatrix);
-						mat4.mul(worldMatrix, object.collisionMatrix, worldMatrix);
-
-						gl.uniformMatrix4fv(shadowUniforms.mWorld, gl.FALSE, worldMatrix);
-						if(object.itemType != "wall" && object.itemType != "doorWall" && object.itemType != "ceiling" && object.itemType != "floor"){
-							object.collisionsphere.draw();
-						}
-					}
 				}
 			}
 		}

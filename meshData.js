@@ -290,7 +290,7 @@ var wallMesh = new Mesh(
 	]
 )
 
-var sphereMesh = generateSphere(30, 30, 1);
+var sphereMesh = generateSphere(4, 4, 1);
 
 // The complexity of the spheres can be set by increasing @latitudeBands or @longitudeBands.
 // @normalType can be either "phong-gouraud" or "flat".

@@ -1,6 +1,6 @@
 // The shape of an object, along with its state within the world (i.e, translations, rotations, scales) is stored here.
 class Object{
-	constructor(shape, translation, scale, rotation, axis = [0,1,0], texture_scale = null, itemType = null, shadows = true, truetranslation = null, unitscale = [1, 1, 1]){
+	constructor(shape, translation, scale, rotation, axis = [0,1,0], texture_scale = null, itemType = null, shadows = true, truetranslation = null){
 		this.shape = shape;
 		this.translation = translation;
 		this.scale = scale;
@@ -11,13 +11,20 @@ class Object{
 		this.isDrawn = true;
 		this.shadows = shadows;
 		this.truetranslation = truetranslation;
-		this.collidable = (unitscale !== undefined);
-		if(this.collidable){
-			this.unitscale = unitscale;
-			this.collisionMatrix = this.genCollisionMat();
-			this.showcollision = true;
-			this.collisionsphere = unitsphere;
-		}
+		// this.collidable = (unitscale != undefined);
+		this.collidable = false;
+		this.collisionSpheres;
+		// if(this.collidable){
+		// 	this.unitscale = unitscale;
+		// 	this.collisionMatrix = this.genCollisionMat();
+		// 	this.showcollision = true;
+		// 	this.collisionsphere = unitsphere;
+		// }
+	}
+
+	setCollisionSpheres(collisionSpheres){
+		this.collidable = true;
+		this.collisionSpheres = collisionSpheres;
 	}
 
 	genCollisionMat(){
