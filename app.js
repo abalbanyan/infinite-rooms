@@ -359,6 +359,7 @@ window.onload = function(){
 
 	// }
 
+
 	function movePlayer(xDelta, yDelta, zDelta){
 		currentDirectionX = [0,0,0]; currentDirectionY = [0,0,0]; currentDirectionZ = [0,0,0];
 
@@ -400,12 +401,20 @@ window.onload = function(){
 		var yValid = true; // Always true in this implementation.
 		var zValid = true;
 
+		function checkCollision(collidable){
+			// var player
+			// for(var i = 0; i < collidable.collisionSpheres.length; i++){
+			// 	var center = 
+			// }
+			return false;
+		}
+
 		var padding = 10,
 			doorwidth = 16;
 		for (var i = 0; i < Rooms.length; i++){
 			var room = Rooms[i];
 			for (var j = 0; j < room.collidables.length; j++){
-				if(checkCollision(room.collidables[j], transformedPlayer)){
+				if(checkCollision(room.collidables[j])){
 					posX -= x;
 					posZ -= z;
 					return;
