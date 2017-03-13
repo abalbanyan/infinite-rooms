@@ -402,10 +402,15 @@ window.onload = function(){
 		var zValid = true;
 
 		function checkCollision(collidable){
-			// var player
-			// for(var i = 0; i < collidable.collisionSpheres.length; i++){
-			// 	var center = 
-			// }
+			if(!collidable) return false;
+			var playerLoc = [posX, 10, posZ];
+			var center = collidable[0];
+			var rad = collidable[1];
+			var dist = (center[0]-playerLoc[0])**2
+						+ (center[1]-playerLoc[1])**2
+						+ (center[2]-playerLoc[2])**2;
+			console.log(dist)
+			if (dist < rad) return true;
 			return false;
 		}
 
@@ -413,6 +418,7 @@ window.onload = function(){
 			doorwidth = 16;
 		for (var i = 0; i < Rooms.length; i++){
 			var room = Rooms[i];
+			console.log(room.collidables)
 			for (var j = 0; j < room.collidables.length; j++){
 				if(checkCollision(room.collidables[j])){
 					posX -= x;
@@ -639,7 +645,7 @@ window.onload = function(){
 			["meshes/fence.json",		[40,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
 			["meshes/fence.json",		[-75,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
 
-			["meshes/wheelbarrow.json",		[0,-2,0], [3,1.7,2],  45, [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/wheelbarrow.json",		[0,-2,0], [3,1.7,2],  45, [0,1,0], ["textures/door1.png"], [1,1,1,1],[[[0, -2, 0], 5]], null, null, null],
 			["meshes/apple.json",			[22,10,38], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
 			["meshes/apple.json",			[22,10,42], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
 			["meshes/apple.json",			[26,10,38], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
@@ -917,7 +923,7 @@ window.onload = function(){
 	var maxRooms = 2; // The maximum number of rooms that can be loaded at once.
 	//loadLivingRoom([0, 0], [0,0,1,0], [0,0,1,0]);
 
-	loadBedroom([0, 0], [0,0,1,0], [0,0,1,0]);
+	loadGarden([0, 0], [0,0,1,0], [0,0,1,0]);
 
 	Rooms[0].loadWallCoords();
 
@@ -1637,16 +1643,6 @@ window.onload = function(){
 
 					if(object.isDrawn)
 						object.shadowDraw(shadowUniforms, shadowAttributes);
-
-					if (object.showcollision){
-						mat4.identity(worldMatrix);
-						mat4.mul(worldMatrix, object.collisionMatrix, worldMatrix);
-
-						gl.uniformMatrix4fv(shadowUniforms.mWorld, gl.FALSE, worldMatrix);
-						if(object.itemType != "wall" && object.itemType != "doorWall" && object.itemType != "ceiling" && object.itemType != "floor" && object.collidable){
-							object.collisionsphere.draw();
-						}
-					}
 				}
 			}
 		}

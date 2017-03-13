@@ -19,7 +19,7 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
         this.objects[i].translation[2] += delz;
 
         //if (this.objects[i].collidable) this.collidables.push(this.objects[i].collisionMatrix);
-        if (this.objects[i].collidable) this.collidables.push(this.objects[i].collisionArray);
+        this.collidables.concat(this.objects[i].collisionSpheres);
 
         if (!this.objects[i].truetranslation) continue;
         this.objects[i].truetranslation[0] += this.coords[0] * 200;
@@ -32,7 +32,7 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
 
      // Pass in pickID as the last parameter to addObjectFromJSON if the object is pickable. The pickID can be any value between 0 and 255.
     // pickID should be unique, itemType does not need to be.
-    function addObjectFromJSON(jsonfile, translation, scale, rotation, axis, texture, color = null, itemType = null, pickID = null, material = null, normalMap = null, shadows = true, unitscale = undefined)
+    function addObjectFromJSON(jsonfile, translation, scale, rotation, axis, texture, color = null, collisionSpheres = null, itemType = null, pickID = null, material = null, normalMap = null, shadows = true, unitscale = undefined)
 	{
 	    var rawFile = new XMLHttpRequest();
 	    var rotation = glMatrix.toRadian(rotation);
@@ -66,10 +66,10 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
                     }
                     //var object = new Object(shape, translation, scale, rotation, axis, null, null, true, null, unitscale);
                     var object = new Object(shape, translation, scale, rotation, axis);
-
+                    if(collisionSpheres != null) object.setCollisionSpheres(collisionSpheres);
                     if(pickID != null)
                         object.shape.makePickable(pickID);
-                    if(object.collidable) self.collidables.push(object.collisionMatrix);
+                    self.collidables.concat(collisionSpheres);
                     object.itemType = itemType;
                     object.shadows = shadows;
                     self.objects.push(object);
