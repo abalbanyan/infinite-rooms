@@ -288,19 +288,55 @@ window.onload = function(){
 	var posZ = -10;
 
 	//set initial transformation matrix for player
-	var pScale = [5, 15, 5];
-	var pTranslation = [0, 15, 0];
-	var identity = mat4.create();
-	var psMat = mat4.create();
-	var ptMat = mat4.create();
-	mat4.scale(psMat, identity, pScale);
-	mat4.translate(ptMat, identity, pTranslation);
+	// var pScale = [5, 15, 5];
+	// var pTranslation = [0, 15, 0];
+	// var identity = mat4.create();
+	// var psMat = mat4.create();
+	// var ptMat = mat4.create();
+	// mat4.scale(psMat, identity, pScale);
+	// mat4.translate(ptMat, identity, pTranslation);
+
+	// mat4.mul(playerCollisionMat, psMat, playerCollisionMat);
+	// mat4.mul(playerCollisionMat, ptMat, playerCollisionMat);
 	
 
 	var currentDirectionX = [];
 	var currentDirectionY = [];
 	var currentDirectionZ = [];
 	var tempViewMatrix = new Float32Array(16);
+
+	// This is the implementation of collision detection as mentioned in the TA's slides, but we found this to be too expensive to be practical
+
+	// var vectorizedSphere = vectorizeSphere();
+	// function vectorizeSphere(){
+	// 	var vex = []
+	// 	for(var i = 0; i < sphereMesh.vertices.length; i+=3){
+	// 		var temp = vec3.create();
+	// 		vec3.set(temp, sphereMesh.vertices[i], sphereMesh.vertices[i+1], sphereMesh.vertices[i+2])
+	// 		vex.push(temp);
+	// 	}
+	// 	return vex;
+	// }
+	// function checkCollision(collisionmatrix, playerMat){
+	// 	var sphereVectors = vectorizedSphere;
+	// 	var apply = mat4.create();
+	// 	var temp = playerMat;
+	// 	mat4.invert(apply, collisionmatrix);
+	// 	mat4.mul(temp, playerMat, apply);
+	// 	var origin = vec3.create();
+	// 	vec3.set(origin, 0, 0, 0);
+	// 	for(var i = 0; i < sphereVectors.length; i++){
+	// 		var transformed = vec3.create();
+	// 		vec3.transformMat4(transformed, sphereVectors[i], playerMat);
+	// 		vec3.transformMat4(transformed, transformed, apply);
+	// 		var dist = vec3.distance(origin, transformed);
+	// 		console.log(dist);
+	// 		if ( dist <= 1) return true;
+	// 	}
+	// 	return false;
+
+	// }
+
 	function movePlayer(xDelta, yDelta, zDelta){
 		currentDirectionX = [0,0,0]; currentDirectionY = [0,0,0]; currentDirectionZ = [0,0,0];
 
@@ -333,6 +369,11 @@ window.onload = function(){
 		posX += x;
 		posZ += z;
 
+		// var temptrans = mat4.create();
+		// var transformedPlayer = mat4.create();
+		// mat4.translate(temptrans, identity, [posX, 0, (posZ + 10)]);
+		// mat4.mul(transformedPlayer, playerCollisionMat, temptrans);
+
 		var xValid = true;
 		var yValid = true; // Always true in this implementation.
 		var zValid = true;
@@ -341,13 +382,13 @@ window.onload = function(){
 			doorwidth = 16;
 		for (var i = 0; i < Rooms.length; i++){
 			var room = Rooms[i];
-			// for (var j = 0; j < room.collidables.length; j++){
-			// 	if(checkcollision(room.collidables[j])){
-			// 		posX -= x;
-			// 		posZ -= z;
-			// 		return;
-			// 	}
-			// }
+			for (var j = 0; j < room.collidables.length; j++){
+				if(checkCollision(room.collidables[j], transformedPlayer)){
+					posX -= x;
+					posZ -= z;
+					return;
+				}
+			}
 			for (var j = 0; j < room.wallCoords.length; j++) {
 				var wallTranslation = room.wallCoords[j][0];
 				var wallRotation = room.wallCoords[j][1];
@@ -552,41 +593,19 @@ window.onload = function(){
 	// @doors: size 4 array of booleans indicating which walls have doors. [north, east, south, west] Should be the same as doorways, except with the direction the player enters the room as 0.
 	// For your convenience: ["meshes/.json",		[0,0,0], [1,1,1], 0,  [0,1,0], ["textures/"], [1,1,1,1], null, null, null]
 
-	function loadWeeb(coords, doors, doorways)
-	{
-		var jsonObjects = [
-			
-		]
-
-		var otherObjects = loadBox(["textures/dirtfloor.png", "textures/tile.png", "textures/tile.png"], doorways);
-
-				for(var i = 1; i < 6; i++){
-			otherObjects[i].texture_scale[1] *= 5/3;
-			otherObjects[i].shape.setMaterialProperties(2, 2.5, 30);
-		}
-
-		otherObjects.push(new Object(new Shape(sphereMesh.vertices, sphereMesh.indices, sphereMesh.normals, sphereMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers),
-			[0, 15, 0], [8, 20, 8], 0, [0, 1, 0]));
-
-		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
-
-		Rooms.push(new Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));
-
-	}
-
 	function loadGarden(coords, doors, doorways)
 	{
 		var jsonObjects = [
 
-			["meshes/fence.json",		[98,3,40], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null, null, null, []],
-			["meshes/fence.json",		[98,3,-75], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null, null, null, []],
-			["meshes/fence.json",		[-95,3,40], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null, null, null, []],
-			["meshes/fence.json",		[-95,3,-75], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null, null, null, []],
-			["meshes/fence.json",		[40,3,95], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null, null, null, []],
-			["meshes/fence.json",		[-75,3,95], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null, null, null, []],
-			["meshes/fence.json",		[40,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null, null, null, []],
-			["meshes/fence.json",		[-75,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null, null, null, []],			
-			["meshes/wheelbarrow.json",		[0,-2,0], [3,1.7,2],  45, [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[98,3,40], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1]],
+			["meshes/fence.json",		[98,3,-75], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1]],
+			["meshes/fence.json",		[-95,3,40], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1]],
+			["meshes/fence.json",		[-95,3,-75], [5,10,17], 0,  [0,1,0], ["textures/door1.png"], [1,1,1,1]],
+			["meshes/fence.json",		[40,3,95], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1]],
+			["meshes/fence.json",		[-75,3,95], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1]],
+			["meshes/fence.json",		[40,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1]],
+			["meshes/fence.json",		[-75,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1]],			
+			["meshes/wheelbarrow.json",		[0,-2,0], [3,1.7,2],  45, [0,1,0], ["textures/door1.png"], [1,1,1,1]],
 			["meshes/apple.json",			[22,10,38], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
 			["meshes/apple.json",			[22,10,42], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
 			["meshes/apple.json",			[26,10,38], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
@@ -621,14 +640,14 @@ window.onload = function(){
 		];
 
 		for(var i = -4; i < 0; i++){
-			jsonObjects.push(["meshes/tombstone1.json",	   [i * 20 - 5,-2,95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null, null, null, []]);
-			jsonObjects.push(["meshes/tombstone1.json",	   [-i * 20 + 5,-2,95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null, null, null, []]);
-			jsonObjects.push(["meshes/tombstone1.json",	   [i * 20 - 5,-2,-95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null, null, null, []]);
-			jsonObjects.push(["meshes/tombstone1.json",	   [-i * 20 + 5,-2,-95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null, null, null, []]);
-			jsonObjects.push(["meshes/tombstone1.json",	   [95,-2,i * 20 - 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null, null, null, []]);
-			jsonObjects.push(["meshes/tombstone1.json",	   [95,-2,-i * 20 + 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null, null, null, []]);
-			jsonObjects.push(["meshes/tombstone1.json",	   [-95,-2,i * 20 - 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null, null, null, []]);
-			jsonObjects.push(["meshes/tombstone1.json",	   [-95,-2,-i * 20 + 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null, null, null, []]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [i * 20 - 5,-2,95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [-i * 20 + 5,-2,95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [i * 20 - 5,-2,-95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [-i * 20 + 5,-2,-95], [30,35,30], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [95,-2,i * 20 - 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [95,-2,-i * 20 + 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [-95,-2,i * 20 - 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
+			jsonObjects.push(["meshes/tombstone1.json",	   [-95,-2,-i * 20 + 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1]]);
 		}
 		jsonObjects.push(["meshes/painting.json",		[-92,10,23.5], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/will.png"], [1,1,1,1], null, null, null, null, false]);
 		jsonObjects.push(["meshes/painting.json",		[-92,10,43.5], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/eric.png"], [1,1,1,1], null, null, null, null, false]);
@@ -653,7 +672,7 @@ window.onload = function(){
 					["meshes/bedside-table.json", 	[36,0,88], [1,1,1], 		   -90, [0,1,0], ["textures/bedwood.png"], [1,1,1,1]],
 					["meshes/commode.json",		[65,-3,-89], [1.6,1.4,1.0], 0,  [0,1,0], ["textures/bedwood.png", "textures/bedwood.png","textures/bedwood.png", "textures/bedwood.png", "textures/stone.png" ], [1,1,1,1], null, null, null, null, false],
 					["meshes/carpet.json",		[0,-2.2,0], [1,1,1], 0,  [0,1,0], ["textures/blue_carpet.png"], [1,1,1,1], null, null, null, "normalmaps/carpet.png", false],
-					["meshes/bodypillow.json", 	[80,17,78], [22,22,24], 		   0, [0,1,0], ["textures/bodypillow.png"], [1,1,1,1]],
+					["meshes/bodypillow.json", 	[80,17,78], [22,22,24], 		   0, [0,1,0], ["textures/bodypillow.png"], [1,1,1,1], null, null, null, null, true, [2, 2, 2]],
 					["meshes/window1.json", 		[-99,10,-10], [0.6,0.6,0.6],    -90,	[0,1,0], ["textures/wood2.png"],					 [90/255,67/255,80/255,1], null, null, null, null, false],
 					["meshes/window1.json", 		[-99,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], ["textures/wood2.png"],					 [90/255,67/255,80/255,1], null, null, null, null, false],
 					["meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], ["textures/wood2.png"],   [90/255,67/255,80/255,1], null, null,null, null, false],
@@ -844,7 +863,7 @@ window.onload = function(){
 	var maxRooms = 2; // The maximum number of rooms that can be loaded at once.
 	//loadLivingRoom([0, 0], [0,0,1,0], [0,0,1,0]);
 
-	loadWeeb([0, 0], [0,0,1,0], [0,0,1,0]);
+	loadBedroom([0, 0], [0,0,1,0], [0,0,1,0]);
 
 	Rooms[0].loadWallCoords();
 
@@ -1570,7 +1589,7 @@ window.onload = function(){
 						mat4.mul(worldMatrix, object.collisionMatrix, worldMatrix);
 
 						gl.uniformMatrix4fv(shadowUniforms.mWorld, gl.FALSE, worldMatrix);
-						if(object.itemType != "wall" && object.itemType != "doorWall" && object.itemType != "ceiling" && object.itemType != "floor"){
+						if(object.itemType != "wall" && object.itemType != "doorWall" && object.itemType != "ceiling" && object.itemType != "floor" && object.collidable){
 							object.collisionsphere.draw();
 						}
 					}
