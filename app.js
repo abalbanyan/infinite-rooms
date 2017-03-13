@@ -426,13 +426,15 @@ window.onload = function(){
 		if(map[40]) rotateCamera(0, N);
 		if(map[32]) interact();
 		if(map[82]) resetCamera();
-		if(map[187]){
-			ambience += 0.1;
-			light.setAmbience(ambience);
+		if(map[187]){ // +
+			N = max(N + 0.5, 10);
+			// ambience += 0.1;
+			// light.setAmbience(ambience);
 		}
-		if(map[189]){
-			ambience -= 0.1;
-			light.setAmbience(ambience);
+		if(map[189]){ // -
+			N = max(N - 0.5, 0);
+			// ambience -= 0.1;
+			// light.setAmbience(ambience);
 		}
 		if(map[192]) swimMode = ~swimMode;
 
@@ -441,18 +443,16 @@ window.onload = function(){
 			utils.fade(document.getElementById("heart"));
 		}
 
-		if(map[49]) N = 1	;
-		if(map[57]) N = 9;
 		if(map[80]) interact();
 		if(map[75]) testKeys = 1;
 		if(map[16]) keyboard_crouch = 1; else keyboard_crouch = 0;
-		if(map[112] && scrollSeen[0] && scrollDebounce) toggleScrollText(scrollTextArray[0]);
-		if(map[113] && scrollSeen[1] && scrollDebounce) toggleScrollText(scrollTextArray[1]);
-		if(map[114] && scrollSeen[2] && scrollDebounce) toggleScrollText(scrollTextArray[2]);
-		if(map[115] && scrollSeen[3] && scrollDebounce) toggleScrollText(scrollTextArray[3]);
-		if(map[116] && scrollSeen[4] && scrollDebounce) toggleScrollText(scrollTextArray[4]);
-		if(map[117] && scrollSeen[5] && scrollDebounce) toggleScrollText(scrollTextArray[5]);
-		if(map[118] && scrollSeen[6] && scrollDebounce) toggleScrollText(scrollTextArray[6]);
+		if(map[49] && scrollSeen[0] && scrollDebounce) toggleScrollText(scrollTextArray[0]);
+		if(map[50] && scrollSeen[1] && scrollDebounce) toggleScrollText(scrollTextArray[1]);
+		if(map[51] && scrollSeen[2] && scrollDebounce) toggleScrollText(scrollTextArray[2]);
+		if(map[52] && scrollSeen[3] && scrollDebounce) toggleScrollText(scrollTextArray[3]);
+		if(map[53] && scrollSeen[4] && scrollDebounce) toggleScrollText(scrollTextArray[4]);
+		if(map[54] && scrollSeen[5] && scrollDebounce) toggleScrollText(scrollTextArray[5]);
+		if(map[55] && scrollSeen[6] && scrollDebounce) toggleScrollText(scrollTextArray[6]);
 		if (map[73] && scrollDebounce) toggleScrollText(gameInstructions);
 
 		if(keyboard_crouch && keyboard_crouch != keyboard_prevcrouch){ // When crouch is pressed.
