@@ -57,6 +57,6 @@ var demo = true;
 
 var scrollSpawnProbability = value from 0 to 1 
 
-// A testKeys value of 0 makes it so you can open any door without a key. Please do not open doors in an old room that is not lit. This will break the game but is intentional behavior because you canno do that under normal gameplay circumastances.
+// A testKeys value of 0 makes it so you can open any door without a key. Please do not open doors in an old room that is not lit. This will break the game but is intentional behavior because you cannot do that under normal gameplay circumstances.
 
 var testKeys = 0;                                                     
