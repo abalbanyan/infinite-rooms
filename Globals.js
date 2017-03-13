@@ -5,8 +5,11 @@ var demo = true;	// The demo mode has it so scrolls spawn 100% of the time for e
 var scrollSpawnProbability = 0.75;
 var fadeToBlack = false;
 var spooky = false;
-var testKeys = 0;
+var testKeys = 1;
 var gameStart = 0;
+var gameOverText = `
+You died.
+`;
 var gameInstructions = `
 <center> TUTORIAL </center>
 Use <b>WASD</b> or the left joystick to move around.
