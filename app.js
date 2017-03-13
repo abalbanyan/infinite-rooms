@@ -826,7 +826,7 @@ window.onload = function(){
 					["meshes/tv_stand.json",	[69,-1,89.5], [0.4,0.4,0.35], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], [[[70, 0, 85], 20]], null, null, null, null, false],
 					["meshes/sofa.json",	[-90,-1,60], [0.8,0.6,0.6], 90,  [0,1,0], ["textures/sofa.png"], [1,1,1,1], [[[-80,0,80],20],[[-80,0,65],20],[[-80,0,50],20],[[-80,0,35],20]], null, null, null, null, false],
 					["meshes/bookshelf.json",	[-99,-1,-49], [1.0,0.65,0.8], 90,  [0,1,0], ["textures/crate.png"], [1,1,1,1], [[[-85,0,-80],10],[[-85,0,-60],10],[[-85,0,-50],10]], null, null, null, null, false],
-					["meshes/cookie.json",			[20,4,-13], [2.2,2.2,2.2], 	90, [0,1,0], ["textures/cookie.png"],  [90/255,67/255,80/255,1], "food", getID()]
+					["meshes/cookie.json",			[20,4,-13], [2.2,2.2,2.2], 	90, [0,1,0], ["textures/cookie.png"],  [90/255,67/255,80/255,1],[], "food", getID()]
 				];
 
 		if (demo){
