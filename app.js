@@ -500,17 +500,17 @@ window.onload = function(){
 	var crouch = 0; var keyboard_crouch = 0;
 	var footsteps_audio = new Audio('sound/footsteps.wav');
 	var gamepads;
-	var playerSpeed = 0.8;
+	var playerSpeed = 1.6;
 	function handleInput(){
 
 		//handle keyboard input
 		if(map[13] && !gameStart) {
 			startGame();
 		}
-		if(map[87]) movePlayer(0,0, playerSpeed * 1);   // W
-		if(map[83]) movePlayer(0,0, -playerSpeed * 1);  // S
- 		if(map[68]) movePlayer(-playerSpeed * 1, 0, 0);  // D
-		if(map[65]) movePlayer(playerSpeed * 1, 0, 0); // A
+		if(map[87]) movePlayer(0,0, N);   // W
+		if(map[83]) movePlayer(0,0, -N);  // S
+ 		if(map[68]) movePlayer(-N, 0, 0);  // D
+		if(map[65]) movePlayer(N, 0, 0); // A
 		if(map[65] || map[87] || map[83] || map[68]) {
 			function playAudio(){return footsteps_audio.play();}
 			playAudio().then(function(){}).catch(function(error){playAudio()});
@@ -525,12 +525,12 @@ window.onload = function(){
 		if(map[32]) interact();
 		if(map[82]) resetCamera();
 		if(map[187]){ // +
-			N = Math.max(N + 0.5, 10);
+			N = Math.max(N + 0.1, 10);
 			// ambience += 0.1;
 			// light.setAmbience(ambience);
 		}
 		if(map[189]){ // -
-			N = Math.max(N - 0.5, 0);
+			N = Math.max(N - 0.1, 0);
 			// ambience -= 0.1;
 			// light.setAmbience(ambience);
 		}
@@ -580,7 +580,7 @@ window.onload = function(){
 			footsteps_audio.pause();
 
 		// Camera
-		rotateCamera(axes[2], axes[3]);
+		rotateCamera(2 * axes[2], 2 * axes[3]);
 		// Navigation
 		movePlayer(-axes[0] * playerSpeed, 0, -axes[1] * playerSpeed);
 
@@ -593,7 +593,7 @@ window.onload = function(){
 		if(gamepad.buttons[2].pressed) crouch = 1;
 		else crouch = 0;
 		if(gamepad.buttons[3].pressed) turnOffText();
-		playerSpeed = gamepad.buttons[1].pressed? 1.5 : 0.8; // B
+		playerSpeed = gamepad.buttons[1].pressed? 1.6 : 2.8; // B
 
 		if(crouch && crouch != prevcrouch){ // When crouch is pressed.
 			movePlayer(0, -20, 0);
