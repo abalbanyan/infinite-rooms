@@ -51,7 +51,7 @@ window.onload = function(){
 		Collected notes can be toggle viewed by pressing their corresponding function number.
 		<br>Press '1' now to exit this note.`);
 	scrollTextArray.push(
-		`<center> Note 2 
+		`<center> Note 2
 		<br><br><br><br>
 		Infinite rooms and technically, infinite food.<br>
 		Everything you need to survive.
@@ -87,13 +87,13 @@ window.onload = function(){
 	);
 	scrollTextArray.push(
 		`<center>
-			Note 7 
+			Note 7
 			<br><br><br>
 			Well that's it. The rooms and food are finite now. Only one way to go now really.
 			</center>`
 	);
 	scrollTextArray.push(
-		`<center> 
+		`<center>
 		Some people say that every journey comes to an end.<br>
 		Did this one have to though?<br>
 		Make peace with yourself.<br>
@@ -309,7 +309,7 @@ window.onload = function(){
 	var posX = 0;
 	var posZ = -10;
 
-	//set initial transformation matrix for player
+
 	// var pScale = [5, 15, 5];
 	// var pTranslation = [0, 15, 0];
 	// var identity = mat4.create();
@@ -320,7 +320,6 @@ window.onload = function(){
 
 	// mat4.mul(playerCollisionMat, psMat, playerCollisionMat);
 	// mat4.mul(playerCollisionMat, ptMat, playerCollisionMat);
-	
 
 	var currentDirectionX = [];
 	var currentDirectionY = [];
@@ -410,7 +409,6 @@ window.onload = function(){
 						+ (center[1]-playerLoc[1])**2
 						+ (center[2]-playerLoc[2])**2;
 			dist = dist**(0.5);
-			console.log(posX + " " + posZ);
 			if (dist < rad) return true;
 			return false;
 		}
@@ -451,15 +449,16 @@ window.onload = function(){
 				var doorTranslation = room.doorCoords[j][0];
 				var doorRotation = room.doorCoords[j][1];
 				if (doorRotation % Math.PI == 0){
+
 					if (zValid && ((posZ >= 0) == (doorTranslation[2] >= 0)) && (Math.abs(posZ - doorTranslation[2]) <= padding)){
-						if (Math.abs(posX - doorTranslation[0])  <= doorwidth/2 && room.openDoors == "north" && doorRotation == 0) continue; 
+						if (Math.abs(posX - doorTranslation[0])  <= doorwidth/2 && room.openDoors == "north" && doorRotation == 0) continue;
 						if (Math.abs(posX - doorTranslation[0])  <= doorwidth/2 && room.openDoors == "south" && doorRotation == -Math.PI) continue;
 						zValid = false;
 					}
 				} else { // if wall rotation is 90 (east) or 270 (west)
 					// same thing as above but for the east/west wall
 					if (xValid && ((posX >= 0) == (doorTranslation[0] >= 0)) && (Math.abs(posX - doorTranslation[0]) <= padding)){
-						if (Math.abs(posZ - doorTranslation[2])  <= doorwidth/2 && room.openDoors == "east" && doorRotation == -Math.PI/2) continue; 
+						if (Math.abs(posZ - doorTranslation[2])  <= doorwidth/2 && room.openDoors == "east" && doorRotation == -Math.PI/2) continue;
  						if (Math.abs(posZ - doorTranslation[2])  <= doorwidth/2 && room.openDoors == "west" && doorRotation == -3*Math.PI/2) continue;
 						xValid = false;
 					}
@@ -646,7 +645,7 @@ window.onload = function(){
 			["meshes/fence.json",		[40,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1],[], null, null, null],
 			["meshes/fence.json",		[-75,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1],[], null, null, null],
 
-			["meshes/wheelbarrow.json",		[0,-2,0], [3,1.7,2],  45, [0,1,0], ["textures/door1.png"], [1,1,1,1],[[[0, -2, 0], 12], [[10, -2, 0], 12], [[-10, -2, 0], 12], [[-10, -2, 0], 12]], null, null, null],
+			["meshes/wheelbarrow.json",		[0,-2,0], [3,1.7,2],  45, [0,1,0], ["textures/door1.png"], [1,1,1,1],[[[0, -2, 0], 18], [[10, -2, 0], 18], [[-10, -2, 0], 18], [[-10, -2, 0], 18]], null, null, null],
 			["meshes/apple.json",			[22,10,38], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1],[], "food", getID()],
 			["meshes/apple.json",			[22,10,42], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1],[], "food", getID()],
 			["meshes/apple.json",			[26,10,38], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1],[], "food", getID()],
@@ -698,7 +697,7 @@ window.onload = function(){
 		jsonObjects.push(["meshes/painting.json",		[-92,10,-45.5], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/christine.png"], [1,1,1,1],[], null, null, null, null, false]);
 		jsonObjects.push(["meshes/painting.json",		[-92,10,-25], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/abdullah.png"], [1,1,1,1],[], null, null, null, null, false]);
 		jsonObjects.push(["meshes/painting.json",		[-40,6,-2], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/chris.png"], [1,1,1,1],[], null, null, null, null, false]);
-   		jsonObjects.push(["meshes/grave.json",	[-8,-13,0], [10,12,10], -90,  [1,0,0], ["textures/tv.png"], [1,1,1,1], "grave", getID(), null]);
+   		jsonObjects.push(["meshes/grave.json",	[-8,-13,0], [10,12,10], -90,  [1,0,0], ["textures/tv.png"], [1,1,1,1], [[[-8, 0, 0], 30], [[-45, 0, 0], 30]], "grave", getID(), null]);
 
 		var otherObjects = loadBox(["textures/dirtfloor.png", "textures/dirtfloor.png", "textures/tv.png"], doorways);
 		otherObjects[3].shape.useWater(); otherObjects[4].shape.useWater(); otherObjects[5].shape.useWater(); otherObjects[2].shape.useWater();
@@ -712,14 +711,18 @@ window.onload = function(){
 
 	function loadBedroom(coords, doors, doorways)
 	{
-		var jsonObjects = [["meshes/bed.json", 			[75,-4,65], [0.75,0.75,0.75],   180, [0,1,0], ["textures/bedwood.png"], [0.8,1,1,1],[], null, null, null, "normalmaps/wood.png"],
-					["meshes/bedside-table.json", 	[36,0,88], [1,1,1], 		   -90, [0,1,0], ["textures/bedwood.png"], [1,1,1,1]],
-					["meshes/commode.json",		[65,-3,-89], [1.6,1.4,1.0], 0,  [0,1,0], ["textures/bedwood.png", "textures/bedwood.png","textures/bedwood.png", "textures/bedwood.png", "textures/stone.png" ], [1,1,1,1],[], null, null, null, null, false],
-					["meshes/carpet.json",		[0,-2.2,0], [1,1,1], 0,  [0,1,0], ["textures/blue_carpet.png"], [1,1,1,1],[], null, null, null, "normalmaps/carpet.png", false],
-					["meshes/bodypillow.json", 	[80,17,78], [22,22,24], 		   0, [0,1,0], ["textures/bodypillow.png"], [1,1,1,1],[], null, null, null, null, true, [2, 2, 2]],
-					["meshes/window1.json", 		[-99,10,-10], [0.6,0.6,0.6],    -90,	[0,1,0], ["textures/wood2.png"],					 [90/255,67/255,80/255,1],[], null, null, null, null, false],
-					["meshes/window1.json", 		[-99,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], ["textures/wood2.png"],					 [90/255,67/255,80/255,1],[], null, null, null, null, false],
-					["meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], ["textures/wood2.png"],   [90/255,67/255,80/255,1], null, null,null,[], null, false],
+		var jsonObjects = [
+					// ["meshes/bed.json", 			[75,-4,65], [0.75, .75, .75],   180, [0,1,0], ["textures/bedwood.png"], [0.8,1,1,1], null, null, null, "normalmaps/wood.png", false, [.023,.03,.023]],
+					["meshes/bed.json", 			[75,-4,65], [0.75, .75, .75],   180, [0,1,0], ["textures/bedwood.png"], [0.8,1,1,1], [[[75,0,55],30], [[75, 0, 75],30]], null, null, null, "normalmaps/wood.png", false],
+					// ["meshes/bedside-table.json", 	[36,0,88], [1,1,1], 		   -90, [0,1,0], ["textures/bedwood.png"], [1,1,1,1], null, null, null, null, false, [.08, .05, .08]],
+					["meshes/bedside-table.json", 	[36,0,88], [1,1,1], 		   -90, [0,1,0], ["textures/bedwood.png"], [1,1,1,1], [[[36, 0, 88], 25]], null, null, null],
+					// ["meshes/commode.json",		[65,-3,-89], [1.6,1.4,1.0], 0,  [0,1,0], ["textures/bedwood.png", "textures/bedwood.png","textures/bedwood.png", "textures/bedwood.png", "textures/stone.png" ], [1,1,1,1], null, null, null, null, false, [.045,.028,.053]],
+					["meshes/commode.json",		[65,-3,-89], [1.6,1.4,1.0], 0,  [0,1,0], ["textures/bedwood.png", "textures/bedwood.png","textures/bedwood.png", "textures/bedwood.png", "textures/stone.png" ], [1,1,1,1], [[[75,0, -89], 20],[[45,0, -89], 20]], null, null, null],
+					["meshes/carpet.json",		[0,-2.2,0], [1,1,1], 0,  [0,1,0], ["textures/blue_carpet.png"], [1,1,1,1], [], null, null, null, "normalmaps/carpet.png", false],
+					["meshes/bodypillow.json", 	[80,17,78], [22,22,24], 		   0, [0,1,0], ["textures/bodypillow.png"], [1,1,1,1], [], null, null, null, null, true, [2, 2, 2]],
+					["meshes/window1.json", 		[-99,10,-10], [0.6,0.6,0.6],    -90,	[0,1,0], ["textures/wood2.png"],					 [90/255,67/255,80/255,1], null, null, null, null, false],
+					["meshes/window1.json", 		[-99,10,-40], [0.6,0.6,0.6],  -90,	[0,1,0], ["textures/wood2.png"],					 [90/255,67/255,80/255,1], null, null, null, null, false],
+					["meshes/desk1.json",			[-73,12,82], [2,2.5,2.5], 		90, [0,1,0], ["textures/wood2.png"],   [90/255,67/255,80/255,1], [[[-75,0,85],25], [[-65,0,85],25]], null, null,null, null, false, [.17,.17,.09]],
 					["meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]],
 					["meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/cheese.png"],  [90/255,67/255,80/255,1],[], "food", getID()],
 					["meshes/umbreon.json",		[40,20,84], [3.2,3.2,3.2], 		-125,  [0,1,0], ["textures/umbreon.png","textures/umbreon2.png"], [1,1,1,1]],
@@ -732,9 +735,12 @@ window.onload = function(){
 
 		Rooms.push(new Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));
 	}
+
 	function loadPool(coords, doors, doorways)
 	{
-		var jsonObjects = [["meshes/pool.json", 	[0,-17,0], [0.007,0.01,0.014],   0, [0,1,0], ["textures/bedwood.png"], [0.8,1,1,1]],
+		var jsonObjects = [
+			// ["meshes/pool.json", 	[0,-17,0], [0.007,0.01,0.014],   0, [0,1,0], ["textures/bedwood.png"], [0.8,1,1,1], null, null, null, null, false, [.00013,.0002,.00024]],
+				["meshes/pool.json", 	[0,-17,0], [0.007,0.01,0.014],   0, [0,1,0], ["textures/bedwood.png"], [0.8,1,1,1], [[[0,0,0],50]], null, null, null, null, false],
 				["meshes/diving.json",		[28,0,0], [0.5,0.8,0.5], 90,  [0,1,0], ["textures/bedwood.png"], [0.15,0.1,0.05,1], null, null, null],
 				["meshes/window2.json", 		[-99,30,-30], [5,5,5],   90,	[0,0,1], ["textures/crate.png" ],	 [90/255,67/255,80/255,1],[],  null, null, null, null, false],
 				["meshes/window2.json", 		[-99,30, 40], [5,5,5],   90,	[0,0,1], ["textures/crate.png"],	 [90/255,67/255,80/255,1],[],  null, null, null, null, false],
@@ -758,7 +764,9 @@ window.onload = function(){
 		var water = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 		water.attachTexture("textures/water.png");
 		water.useWater();
+
 		//water.attachNormalMap("normalmaps/water.png");
+
 		otherObjects.push(new Object(water, [-5,3,0], [43,1,48], 0, [0,1,0], [4,4], null));
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
@@ -766,18 +774,20 @@ window.onload = function(){
 		Rooms.push(new Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));
 	}
 
-
-
 	function loadLivingRoom(coords, doors, doorways){
 		var jsonObjects = [
-					["meshes/living_table.json",	[0,-3,0], [12,8,8], 0,  [0,0,1], ["textures/table1.png"], [1,1,1,1],[], null, null, null],
+
+					// ["meshes/living_table.json",	[0,-3,0], [12,8,8], 0,  [0,0,1], ["textures/table1.png"], [1,1,1,1], null, null, null, null, false, [.46,.37,.43]],
+					["meshes/living_table.json",	[0,-3,0], [12,8,8], 0,  [0,0,1], ["textures/table1.png"], [1,1,1,1], [[[0,0,0], 20]], null, null, null, null, false],
+
 					["meshes/carpet.json",		[0,-2.2,0], [1,1,1], 0,  [0,1,0], ["textures/carpet.png"], [1,1,1,1],[], null, null, null, "normalmaps/carpet.png", true],
-					["meshes/cheez.json",	[-10,12,-15], [1,1,1], 180,  [0,1,0], ["textures/cheez.png"], [1,1,1,1],[], "food_2", getID(), null],
-					["meshes/tv.json",	[69,11.5,90], [4,4,4], 90,  [0,1,0], ["textures/static.png", "textures/tv.png"], [1,1,1,1],[], null, null, null, null, false],
-					["meshes/tv_stand.json",	[69,-1,89.5], [0.4,0.4,0.35], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1],[], null, null, null],
-					["meshes/sofa.json",	[-90,-1,60], [0.8,0.6,0.6], 90,  [0,1,0], ["textures/sofa.png"], [1,1,1,1],[], null, null, null, null, false],
-					["meshes/bookshelf.json",	[-99,-1,-49], [1.0,0.65,0.8], 90,  [0,1,0], ["textures/crate.png"], [1,1,1,1],[], null, null, null, null, false],
-					["meshes/cookie.json",			[20,4,-13], [2.2,2.2,2.2], 	90, [0,1,0], ["textures/cookie.png"],  [90/255,67/255,80/255,1],[], "food", getID()]
+				  ["meshes/cheez.json",	[-10,12,-15], [1,1,1], 180,  [0,1,0], ["textures/cheez.png"], [1,1,1,1],[], "food_2", getID(), null],
+				  ["meshes/tv.json",	[69,11.5,90], [4,4,4], 90,  [0,1,0], ["textures/static.png", "textures/tv.png"], [1,1,1,1],[], null, null, null, null, false],
+				  // ["meshes/tv_stand.json",	[69,-1,89.5], [0.4,0.4,0.35], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], null, null, null, null, false, [.03,.015,.012]],
+					["meshes/tv_stand.json",	[69,-1,89.5], [0.4,0.4,0.35], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], [[[70, 0, 85], 20]], null, null, null, null, false],
+					["meshes/sofa.json",	[-90,-1,60], [0.8,0.6,0.6], 90,  [0,1,0], ["textures/sofa.png"], [1,1,1,1], [[[-80,0,80],20],[[-80,0,65],20],[[-80,0,50],20],[[-80,0,35],20]], null, null, null, null, false],
+					["meshes/bookshelf.json",	[-99,-1,-49], [1.0,0.65,0.8], 90,  [0,1,0], ["textures/crate.png"], [1,1,1,1], [[[-85,0,-80],10],[[-85,0,-60],10],[[-85,0,-50],10]], null, null, null, null, false],
+					["meshes/cookie.json",			[20,4,-13], [2.2,2.2,2.2], 	90, [0,1,0], ["textures/cookie.png"],  [90/255,67/255,80/255,1], "food", getID()]
 				];
 
 		if (demo){
@@ -819,12 +829,15 @@ window.onload = function(){
 					["meshes/table.json",			[-58,0,-35], [15,15,15], 	90, [0,1,0], ["textures/wood1.png"],  [90/255,67/255,80/255,1], [[[-45, -5, -35], 18],[[-65, -5, -35], 18]]],
 					["meshes/kitchen.json",			[0,0,35], [15,15,15], 	90, [0,1,0], ["textures/kitchen.jpg"],  [90/255,67/255,80/255,1], [[[-27, 0, 21], 16],[[-27, 0, 37], 16], [[29, 0, -4], 16], [[29, 0, 11], 16], [[29, 0, 26], 16], [[29, 0, 41], 16], [[29, 0, 56], 16], [[29, 0, 71], 16], 
 						[[29, 0, 86], 16]]],
+					// a box for a unit sphere inside one half of the kitchen mesh
+					["meshes/table.json", [-28,0,31], [8,15,12], 0, [0,1,1], null, [1,1,1,1], null, null, null, null, true, [.65,.5,.6]],
+					// a box for a unit sphere inside other half of the kitchen mesh
+					["meshes/table.json", [32,0,33], [9,15,34], 0, [0,1,1], null, [1,1,1,1], null, null, null, null, true, [.65,.5,.6]],
 					["meshes/bulb.json",			[0,58,0], [0.05,0.05,0.05], 	180,[1,0,0], null, 					 [1,0.85,0,1]],
 					["meshes/apple.json",			[-48,18,0], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1],[], "food", getID()],
 					["meshes/cookie.json",			[25,24,-10], [1.3,1.3,1.3], 	90, [0,1,0], ["textures/cookie.png"],  [90/255,67/255,80/255,1],[], "food", getID()],
 
 					["meshes/banana.json",			[-33,6,16], [.5,.5,.5], 	90, [1,0,0], ["textures/banana.png"],  [90/255,67/255,80/255,1],[], "food", getID()],
-
 					["meshes/cheese.json",			[-58,14,-35], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/bread.jpg"],  [90/255,67/255,80/255,1],[], "food", getID()],
 					["meshes/key.json",		[-20,7.7,16], [14,14,14], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1],[], "key_kitchen", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
 					["meshes/painting.json",		[-85,25,98.5], [2,2,2 * 1.26], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/tea.png"], [1,1,1,1],[], null, null, null, null, false]];
@@ -894,16 +907,16 @@ window.onload = function(){
 		for (var i = -3; i < 4; i++){
 			if(!i || i == 1 || i == -1)  continue;
 			var offset = i*20;
-			jsonObjects.push(["meshes/sink.json", [offset, 20, 92], [38, 38, 38], 0, [1, 0, 0], ["textures/steel.png"], [1, 1, 1, 1]]);
+			jsonObjects.push(["meshes/sink.json", [offset, 20, 92], [38, 38, 38], 0, [1, 0, 0], ["textures/steel.png"], [1, 1, 1, 1], [[[offset,10,85],13]]]);
 		};
-		 jsonObjects.push(["meshes/toilet.json", [90, 0, -30], [0.8, 0.8, 0.73], -90, [0, 1, 0], ["textures/porcelain.png"], [1, 1, 1, 1], null, null, null, null, false]);
-		jsonObjects.push(["meshes/tp.json", [93, 0, -20], [0.7, 0.7, 0.73], -90, [0, 1, 0], ["textures/wood2.png"], [0.5, 0.5, 0.5, 1]]);
-		jsonObjects.push(["meshes/painting.json",		[58,23,99], [1,1.5,1], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/obama.png"], [1,1,1,1], null, null, null, null, false]);
-		jsonObjects.push(["meshes/key.json",		[60,16.6,93.1], [11,11,11], 		65,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key_obama", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}])
+		jsonObjects.push(["meshes/toilet.json", [90, 0, -30], [0.8, 0.8, 0.73], -90, [0, 1, 0], ["textures/porcelain.png"], [1, 1, 1, 1], [[[85, 0, -30],20]], null, null, null, null, false]);
+		jsonObjects.push(["meshes/tp.json", [93, 0, -20], [0.7, 0.7, 0.73], -90, [0, 1, 0], ["textures/wood2.png"], [0.5, 0.5, 0.5, 1],[[[85, 0, -20],5]]]);
+		jsonObjects.push(["meshes/painting.json",		[58,23,99], [1,1.5,1], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/obama.png"], [1,1,1,1],[], null, null, null, null, false]);
+		jsonObjects.push(["meshes/key.json",		[60,16.6,93.1], [11,11,11], 		65,  [1,0,0], ["textures/key.png"], [1,1,1,1],[], "key_obama", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}])
 
-		jsonObjects.push(["meshes/board.json",	[-60,30,-38 - 38], [3.03,1.83,1.8], 90,  [0,0,1], ["textures/wood2.png"], [1,1,1,1], "shower_door_2", getID()]);
+		jsonObjects.push(["meshes/board.json",	[-60,30,-38 - 38], [3.03,1.83,1.8], 90,  [0,0,1], ["textures/wood2.png"], [1,1,1,1],[], "shower_door_2", getID()]);
 
-		jsonObjects.push(["meshes/cubicle.json",	[-80,-4,-38], [1.43,1.43,1.5], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], null, null, null, null, false]);
+		jsonObjects.push(["meshes/cubicle.json",	[-80,-4,-38], [1.43,1.43,1.5], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], [[[-80,0,-40],25]], null, null, null, null, false]);
 		jsonObjects.push(["meshes/cubicle.json",	[-80,-4,-38 + -38], [1.43,1.43,1.5], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], null, null, null, null, false]);
 		jsonObjects.push(["meshes/grate.json",		[0,-3,0], [0.07,0.07,0.14], 0,  [0,1,0], ["textures/stone.png"], [0,1,1,1], null, null, null, null, false]);
 
@@ -923,9 +936,10 @@ window.onload = function(){
 
 	var currentOrigin = {x: 0, y: 0};
 	var maxRooms = 2; // The maximum number of rooms that can be loaded at once.
-	//loadLivingRoom([0, 0], [0,0,1,0], [0,0,1,0]);
 
-	loadKitchen([0, 0], [0,0,1,0], [0,0,1,0]);
+
+// first room that's loaded
+	loadBathroom([0, 0], [0,0,1,0], [0,0,1,0]);
 
 	Rooms[0].loadWallCoords();
 
