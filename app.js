@@ -1024,7 +1024,7 @@ window.onload = function(){
 
 
 // first room that's loaded
-	loadBathroom([0, 0], [0,0,1,0], [0,0,1,0]);
+	loadBedroom([0, 0], [0,0,1,0], [0,0,1,0]);
 
 	Rooms[0].loadWallCoords();
 
