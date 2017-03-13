@@ -51,7 +51,7 @@ window.onload = function(){
 		Collected notes can be toggle viewed by pressing their corresponding function number.
 		<br>Press '1' now to exit this note.`);
 	scrollTextArray.push(
-		`<center> Note 2 
+		`<center> Note 2
 		<br><br><br><br>
 		Infinite rooms and technically, infinite food.<br>
 		Everything you need to survive.
@@ -87,13 +87,13 @@ window.onload = function(){
 	);
 	scrollTextArray.push(
 		`<center>
-			Note 7 
+			Note 7
 			<br><br><br>
 			Well that's it. The rooms and food are finite now. Only one way to go now really.
 			</center>`
 	);
 	scrollTextArray.push(
-		`<center> 
+		`<center>
 		Some people say that every journey comes to an end.<br>
 		Did this one have to though?<br>
 		Make peace with yourself.<br>
@@ -118,6 +118,13 @@ window.onload = function(){
 		setTimeout(function(){
 				scrollDebounce = 1;
 		}, 500);
+	}
+	function turnOffText(){
+		if (scrollText.style.visibility == "visible")
+		{
+			scrollText.style.visibility = 'hidden';
+			scrollText.innerHTML = "";
+		}
 	}
 
 	var startGame = function(){
@@ -529,11 +536,6 @@ window.onload = function(){
 		}
 		if(map[192]) swimMode = ~swimMode;
 
-		if(map[67] && !spooky){
-			spooky = 1;
-			utils.fade(document.getElementById("heart"));
-		}
-
 		if(map[80]) interact();
 		if(map[75]) testKeys = 1;
 		if(map[16]) keyboard_crouch = 1; else keyboard_crouch = 0;
@@ -544,7 +546,8 @@ window.onload = function(){
 		if(map[53] && scrollSeen[4] && scrollDebounce) toggleScrollText(scrollTextArray[4]);
 		if(map[54] && scrollSeen[5] && scrollDebounce) toggleScrollText(scrollTextArray[5]);
 		if(map[55] && scrollSeen[6] && scrollDebounce) toggleScrollText(scrollTextArray[6]);
-		if (map[73] && scrollDebounce) toggleScrollText(gameInstructions);
+		if(map[73] && scrollDebounce) toggleScrollText(gameInstructions);
+		if(map[67]) turnOffText();
 
 		if(keyboard_crouch && keyboard_crouch != keyboard_prevcrouch){ // When crouch is pressed.
 			movePlayer(0, -20, 0);
@@ -589,7 +592,7 @@ window.onload = function(){
 		if(gamepad.buttons[0].pressed) interact();
 		if(gamepad.buttons[2].pressed) crouch = 1;
 		else crouch = 0;
-		if(gamepad.buttons[3].pressed) resetCamera();
+		if(gamepad.buttons[3].pressed) turnOffText();
 		playerSpeed = gamepad.buttons[1].pressed? 1.5 : 0.8; // B
 
 		if(crouch && crouch != prevcrouch){ // When crouch is pressed.
@@ -1445,8 +1448,10 @@ window.onload = function(){
 			else if (itemType == 'scroll'){
 				room.objects[i].delete();
 				// On scroll 4, turn the world spooky
-				if (scrollIterator == 3)
+				if (scrollIterator == 3){
 					spooky = true;
+					utils.fade(document.getElementById("heart"));
+				}
 				if (scrollIterator < 7){
 					setScrollText(scrollTextArray[scrollIterator]);
 					scrollSeen[scrollIterator] = true;
