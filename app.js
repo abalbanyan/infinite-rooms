@@ -559,10 +559,23 @@ window.onload = function(){
 
 		];
 		jsonObjects.push(["meshes/tombstone1.json",	   [-70,-2,90], [20,20,20], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
+
+		if(spooky)
+		{
+			jsonObjects.push(["meshes/painting.json",		[-45,25,-98.5], [2,2,2], -270,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/sans.jpg"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[-98,25,-35.5], [2,2,2], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/spooky.jpg"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[85,25,98.5], [2,2,2], -90,   [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/papyrus.png"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[98,25,-35.5], [2,2,2], 0,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/boo.jpg"], [1,1,1,1], null, null, null, null, false]);
+			var otherObjects = loadBox(["textures/dirtfloor.png", "textures/leaf.png", "textures/leafspooky.png"], doorways);
+
+		}
+		else
+			var otherObjects = loadBox(["textures/dirtfloor.png", "textures/leaf.png", "textures/leaf.png"], doorways);
+
+
 		if (demo){
 			jsonObjects.push(["meshes/papyrus.json",		[-70,0,89], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
 		}
-		var otherObjects = loadBox(["textures/dirtfloor.png", "textures/leaf.png", "textures/leaf.png"], doorways);
 
 		for(var i = 1; i < 6; i++){
 			otherObjects[i].texture_scale[1] *= 5/3;
@@ -646,11 +659,22 @@ window.onload = function(){
 
 		];
 
+		if(spooky)
+		{
+			jsonObjects.push(["meshes/painting.json",		[-45,25,-98.5], [2,2,2], -270,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/sans.jpg"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[-98,25,-35.5], [2,2,2], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/spooky.jpg"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[85,25,98.5], [2,2,2], -90,   [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/papyrus.png"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[98,25,-35.5], [2,2,2], 0,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/boo.jpg"], [1,1,1,1], null, null, null, null, false]);
+		var otherObjects = loadBox(["textures/bathroomfloor.png", "textures/tile.png", "textures/tilespooky.png"], doorways);
+		
+		}
+		else
+			var otherObjects = loadBox(["textures/bathroomfloor.png", "textures/tile.png", "textures/tile.png"], doorways);
+
 		if (demo){
 			jsonObjects.push(["meshes/papyrus.json",		[42.5,5,13], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
 		}
 
-		var otherObjects = loadBox(["textures/bathroomfloor.png", "textures/tile.png", "textures/tile.png"], doorways);
 
 		var water = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 		water.attachTexture("textures/water.png");
@@ -698,9 +722,20 @@ window.onload = function(){
 			}
 
 		}
+
+		if(spooky)
+		{
+			jsonObjects.push(["meshes/painting.json",		[-45,25,-98.5], [2,2,2], -270,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/sans.jpg"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[-98,25,-35.5], [2,2,2], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/spooky.jpg"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[85,25,98.5], [2,2,2], -90,   [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/papyrus.png"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[98,25,-35.5], [2,2,2], 0,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/boo.jpg"], [1,1,1,1], null, null, null, null, false]);
+		var otherObjects = loadBox(["textures/brickwall.png","textures/hardwood.png","textures/hardwoodspooky.png"], doorways, ["normalmaps/brickwall.png"]);
+
+		}
+		else
+				var otherObjects = loadBox(["textures/brickwall.png","textures/hardwood.png","textures/hardwood.png"], doorways, ["normalmaps/brickwall.png"]);
 		jsonObjects.push(["meshes/board.json",	[0,55,0], [0.5,0.5,0.7], 0,  [0,0,1], null, [1,1,1,1], null, null, null])
 
-		var otherObjects = loadBox(["textures/brickwall.png","textures/hardwood.png","textures/hardwood.png"], doorways, ["normalmaps/brickwall.png"]);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
@@ -724,7 +759,18 @@ window.onload = function(){
 			if (demo){
 				jsonObjects.push(["meshes/papyrus.json",		[-33.7,22,22], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
 			}
-		var otherObjects = loadBox(["textures/tile.png", "textures/crate.png", "textures/kitchenwall.jpg"], doorways);
+
+		if(spooky)
+		{
+			jsonObjects.push(["meshes/painting.json",		[-45,25,-98.5], [2,2,2], -270,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/sans.jpg"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[-98,25,-35.5], [2,2,2], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/spooky.jpg"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[85,25,98.5], [2,2,2], -90,   [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/papyrus.png"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[98,25,-35.5], [2,2,2], 0,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/boo.jpg"], [1,1,1,1], null, null, null, null, false]);
+			var otherObjects = loadBox(["textures/tile.png", "textures/crate.png", "textures/kitchenwallspook.jpg"], doorways);
+
+		}
+		else
+			var otherObjects = loadBox(["textures/tile.png", "textures/crate.png", "textures/kitchenwall.jpg"], doorways);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
@@ -758,6 +804,14 @@ window.onload = function(){
 			if (demo){
 				jsonObjects.push(["meshes/papyrus.json",		[-33.7,22,22], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
 			}
+
+		if(spooky)
+		{
+			jsonObjects.push(["meshes/painting.json",		[-45,25,-98.5], [2,2,2], -270,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/sans.jpg"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[-98,25,-35.5], [2,2,2], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/spooky.jpg"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[85,25,98.5], [2,2,2], -90,   [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/papyrus.png"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[98,25,-35.5], [2,2,2], 0,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/boo.jpg"], [1,1,1,1], null, null, null, null, false]);
+		}
 		var otherObjects = loadBox(["textures/space.png", "textures/space.png", "textures/space.png"], doorways, [], true);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
@@ -774,8 +828,14 @@ window.onload = function(){
 
 	function loadBathroom(coords, doors, doorways)
 	{
-		var jsonObjects = []
-		var boxObjects = loadBox(["textures/bathroomfloor.png","textures/bathroomfloor.png","textures/bathroomfloor.png"], doorways)
+		var jsonObjects = [];
+		if(spooky)
+		{
+			var boxObjects = loadBox(["textures/bathroomfloor.png","textures/bathroomfloor.png","textures/bathroomfloorspooky.png"], doorways)
+		}
+		else
+			var boxObjects = loadBox(["textures/bathroomfloor.png","textures/bathroomfloor.png","textures/bathroomfloor.png"], doorways)
+	
 		otherObjects = boxObjects;
 		for (var i = -3; i < 4; i++){
 			if(!i || i == 1 || i == -1)  continue;
@@ -794,6 +854,14 @@ window.onload = function(){
 		jsonObjects.push(["meshes/grate.json",		[0,-3,0], [0.07,0.07,0.14], 0,  [0,1,0], ["textures/stone.png"], [0,1,1,1], null, null, null, null, false]);
 
 		jsonObjects.push(["meshes/board.json",	[0,55,0], [0.5,0.5,0.7], 0,  [0,0,1], null, [1,1,1,1], null, null, null]);
+
+		if(spooky)
+		{
+			jsonObjects.push(["meshes/painting.json",		[-45,25,-98.5], [2,2,2], -270,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/sans.jpg"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[-98,25,-35.5], [2,2,2], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/spooky.jpg"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[85,25,98.5], [2,2,2], -90,   [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/papyrus.png"], [1,1,1,1], null, null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[98,25,-35.5], [2,2,2], 0,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/boo.jpg"], [1,1,1,1], null, null, null, null, false]);
+		}
 
 		if (demo){
 			jsonObjects.push(["meshes/papyrus.json",		[-90.7,0,-23], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
