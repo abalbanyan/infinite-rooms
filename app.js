@@ -427,12 +427,12 @@ window.onload = function(){
 		if(map[32]) interact();
 		if(map[82]) resetCamera();
 		if(map[187]){ // +
-			N = max(N + 0.5, 10);
+			N = Math.max(N + 0.5, 10);
 			// ambience += 0.1;
 			// light.setAmbience(ambience);
 		}
 		if(map[189]){ // -
-			N = max(N - 0.5, 0);
+			N = Math.max(N - 0.5, 0);
 			// ambience -= 0.1;
 			// light.setAmbience(ambience);
 		}
