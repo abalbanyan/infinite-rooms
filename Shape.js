@@ -12,19 +12,12 @@ class Object{
 		this.shadows = shadows;
 		this.truetranslation = truetranslation;
 		// this.collidable = (unitscale != undefined);
-		this.collidable = false;
-		this.collisionSpheres;
 		// if(this.collidable){
 		// 	this.unitscale = unitscale;
 		// 	this.collisionMatrix = this.genCollisionMat();
 		// 	this.showcollision = true;
 		// 	this.collisionsphere = unitsphere;
 		// }
-	}
-
-	setCollisionSpheres(collisionSpheres){
-		this.collidable = true;
-		this.collisionSpheres = collisionSpheres;
 	}
 
 	genCollisionMat(){

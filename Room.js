@@ -19,7 +19,6 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
         this.objects[i].translation[2] += delz;
 
         //if (this.objects[i].collidable) this.collidables.push(this.objects[i].collisionMatrix);
-        this.collidables.concat(this.objects[i].collisionSpheres);
 
         if (!this.objects[i].truetranslation) continue;
         this.objects[i].truetranslation[0] += this.coords[0] * 200;
@@ -66,10 +65,9 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
                     }
                     //var object = new Object(shape, translation, scale, rotation, axis, null, null, true, null, unitscale);
                     var object = new Object(shape, translation, scale, rotation, axis);
-                    if(collisionSpheres != null) object.setCollisionSpheres(collisionSpheres);
                     if(pickID != null)
                         object.shape.makePickable(pickID);
-                    self.collidables.concat(collisionSpheres);
+                    if(collisionSpheres) self.collidables.concat(collisionSpheres);
                     object.itemType = itemType;
                     object.shadows = shadows;
                     self.objects.push(object);
