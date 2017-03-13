@@ -14,12 +14,17 @@ window.onload = function(){
 
 	////////////////// HUD /////////////////////////
 	// how much health is left
-	var healthleft = 30;
+	var healthleft = 30.0;
 	// sets health bar to whatever percentage
 	var setHealth = function(percent = healthleft){
 		document.getElementById("health").style.width = percent + "%";
 	}
 	setHealth();
+
+	var decrementHealth = function(n){
+		healthleft -= n;
+		setHealth(Math.max(healthleft, 0.0));
+	}
 
 	var key_icon = document.getElementById("key_icon");
 	var toggleKeyIcon = function(bool){
@@ -92,6 +97,26 @@ window.onload = function(){
 				scrollDebounce = 1;
 		}, 500);
 	}
+
+	var startGame = function(){
+		gameStart = 1;
+		utils.fade(document.getElementById("landingPageBackground"));
+		utils.fade(document.getElementById("landingPageText"));
+		utils.fade(document.getElementById("landingPageSubtext"));
+		setInterval(function(){ // Decrease health over time.
+			decrementHealth(spooky? 1.0: 0.5);
+			if(healthleft <= 10.0 && healthleft	> 0.0){
+				utils.fadein(document.getElementById(spooky? "spooky_heart" : "heart"));
+			}
+
+			if(healthleft <= 0.0 && healthleft > -4.0){
+				utils.fade(document.getElementById("spooky_heart"));
+				utils.fade(document.getElementById("heart"));
+				utils.fadein(document.getElementById("skull"));
+			}
+		}, 1000);
+	}
+
     ////////////////// Compile Shaders ////////////////
 		//TODO: Refactor to reduce code bloat
 	// Send the shaders to the gpu and compile them.
@@ -289,6 +314,7 @@ window.onload = function(){
 
 		var x = currentDirectionX[0] * xDelta + currentDirectionY[0] * yDelta + currentDirectionZ[0] * zDelta;
 		var z = currentDirectionX[2] * xDelta + currentDirectionY[2] * yDelta + currentDirectionZ[2] * zDelta;
+		if(Math.abs(posX) > 100 || Math.abs)
 		// if ((posX + x >= 90 || posX + x <= -90 || posZ + z >= 90 || posZ + z <= -80) &&
 		// 				!(posX <= 6 && posX >= -6 || posZ <= 6 && posZ >= -6)) {
 
@@ -362,10 +388,8 @@ window.onload = function(){
 		e = e || event; // to deal with IE
 		map[e.keyCode] = e.type == 'keydown';
 	}
-	var testKeys = 0;
 
 	// This section of Control is responsible for gamepad functionality.
-	var gameStart = 0;
 	var prevcrouch = 0;	var keyboard_prevcrouch = 0;
 	var crouch = 0; var keyboard_crouch = 0;
 	var footsteps_audio = new Audio('sound/footsteps.wav');
@@ -375,10 +399,7 @@ window.onload = function(){
 
 		//handle keyboard input
 		if(map[13] && !gameStart) {
-			utils.fade(document.getElementById("landingPageBackground"));
-			utils.fade(document.getElementById("landingPageText"));
-			utils.fade(document.getElementById("landingPageSubtext"));
-			gameStart = 1;
+			startGame();
 		}
 		if(map[87]) movePlayer(0,0, playerSpeed * 1);   // W
 		if(map[83]) movePlayer(0,0, -playerSpeed * 1);  // S
@@ -406,10 +427,16 @@ window.onload = function(){
 			light.setAmbience(ambience);
 		}
 		if(map[192]) swimMode = ~swimMode;
+
+		if(map[67] && !spooky){
+			spooky = 1;
+			utils.fade(document.getElementById("heart"));
+		}
+
 		if(map[49]) N = 1	;
 		if(map[57]) N = 9;
 		if(map[80]) interact();
-		if(map[75]) testKeys = ~testKeys;
+		if(map[75]) testKeys = 1;
 		if(map[16]) keyboard_crouch = 1; else keyboard_crouch = 0;
 		if(map[112] && scrollSeen[0] && scrollDebounce) toggleScrollText(scrollTextArray[0]);
 		if(map[113] && scrollSeen[1] && scrollDebounce) toggleScrollText(scrollTextArray[1]);
@@ -455,10 +482,7 @@ window.onload = function(){
 		movePlayer(-axes[0] * playerSpeed, 0, -axes[1] * playerSpeed);
 
 		if(gamepad.buttons[9].pressed && !gameStart){
-			utils.fade(document.getElementById("landingPageBackground"));
-			utils.fade(document.getElementById("landingPageText"));
-			utils.fade(document.getElementById("landingPageSubtext"));
-			gameStart = 1;
+			startGame();
 		}
 
 		// Buttons
@@ -550,7 +574,15 @@ window.onload = function(){
 			jsonObjects.push(["meshes/tombstone1.json",	   [-95,-2,-i * 20 + 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
 		}
 
-		jsonObjects.push(["meshes/grave.json",	[-8,-13,0], [10,12,10], -90,  [1,0,0], ["textures/tv.png"], [1,1,1,1], "grave", getID(), null]);
+		jsonObjects.push(["meshes/painting.json",		[-92,10,23.5], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/will.png"], [1,1,1,1], null, null, null, null, false]);
+		jsonObjects.push(["meshes/painting.json",		[-92,10,43.5], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/eric.png"], [1,1,1,1], null, null, null, null, false]);
+		jsonObjects.push(["meshes/painting.json",		[-92,10,-45.5], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/christine.png"], [1,1,1,1], null, null, null, null, false]);
+		jsonObjects.push(["meshes/painting.json",		[-92,10,-25], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/abdullah.png"], [1,1,1,1], null, null, null, null, false]);
+		jsonObjects.push(["meshes/painting.json",		[-40,6,-2], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/chris.png"], [1,1,1,1], null, null, null, null, false]);
+    jsonObjects.push(["meshes/grave.json",	[-8,-13,0], [10,12,10], -90,  [1,0,0], ["textures/tv.png"], [1,1,1,1], "grave", getID(), null]);
+
+
+
 
 		var otherObjects = loadBox(["textures/dirtfloor.png", "textures/dirtfloor.png", "textures/tv.png"], doorways);
 		otherObjects[3].shape.useWater(); otherObjects[4].shape.useWater(); otherObjects[5].shape.useWater(); otherObjects[2].shape.useWater();
@@ -755,6 +787,7 @@ window.onload = function(){
 	//loadLivingRoom([0, 0], [0,0,1,0], [0,0,1,0]);
 
 	loadBedroom([0, 0], [0,0,1,0], [0,0,1,0]);
+
 	Rooms[0].loadWallCoords();
 
 	// @entryPoint is the direction of entry from the perspective of the previous room.
@@ -914,7 +947,7 @@ window.onload = function(){
 			}
 			wall.setMaterialProperties(2, 2, 30);
 			if(distorted) wall.distortTextures();
-			roomBox.push(new Object(wall, translation, [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(j*-90), [0,1,0], [8,4], walltype));
+			roomBox.push(new Object(wall, [0, ceilingHeight/2, 0], [100,ceilingHeight/2 + 1,100], glMatrix.toRadian(j*-90), [0,1,0], [8,4], walltype, true, translation));
 		}
 		return roomBox;
   }

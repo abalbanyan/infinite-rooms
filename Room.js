@@ -5,17 +5,23 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
     this.wallCoords = [];
     this.doorCoords = [];
 
-    var delx = this.coords[0] * 200; // We can set this to 200, since we're using gl.CULL_FACE.
-    var delz = this.coords[1] * 200;
+    delx = this.coords[0] * 200; // We can set this to 200, since we're using gl.CULL_FACE.
+    delz = this.coords[1] * 200;
 
     for(var i = 0; i < this.meshes.length; i++){
         this.meshes[i][1][0] += delx;
         this.meshes[i][1][2] += delz;
     }
     for(var i = 0; i < this.objects.length; i++){
-        console.log(this.objects[i]);
         this.objects[i].translation[0] += delx;
         this.objects[i].translation[2] += delz;
+        
+        if (!this.objects[i].truetranslation) continue;
+        console.log(this.objects[i].truetranslation);
+        console.log(this.coords);
+        this.objects[i].truetranslation[0] += this.coords[0] * 200;
+        this.objects[i].truetranslation[2] += this.coords[1] * 200;
+        console.log(this.objects[i].truetranslation);
     }
 
     for(var i = 0; i < this.meshes.length; i++){
@@ -75,10 +81,10 @@ Room.prototype.loadWallCoords = function(){
     this.wallCoords = [];
     for(var i = 0; i < this.objects.length; i++){
         if (this.objects[i].itemType == "wall") {
-            this.wallCoords.push([this.objects[i].translation, this.objects[i].rotation]);
+            this.wallCoords.push([this.objects[i].truetranslation, this.objects[i].rotation]);
         }
         if (this.objects[i].itemType == "doorWall") {
-            this.doorCoords.push([this.objects[i].translation, this.objects[i].rotation]);
+            this.doorCoords.push([this.objects[i].truetranslation, this.objects[i].rotation]);
         }
     }
 }

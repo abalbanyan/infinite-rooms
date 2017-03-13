@@ -4,3 +4,5 @@ var shadowMapCameras;
 var demo = true;	// The demo mode has it so scrolls spawn 100% of the time for ease of demoing	
 var fadeToBlack = false;
 var spooky = false;
+var testKeys = 0;
+var gameStart = 0;
