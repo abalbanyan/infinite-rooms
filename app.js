@@ -377,14 +377,16 @@ window.onload = function(){
 				var doorTranslation = room.doorCoords[j][0];
 				var doorRotation = room.doorCoords[j][1];
 				if (doorRotation % Math.PI == 0){
-					if (zValid && ((posZ >= 0) == (doorTranslation[2] >= 0)) && (Math.abs(posZ - doorTranslation[2]) <= padding)
-												&& Math.abs(posX - doorTranslation[0])  >= doorwidth/2) {
+					if (zValid && ((posZ >= 0) == (doorTranslation[2] >= 0)) && (Math.abs(posZ - doorTranslation[2]) <= padding)){
+						if (Math.abs(posX - doorTranslation[0])  <= doorwidth/2 && room.openDoors == "north" && doorRotation == 0) continue; 
+						if (Math.abs(posX - doorTranslation[0])  <= doorwidth/2 && room.openDoors == "south" && doorRotation == -Math.PI) continue;
 						zValid = false;
 					}
 				} else { // if wall rotation is 90 (east) or 270 (west)
 					// same thing as above but for the east/west wall
-					if (xValid && ((posX >= 0) == (doorTranslation[0] >= 0)) && (Math.abs(posX - doorTranslation[0]) <= padding)
-												&& Math.abs(posZ - doorTranslation[2]) >= doorwidth/2) {
+					if (xValid && ((posX >= 0) == (doorTranslation[0] >= 0)) && (Math.abs(posX - doorTranslation[0]) <= padding)){
+						if (Math.abs(posZ - doorTranslation[2])  <= doorwidth/2 && room.openDoors == "east" && doorRotation == -Math.PI/2) continue; 
+ 						if (Math.abs(posZ - doorTranslation[2])  <= doorwidth/2 && room.openDoors == "west" && doorRotation == -3*Math.PI/2) continue;
 						xValid = false;
 					}
 				}
