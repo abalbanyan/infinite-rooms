@@ -414,6 +414,8 @@ window.onload = function(){
 
 	////////////////////// Objects /////////////////////
 
+	unitsphere = new Shape(sphereMesh.vertices, sphereMesh.indices, sphereMesh.normals, sphereMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
+
 	var Rooms = [];
 
 	var templates = [loadMeme, loadBathroom, loadKitchen, loadLivingRoom, loadPool, loadGarden, loadTomb];
@@ -667,7 +669,7 @@ window.onload = function(){
 			var offset = i*20;
 			jsonObjects.push(["meshes/sink.json", [offset, 20, 92], [38, 38, 38], 0, [1, 0, 0], ["textures/steel.png"], [1, 1, 1, 1]]);
 		};
-		jsonObjects.push(["meshes/toilet.json", [90, 0, -30], [0.8, 0.8, 0.73], -90, [0, 1, 0], ["textures/porcelain.png"], [1, 1, 1, 1], null, null, null, null, false]);
+		 jsonObjects.push(["meshes/toilet.json", [90, 0, -30], [0.8, 0.8, 0.73], -90, [0, 1, 0], ["textures/porcelain.png"], [1, 1, 1, 1], null, null, null, null, false]);
 		jsonObjects.push(["meshes/tp.json", [93, 0, -20], [0.7, 0.7, 0.73], -90, [0, 1, 0], ["textures/wood2.png"], [0.5, 0.5, 0.5, 1]]);
 		jsonObjects.push(["meshes/painting.json",		[58,23,99], [1,1.5,1], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/obama.png"], [1,1,1,1], null, null, null, null, false]);
 		jsonObjects.push(["meshes/key.json",		[60,16.6,93.1], [11,11,11], 		65,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key_obama", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}])
@@ -689,7 +691,7 @@ window.onload = function(){
 	var maxRooms = 2; // The maximum number of rooms that can be loaded at once.
 	//loadLivingRoom([0, 0], [0,0,1,0], [0,0,1,0]);
 
-	loadWeeb([0, 0], [0,0,1,0], [0,0,1,0]);
+	loadBathroom([0, 0], [0,0,1,0], [0,0,1,0]);
 
 	Rooms[0].loadWallCoords();
 
@@ -826,14 +828,14 @@ window.onload = function(){
 		floor.attachTexture(textures[0]);
 		if(distorted) floor.distortTextures();
 		if(normalmaps[0] != null) floor.attachNormalMap(normalmaps[0]);
-		roomBox.push(new Object(floor, [0,-2,0], [100,1,100], 0, [0,1,0], [4,4], null));
+		roomBox.push(new Object(floor, [0,-2,0], [100,1,100], 0, [0,1,0], [4,4], "floor"));
 
 		var ceilingHeight = 55.0;
 		var ceiling = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
 		ceiling.attachTexture(textures[1]);
 		if(normalmaps[1] != null) ceiling.attachNormalMap(normalmaps[1])
 		if(distorted) ceiling.distortTextures();
-		roomBox.push(new Object(ceiling, [0,ceilingHeight +  2,0], [100,1,100], glMatrix.toRadian(180), [0,0,1], [8,8], null));
+		roomBox.push(new Object(ceiling, [0,ceilingHeight +  2,0], [100,1,100], glMatrix.toRadian(180), [0,0,1], [8,8], "ceiling"));
 
 		for(var j = 0; j < 4; j++){
 			var wall;
@@ -1332,6 +1334,7 @@ window.onload = function(){
 						gl.uniform1i(shadowUniforms.SHADOWS_OFF_Location, 0);
 					else
 						gl.uniform1i(shadowUniforms.SHADOWS_OFF_Location, 1);
+
 					// Begin transformations.
 					mat4.identity(worldMatrix);
 					mat4.scale(scalingMatrix, identityMatrix, object.scale);
@@ -1365,6 +1368,16 @@ window.onload = function(){
 
 					if(object.isDrawn)
 						object.shadowDraw(shadowUniforms, shadowAttributes);
+
+					if (object.showcollision){
+						mat4.identity(worldMatrix);
+						mat4.mul(worldMatrix, object.collisionMatrix, worldMatrix);
+
+						gl.uniformMatrix4fv(shadowUniforms.mWorld, gl.FALSE, worldMatrix);
+						if(object.itemType != "wall" && object.itemType != "doorWall" && object.itemType != "ceiling" && object.itemType != "floor"){
+							object.collisionsphere.draw();
+						}
+					}
 				}
 			}
 		}

@@ -18,11 +18,8 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
         this.objects[i].translation[2] += delz;
         
         if (!this.objects[i].truetranslation) continue;
-        console.log(this.objects[i].truetranslation);
-        console.log(this.coords);
         this.objects[i].truetranslation[0] += this.coords[0] * 200;
         this.objects[i].truetranslation[2] += this.coords[1] * 200;
-        console.log(this.objects[i].truetranslation);
     }
 
     for(var i = 0; i < this.meshes.length; i++){
