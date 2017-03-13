@@ -592,9 +592,9 @@ window.onload = function(){
 			footsteps_audio.pause();
 
 		// Camera
-		rotateCamera(2 * axes[2], 2 * axes[3]);
+		rotateCamera(N * 2 * axes[2], N * 2 * axes[3]);
 		// Navigation
-		movePlayer(-axes[0] * playerSpeed, 0, -axes[1] * playerSpeed);
+		movePlayer(-axes[0] * playerSpeed * N , 0, -axes[1] * playerSpeed * N);
 
 		if(gamepad.buttons[9].pressed && !gameStart){
 			startGame();
@@ -605,7 +605,7 @@ window.onload = function(){
 		if(gamepad.buttons[2].pressed) crouch = 1;
 		else crouch = 0;
 		if(gamepad.buttons[3].pressed) turnOffText();
-		playerSpeed = gamepad.buttons[1].pressed? 1.6 : 2.8; // B
+		playerSpeed = gamepad.buttons[1].pressed? 1.8 : 3.2; // B
 
 		if(crouch && crouch != prevcrouch){ // When crouch is pressed.
 			movePlayer(0, -20, 0);
@@ -964,7 +964,7 @@ window.onload = function(){
 
 		Rooms.push(new Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));
 
-		templates.shift();
+	    templates = [loadBathroom, loadKitchen, loadLivingRoom, loadPool, loadGarden];
 	}
 
 	function loadBathroom(coords, doors, doorways)
@@ -1518,7 +1518,7 @@ window.onload = function(){
           	tripID = setInterval(function(){
 				tripIt++;
 
-				if(tripIt == 1200){
+				if(tripIt == 900){
 					clearInterval(tripID);
 					trip_audio.pause();
 				}
