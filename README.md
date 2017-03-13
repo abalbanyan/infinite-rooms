@@ -50,13 +50,16 @@ If you are just testing the application (perhaps for grading purposes), then con
 the following values in Globals.js:
 
 // Demo mode makes it so notes have a 100% chance to spawn in each room
+
 var demo = true; 
 
 // Set the probability of a note spawning
+
 var scrollSpawnProbability = value from 0 to 1 
 
 // A testKeys value of 0 makes it so you can open any door without a key.
 // Please do not open doors in an old room that is not lit.
 // This will break the game but is intentional behavior because you cannot
 // do that under normal gameplay circumastances.
+
 var testKeys = 0;                                                     
