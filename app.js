@@ -103,6 +103,7 @@ window.onload = function(){
 		utils.fade(document.getElementById("landingPageBackground"));
 		utils.fade(document.getElementById("landingPageText"));
 		utils.fade(document.getElementById("landingPageSubtext"));
+		setScrollText(gameInstructions);
 		setInterval(function(){ // Decrease health over time.
 			decrementHealth(spooky? 1.0: 0.5);
 			if(healthleft <= 10.0 && healthleft	> 0.0){
@@ -445,6 +446,7 @@ window.onload = function(){
 		if(map[116] && scrollSeen[4] && scrollDebounce) toggleScrollText(scrollTextArray[4]);
 		if(map[117] && scrollSeen[5] && scrollDebounce) toggleScrollText(scrollTextArray[5]);
 		if(map[118] && scrollSeen[6] && scrollDebounce) toggleScrollText(scrollTextArray[6]);
+		if (map[73] && scrollDebounce) toggleScrollText(gameInstructions);
 
 		if(keyboard_crouch && keyboard_crouch != keyboard_prevcrouch){ // When crouch is pressed.
 			movePlayer(0, -20, 0);
