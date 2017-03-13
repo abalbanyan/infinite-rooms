@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css?family=Homemade+Apple');
+@import url('https://fonts.googleapis.com/css?family=Calligraffitti');
 
 body{
 	font-family: 'Open Sans', sans-serif;
@@ -58,8 +58,7 @@ body{
 }
 
 #scrollTextID {
-	font-family: 'Homemade Apple', cursive;
-	color: #323232;
+	font-family: 'Calligraffitti', cursive;	color: #323232;
 	top: 0;
 	bottom: 0;
 	margin: auto;

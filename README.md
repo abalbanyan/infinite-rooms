@@ -5,7 +5,8 @@ Infinite Rooms is a survival game that takes place in a procedurally generated g
 In addition, notes are hidden in each room - these notes will provide hints to the player on the nature of the Infinite Rooms.
 
 
-Please enjoy the game! 
+Please enjoy the game! For the full experience turn off demo mode by setting the demo variable to
+false in Globals.js.
 
 ### Controls:
 ![Tutorial Message](http://i.imgur.com/40NNb51.png)
@@ -24,7 +25,8 @@ and draws to a textured cube. This is done by using six different view matrices 
 the light position for the different objects and codifies this as a color to be processed by the normal drawing program. The normal drawing program takes these values
 and compares them and applies specular and diffuse lighting depending on whether or not the object is behind something depth wise (from the light's perspective).
 In some areas (especially with high-poly models), certain objects have shadows turned off. This means that these objects don't participate in the shadow mapping
-render to avoid the 6 additional renders.
+render to avoid the 6 additional renders. Note that objects that have shadows turned off will not have shadows from other objects on their surface. This is due
+to them not having a depth value because they aren't run through the shadow mapping render.
 #### Normal Mapping
 Simple normal mapping was implemented on some objects in the scene, such as the carpets and brick floor in the living room. This was accomplished by passing in a seperate texture, a normal map, into the shader for the particular objects that were normal mapped. We use the rgb values of the normal maps to create per-fragment normals for the objects. We intended to also pass in bitangents and tangents to improve the normal mapping for these objects; however, buffering in two additional attributes into the shader proved to be too costly in terms of performance.
 #### Collisions
@@ -37,4 +39,24 @@ One way we dealt with this performance problem was to also limit the amount of r
 
 ### Installation
 
-Use python -m http.server to run this on localhost:8000. A live version can also be accessed at https://abalbanyan.github.io/infinite-rooms/.
+Use python -m http.server to run this on localhost:8000. A live version can also be accessed at https://abalbanyan.github.io/infinite-rooms/. It's recommended that you use a browser optimized for
+javascript and WebGL. Chrome is a pretty good bet and Safari might work well too. If you are
+getting large frame drops then consider lowering the textureSize variable in Globals.js to
+a lower power of two. This affects the shadow resolution.
+
+### Cheats
+
+If you are just testing the application (perhaps for grading purposes), then consider setting
+the following values in Globals.js:
+
+// Demo mode makes it so notes have a 100% chance to spawn in each room
+
+var demo = true; 
+
+// Set the probability of a note spawning
+
+var scrollSpawnProbability = value from 0 to 1 
+
+// A testKeys value of 0 makes it so you can open any door without a key. Please do not open doors in an old room that is not lit. This will break the game but is intentional behavior because you canno do that under normal gameplay circumastances.
+
+var testKeys = 0;                                                     
