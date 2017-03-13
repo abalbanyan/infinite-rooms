@@ -17,7 +17,7 @@ body{
 	letter-spacing: 0.1em;
 	font-size: 5vw;
  	text-shadow:
-    -1px -1px 0 #000,  
+    -1px -1px 0 #000,
     1px -1px 0 #000,
     -1px 1px 0 #000,
     1px 1px 0 #000;
@@ -33,7 +33,7 @@ body{
 	letter-spacing: 0.1em;
 	font-size: 1vw;
  	text-shadow:
-    -1px -1px 0 #000,  
+    -1px -1px 0 #000,
     1px -1px 0 #000,
     -1px 1px 0 #000,
     1px 1px 0 #000;
@@ -44,13 +44,27 @@ body{
 	 /* Set rules to fill background */
   min-height: 100%;
   min-width: 1024px;
-	
+
   /* Set up proportionate scaling */
   width: 100%;
   height: auto;
-	
+
   /* Set up positioning */
   position: fixed;
   top: 0;
   left: 0;
+}
+
+#scrollTextID {
+	top: 0;
+	bottom: 0;
+	margin: auto;
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0px;
+	background-color: white;
+	width: 480px;
+	height: 270px;
+	visibility: hidden;
 }
