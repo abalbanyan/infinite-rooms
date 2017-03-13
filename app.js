@@ -663,7 +663,7 @@ window.onload = function(){
 
 			["meshes/skulltula.json",		[100,20,-40], [0.1,0.1,0.1], -90,  [0,1,0], null, [1,215/255,0,1],[], null, null, null, null, false],
 
-			["meshes/key.json",		[80,1,76.5], [15,15,15], 		30,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
+			["meshes/key.json",		[80,1,75.5], [15,15,15], 		30,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
 			["meshes/wateringcan.json",		[80,-2,80], [0.25,0.25,0.25], 45,  [0,1,0], ["textures/wateringcan.png"], [1,1,1,1]]
 		];
 		jsonObjects.push(["meshes/tombstone1.json",	   [-70,-2,90], [20,20,20], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1],[], null, null, null]);
