@@ -104,7 +104,7 @@ window.onload = function(){
 		utils.fade(document.getElementById("landingPageText"));
 		utils.fade(document.getElementById("landingPageSubtext"));
 		setInterval(function(){ // Decrease health over time.
-			decrementHealth(spooky? 1.0: 0.5);
+			decrementHealth(spooky? 0.5: 0.25);
 			if(healthleft <= 10.0 && healthleft	> 0.0){
 				utils.fadein(document.getElementById(spooky? "spooky_heart" : "heart"));
 			}
@@ -535,7 +535,15 @@ window.onload = function(){
 			["meshes/fence.json",		[40,3,95], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
 			["meshes/fence.json",		[-75,3,95], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
 			["meshes/fence.json",		[40,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
-			["meshes/fence.json",		[-75,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/fence.json",		[-75,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],				
+			
+			["meshes/wheelbarrow.json",		[0,-2,0], [3,1.7,2],  45, [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/apple.json",			[22,10,38], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
+			["meshes/apple.json",			[22,10,42], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
+			["meshes/apple.json",			[26,10,38], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
+			["meshes/banana.json",			[-30,-9,0], [1,1,1], 	92, [1,0,0], ["textures/banana.png"],  [90/255,67/255,80/255,1], "food", getID()],
+
+			["meshes/skulltula.json",		[100,20,-40], [0.1,0.1,0.1], -90,  [0,1,0], null, [1,215/255,0,1], null, null, null, null, false],
 
 			["meshes/key.json",		[80,1,76.5], [15,15,15], 		30,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
 			["meshes/wateringcan.json",		[80,-2,80], [0.25,0.25,0.25], 45,  [0,1,0], ["textures/wateringcan.png"], [1,1,1,1], null, null, null]
@@ -745,6 +753,11 @@ window.onload = function(){
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
+		var sphere = new Shape(sphereMesh.vertices, sphereMesh.indices, sphereMesh.normals, sphereMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
+		sphere.attachTexture("textures/disco.png");
+		otherObjects.push(new Object(sphere, [0,35,0], [2,2,2], 0, [0,1,0], [1,1], "disco-ball"));
+
+
 		Rooms.push(new Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));
 
 		templates.shift();
@@ -786,7 +799,7 @@ window.onload = function(){
 	var maxRooms = 2; // The maximum number of rooms that can be loaded at once.
 	//loadLivingRoom([0, 0], [0,0,1,0], [0,0,1,0]);
 
-	loadBedroom([0, 0], [0,0,1,0], [0,0,1,0]);
+	loadGarden([0, 0], [0,0,1,0], [0,0,1,0]);
 
 	Rooms[0].loadWallCoords();
 
@@ -1396,10 +1409,19 @@ window.onload = function(){
 			 		// Begin transformations.
 			 		mat4.identity(worldMatrix);
 			 		mat4.scale(scalingMatrix, identityMatrix, object.scale);
+			 		mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
+
+			 		if(object.itemType == "disco-ball"){
+						mat4.translate(translationMatrix, identityMatrix, [-50, 0, 0]);
+						mat4.rotate(rotationMatrix, identityMatrix, theta, [0,1,0]);
+
+						mat4.mul(worldMatrix, translationMatrix	, worldMatrix);
+						mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
+					}
+
 			 		mat4.rotate(rotationMatrix, identityMatrix, object.rotation, object.axis);
 			 		mat4.translate(translationMatrix, identityMatrix, object.translation);
 
-			 		mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
 			 		mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
 			 		mat4.mul(worldMatrix, translationMatrix, worldMatrix);
 
@@ -1448,10 +1470,17 @@ window.onload = function(){
 					// Begin transformations.
 					mat4.identity(worldMatrix);
 					mat4.scale(scalingMatrix, identityMatrix, object.scale);
+					mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
+					if(object.itemType == "disco-ball"){
+						mat4.translate(translationMatrix, identityMatrix, [-40, 0, 0]);
+						mat4.rotate(rotationMatrix, identityMatrix, theta, [0,1,0]);
+
+						mat4.mul(worldMatrix, translationMatrix	, worldMatrix);
+						mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
+					}
 					mat4.rotate(rotationMatrix, identityMatrix, object.rotation, object.axis);
 					mat4.translate(translationMatrix, identityMatrix, object.translation);
 
-					mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
 					mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
 					mat4.mul(worldMatrix, translationMatrix, worldMatrix);
 

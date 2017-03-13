@@ -260,9 +260,6 @@ var doorWayMesh = new Mesh(
 		0.56,0.825,
 		0.44,0.825
 	]
-
-
-
 )
 
 var wallMesh = new Mesh(
@@ -293,7 +290,7 @@ var wallMesh = new Mesh(
 	]
 )
 
-var sphereMesh = generateSphere(30, 30, 2);
+var sphereMesh = generateSphere(20, 20, 2);
 
 // The complexity of the spheres can be set by increasing @latitudeBands or @longitudeBands.
 // @normalType can be either "phong-gouraud" or "flat".
@@ -340,7 +337,6 @@ function generateSphere(latitudeBands, longitudeBands, radius, normalType = "pho
 		sphere.indices.push(first + 1);
 	  }
 	}
-
 
 	if(normalType == "flat"){
 		var flatMesh = [];
