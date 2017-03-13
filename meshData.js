@@ -290,7 +290,7 @@ var wallMesh = new Mesh(
 	]
 )
 
-var sphereMesh = generateSphere(20, 20, 2);
+var sphereMesh = generateSphere(4, 4, 1);
 
 // The complexity of the spheres can be set by increasing @latitudeBands or @longitudeBands.
 // @normalType can be either "phong-gouraud" or "flat".
@@ -371,7 +371,7 @@ function generateSphere(latitudeBands, longitudeBands, radius, normalType = "pho
 						sphere.normals[sphere.indices[i+2] * 3 + 1] - sphere.normals[sphere.indices[i+1] * 3 + 1],
 						sphere.normals[sphere.indices[i+2] * 3 + 2] - sphere.normals[sphere.indices[i+1] * 3 + 2] ]			
 			cross_prod = [];
-			vec3.cross(cross_prod, vector_a, vector_b);
+			vec3.cross(cross_prod, vector_b, vector_a);
 
 			flatNormals.push(cross_prod[0]);
 			flatNormals.push(cross_prod[1]);
