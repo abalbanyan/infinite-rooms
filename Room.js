@@ -5,6 +5,7 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
     this.wallCoords = [];
     this.doorCoords = [];
     this.openDoors = undefined;
+    this.collidables = [];
 
     delx = this.coords[0] * 200; // We can set this to 200, since we're using gl.CULL_FACE.
     delz = this.coords[1] * 200;
@@ -16,6 +17,8 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
     for(var i = 0; i < this.objects.length; i++){
         this.objects[i].translation[0] += delx;
         this.objects[i].translation[2] += delz;
+
+        if (this.objects[i].collidable) this.collidables.push(this.objects[i].collisionMatrix);
 
         if (!this.objects[i].truetranslation) continue;
         this.objects[i].truetranslation[0] += this.coords[0] * 200;
@@ -64,6 +67,7 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
 
                     if(pickID != null)
                         object.shape.makePickable(pickID);
+                    if(object.collidable) self.collidables.push(object.collisionMatrix);
                     object.itemType = itemType;
                     object.shadows = shadows;
                     self.objects.push(object);

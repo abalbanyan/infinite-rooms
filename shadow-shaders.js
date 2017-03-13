@@ -44,7 +44,7 @@ void main(){
 
 	gl_Position = mProj * mView * mWorld * object_space_pos;
 
-	
+
 
 	vec3 texCoord_transformed = textureTransform * vec3(texCoord, 1.0);
 	fragTexCoord = texCoord_transformed.xy;
@@ -81,7 +81,7 @@ varying vec3 L[N_LIGHTS], H[N_LIGHTS];
 varying float dist[N_LIGHTS];
 varying mat3 fragWorldNormal;
 uniform float ambient, diffusivity, shininess, smoothness, attenuation_factor[N_LIGHTS];
-uniform float theta; 
+uniform float theta;
 
 uniform sampler2D normalMap;
 
@@ -143,9 +143,7 @@ void main(){
 		bumped_N = texture2D(normalMap, fragTexCoord).rgb;
 		bumped_N = normalize(bumped_N * 2.0 - 1.0);
 		bumped_N = normalize(fragWorldNormal * bumped_N);
-		bumped_N = vec3(-bumped_N.x, bumped_N.y, -bumped_N.z);
-
-	}
+  }
 
 	for( int i = 0; i < N_LIGHTS; i++ ){
 		float attenuation_multiplier = 1.0 / (1.0 + attenuation_factor[i] * (dist[i] * dist[i]));

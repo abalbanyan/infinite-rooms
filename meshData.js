@@ -260,9 +260,6 @@ var doorWayMesh = new Mesh(
 		0.56,0.825,
 		0.44,0.825
 	]
-
-
-
 )
 
 var wallMesh = new Mesh(
@@ -340,7 +337,6 @@ function generateSphere(latitudeBands, longitudeBands, radius, normalType = "pho
 		sphere.indices.push(first + 1);
 	  }
 	}
-
 
 	if(normalType == "flat"){
 		var flatMesh = [];
