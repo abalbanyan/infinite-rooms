@@ -403,12 +403,13 @@ window.onload = function(){
 
 		function checkCollision(collidable){
 			if(!collidable) return false;
-			var playerLoc = [posX, 10, posZ];
+			var playerLoc = [posX, 2, posZ];
 			var center = collidable[0];
 			var rad = collidable[1];
 			var dist = (center[0]-playerLoc[0])**2
 						+ (center[1]-playerLoc[1])**2
 						+ (center[2]-playerLoc[2])**2;
+			dist = dist**(0.5);
 			console.log(dist)
 			if (dist < rad) return true;
 			return false;
@@ -645,7 +646,7 @@ window.onload = function(){
 			["meshes/fence.json",		[40,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
 			["meshes/fence.json",		[-75,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
 
-			["meshes/wheelbarrow.json",		[0,-2,0], [3,1.7,2],  45, [0,1,0], ["textures/door1.png"], [1,1,1,1],[[[0, -2, 0], 5]], null, null, null],
+			["meshes/wheelbarrow.json",		[0,-2,0], [3,1.7,2],  45, [0,1,0], ["textures/door1.png"], [1,1,1,1],[[[0, -2, 0], 10], [[0, -12, 0], 10], [[0, 8, 0], 10]], null, null, null],
 			["meshes/apple.json",			[22,10,38], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
 			["meshes/apple.json",			[22,10,42], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
 			["meshes/apple.json",			[26,10,38], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],

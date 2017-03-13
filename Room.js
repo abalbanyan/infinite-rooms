@@ -33,11 +33,13 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
     // pickID should be unique, itemType does not need to be.
     function addObjectFromJSON(jsonfile, translation, scale, rotation, axis, texture, color = null, collisionSpheres = null, itemType = null, pickID = null, material = null, normalMap = null, shadows = true, unitscale = undefined)
 	{
+        var self = this;
+        if(collisionSpheres instanceof Array) {
+            self.collidables = self.collidables.concat(collisionSpheres);
+        }
 	    var rawFile = new XMLHttpRequest();
 	    var rotation = glMatrix.toRadian(rotation);
 	    rawFile.open("GET", jsonfile, false);
-
-        var self = this;
 
 		rawFile.onreadystatechange = function(){
             if(rawFile.readyState === 4)
@@ -67,7 +69,6 @@ function Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonobjects
                     var object = new Object(shape, translation, scale, rotation, axis);
                     if(pickID != null)
                         object.shape.makePickable(pickID);
-                    if(collisionSpheres) self.collidables.concat(collisionSpheres);
                     object.itemType = itemType;
                     object.shadows = shadows;
                     self.objects.push(object);
