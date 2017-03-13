@@ -5,7 +5,8 @@ Infinite Rooms is a survival game that takes place in a procedurally generated g
 In addition, notes are hidden in each room - these notes will provide hints to the player on the nature of the Infinite Rooms.
 
 
-Please enjoy the game! 
+Please enjoy the game! For the full experience turn off demo mode by setting the demo variable to
+false in Globals.js.
 
 ### Controls:
 ![Tutorial Message](http://i.imgur.com/40NNb51.png)
@@ -39,4 +40,23 @@ One way we dealt with this performance problem was to also limit the amount of r
 ### Installation
 
 Use python -m http.server to run this on localhost:8000. A live version can also be accessed at https://abalbanyan.github.io/infinite-rooms/. It's recommended that you use a browser optimized for
-javascript and WebGL. Chrome is a pretty good bet and Safari might work well too.
+javascript and WebGL. Chrome is a pretty good bet and Safari might work well too. If you are
+getting large frame drops then consider lowering the textureSize variable in Globals.js to
+a lower power of two. This affects the shadow resolution.
+
+### Cheats
+
+If you are just testing the application (perhaps for grading purposes), then consider setting
+the following values in Globals.js:
+
+// Demo mode makes it so notes have a 100% chance to spawn in each room
+var demo = true; 
+
+// Set the probability of a note spawning
+var scrollSpawnProbability = value from 0 to 1 
+
+// A testKeys value of 0 makes it so you can open any door without a key.
+// Please do not open doors in an old room that is not lit.
+// This will break the game but is intentional behavior because you cannot
+// do that under normal gameplay circumastances.
+var testKeys = 0;                                                     
