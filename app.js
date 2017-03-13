@@ -610,7 +610,7 @@ window.onload = function(){
 
 	var Rooms = [];
 
-	var templates = [loadMeme, loadBathroom, loadKitchen, loadLivingRoom, loadPool, loadGarden, loadTomb];
+	var templates = [loadMeme, loadBathroom, loadKitchen, loadLivingRoom, loadPool, loadGarden];
 
 	var ID = -1;
 	function getID(){
