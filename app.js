@@ -14,12 +14,17 @@ window.onload = function(){
 
 	////////////////// HUD /////////////////////////
 	// how much health is left
-	var healthleft = 30;
+	var healthleft = 30.0;
 	// sets health bar to whatever percentage
 	var setHealth = function(percent = healthleft){
 		document.getElementById("health").style.width = percent + "%";
 	}
 	setHealth();
+
+	var decrementHealth = function(n){
+		healthleft -= n;
+		setHealth(Math.max(healthleft, 0.0));
+	}
 
 	var key_icon = document.getElementById("key_icon");
 	var toggleKeyIcon = function(bool){
@@ -27,6 +32,90 @@ window.onload = function(){
 	}
 
 	var status = document.getElementById('status');
+	var scrollText = document.getElementById('scrollTextID');
+
+	/////////////// Scroll Control //////////////
+	var numOfScrolls = 8;
+	var scrollIterator = 0;
+	var scrollSeen = [];
+	var scrollTextArray = [];
+	var scrollDebounce = 1;
+	for (var j = 0; j < numOfScrolls; j++){
+		scrollSeen.push(false);
+	}
+	// Add scrolls
+	scrollTextArray.push(
+		`Note 1: Welcome to Infinite Rooms.<br>Traverse the Rooms and eat food to survive.<br>
+		Various notes have a certain chance of spawning in rooms.<br>Collect them... carefully.<br>
+		Collected notes can be toggle viewed by pressing their corresponding function number.
+		<br>Press F1 now to exit this note.`);
+	scrollTextArray.push(
+		`Note 2: Infinite rooms and technically, infinite food.<br>
+		Everything you need to survive.`
+	);
+	scrollTextArray.push(
+		`Note 3: Getting bored yet? Feeling a little existential?<br>
+		Press on for more answers, but remember to be careful.<br>
+		This world is pretty safe for now.`
+	);
+	scrollTextArray.push(
+		`Note 4: Go explore a couple of more rooms, notice anything different?`
+	);
+	scrollTextArray.push(
+		`Note 5: Things might not look nice now, but they really aren't that bad.<br>
+		You've still got food and an infinite number of places to explore.<br>
+		Knowledge can be bad sometimes. Just look at where these notes have gotten you so far.`
+	);
+	scrollTextArray.push(
+		`Note 6: Last chance. If you read the next note then your journey will inevitably end.`
+	);
+	scrollTextArray.push(
+		`Note 7: Well that's it. The rooms and food are finite now. Only one way to go now really.`
+	);
+	scrollTextArray.push(
+		`Some people say that every journey comes to an end.<br>
+		Did this one have to though?<br>
+		Make peace with yourself.<br>
+		This is the end.`
+	);
+
+	function setScrollText(string){
+		scrollText.innerHTML = string;
+		scrollText.style.visibility = 'visible';
+	}
+	function toggleScrollText(string){
+		scrollDebounce = 0;
+		if (scrollText.style.visibility == 'hidden'){
+			scrollText.innerHTML = string;
+			scrollText.style.visibility = 'visible';
+		}
+		else{
+			scrollText.style.visibility = 'hidden'
+			scrollText.innerHTML = "";
+		}
+		setTimeout(function(){
+				scrollDebounce = 1;
+		}, 500);
+	}
+
+	var startGame = function(){
+		gameStart = 1;
+		utils.fade(document.getElementById("landingPageBackground"));
+		utils.fade(document.getElementById("landingPageText"));
+		utils.fade(document.getElementById("landingPageSubtext"));
+		setInterval(function(){ // Decrease health over time.
+			decrementHealth(spooky? 0.5: 0.25);
+			if(healthleft <= 10.0 && healthleft	> 0.0){
+				utils.fadein(document.getElementById(spooky? "spooky_heart" : "heart"));
+			}
+
+			if(healthleft <= 0.0 && healthleft > -4.0){
+				utils.fade(document.getElementById("spooky_heart"));
+				utils.fade(document.getElementById("heart"));
+				utils.fadein(document.getElementById("skull"));
+			}
+		}, 1000);
+	}
 
     ////////////////// Compile Shaders ////////////////
 		//TODO: Refactor to reduce code bloat
@@ -242,6 +331,11 @@ window.onload = function(){
 
 		posX += x;
 		posZ += z;
+
+		var xValid = true;
+		var yValid = true; // Always true in this implementation.
+		var zValid = true;
+
 		var padding = 10,
 			doorwidth = 16;
 		for (var i = 0; i < Rooms.length; i++){
@@ -260,23 +354,23 @@ window.onload = function(){
 					// if posZ and north/south wall position are both positive or both negative
 					// if both positive, then if posZ > wall you can't move
 					// if both negative, then if posZ < wall you can't move past wall either
-					if (((posZ >= 0) == (wallTranslation[2] >= 0)) && (Math.abs(posZ - wallTranslation[2]) <= padding)) {
-						posX -= x;
-						posZ -= z;
-						return;
+					if (zValid && ((posZ >= 0) == (wallTranslation[2] >= 0)) && (Math.abs(posZ - wallTranslation[2]) <= padding)) {
+						zValid = false;
 					}
 				} else { // if wall rotation is 90 (east) or 270 (west)
 					// same thing as above but for the east/west wall
-					if (((posX >= 0) == (wallTranslation[0] >= 0)) && (Math.abs(posX - wallTranslation[0]) <= padding)) {
-						posX -= x;
-						posZ -= z;
-						return;
+					if (xValid && ((posX >= 0) == (wallTranslation[0] >= 0)) && (Math.abs(posX - wallTranslation[0]) <= padding)) {
+						xValid = false;
 					}
 				}
+
+				if(!xValid && !zValid)
+					break;
 			}
 			for (var j = 0; j < room.doorCoords.length; j++) {
 				var doorTranslation = room.doorCoords[j][0];
 				var doorRotation = room.doorCoords[j][1];
+<<<<<<< HEAD
 				if (doorRotation % Math.PI == 0){ 
 					if (((posZ >= 0) == (doorTranslation[2] >= 0)) && (Math.abs(posZ - doorTranslation[2]) <= padding)){
 						if (Math.abs(posX - doorTranslation[0])  <= doorwidth/2 && room.openDoors == "north" && doorRotation == 0) continue; 
@@ -293,16 +387,35 @@ window.onload = function(){
 						posX -= x;
 						posZ -= z;
 						return;
+=======
+				if (doorRotation % Math.PI == 0){
+					if (zValid && ((posZ >= 0) == (doorTranslation[2] >= 0)) && (Math.abs(posZ - doorTranslation[2]) <= padding)
+												&& Math.abs(posX - doorTranslation[0])  >= doorwidth/2) {
+						zValid = false;
+					}
+				} else { // if wall rotation is 90 (east) or 270 (west)
+					// same thing as above but for the east/west wall
+					if (xValid && ((posX >= 0) == (doorTranslation[0] >= 0)) && (Math.abs(posX - doorTranslation[0]) <= padding)
+												&& Math.abs(posZ - doorTranslation[2]) >= doorwidth/2) {
+						xValid = false;
+>>>>>>> 7611c597e09985da83c6cccb8549cd513a2bd822
 					}
 				}
+
+				if(!xValid && !zValid)
+					break;
 			}
 		}
 
+
+		if(!xValid)	posX -= x;
+		if(!zValid) posZ -= z;
+
 		// Multiply everything by the deltas here to account for the magnitude of the movement.
 		mat4.translate(translationMatrix, identityMatrix, [
-			currentDirectionX[0] * xDelta + currentDirectionY[0] * yDelta + currentDirectionZ[0] * zDelta,
-			currentDirectionX[1] * xDelta + currentDirectionY[1] * yDelta + currentDirectionZ[1] * zDelta,
-			currentDirectionX[2] * xDelta + currentDirectionY[2] * yDelta + currentDirectionZ[2] * zDelta
+			xValid? currentDirectionX[0] * xDelta + currentDirectionY[0] * yDelta + currentDirectionZ[0] * zDelta : 0,
+			yValid? currentDirectionX[1] * xDelta + currentDirectionY[1] * yDelta + currentDirectionZ[1] * zDelta : 0,
+			zValid? currentDirectionX[2] * xDelta + currentDirectionY[2] * yDelta + currentDirectionZ[2] * zDelta : 0
 		]);
 		mat4.mul(testViewMatrix, translationMatrix, testViewMatrix);
 	}
@@ -318,10 +431,8 @@ window.onload = function(){
 		e = e || event; // to deal with IE
 		map[e.keyCode] = e.type == 'keydown';
 	}
-	var testKeys = 0;
 
 	// This section of Control is responsible for gamepad functionality.
-	var gameStart = 0;
 	var prevcrouch = 0;	var keyboard_prevcrouch = 0;
 	var crouch = 0; var keyboard_crouch = 0;
 	var footsteps_audio = new Audio('sound/footsteps.wav');
@@ -331,10 +442,7 @@ window.onload = function(){
 
 		//handle keyboard input
 		if(map[13] && !gameStart) {
-			utils.fade(document.getElementById("landingPageBackground"));
-			utils.fade(document.getElementById("landingPageText"));
-			utils.fade(document.getElementById("landingPageSubtext"));
-			gameStart = 1;
+			startGame();
 		}
 		if(map[87]) movePlayer(0,0, playerSpeed * 1);   // W
 		if(map[83]) movePlayer(0,0, -playerSpeed * 1);  // S
@@ -362,11 +470,24 @@ window.onload = function(){
 			light.setAmbience(ambience);
 		}
 		if(map[192]) swimMode = ~swimMode;
+
+		if(map[67] && !spooky){
+			spooky = 1;
+			utils.fade(document.getElementById("heart"));
+		}
+
 		if(map[49]) N = 1	;
 		if(map[57]) N = 9;
 		if(map[80]) interact();
-		if(map[75]) testKeys = ~testKeys;
+		if(map[75]) testKeys = 1;
 		if(map[16]) keyboard_crouch = 1; else keyboard_crouch = 0;
+		if(map[112] && scrollSeen[0] && scrollDebounce) toggleScrollText(scrollTextArray[0]);
+		if(map[113] && scrollSeen[1] && scrollDebounce) toggleScrollText(scrollTextArray[1]);
+		if(map[114] && scrollSeen[2] && scrollDebounce) toggleScrollText(scrollTextArray[2]);
+		if(map[115] && scrollSeen[3] && scrollDebounce) toggleScrollText(scrollTextArray[3]);
+		if(map[116] && scrollSeen[4] && scrollDebounce) toggleScrollText(scrollTextArray[4]);
+		if(map[117] && scrollSeen[5] && scrollDebounce) toggleScrollText(scrollTextArray[5]);
+		if(map[118] && scrollSeen[6] && scrollDebounce) toggleScrollText(scrollTextArray[6]);
 
 		if(keyboard_crouch && keyboard_crouch != keyboard_prevcrouch){ // When crouch is pressed.
 			movePlayer(0, -20, 0);
@@ -404,10 +525,7 @@ window.onload = function(){
 		movePlayer(-axes[0] * playerSpeed, 0, -axes[1] * playerSpeed);
 
 		if(gamepad.buttons[9].pressed && !gameStart){
-			utils.fade(document.getElementById("landingPageBackground"));
-			utils.fade(document.getElementById("landingPageText"));
-			utils.fade(document.getElementById("landingPageSubtext"));
-			gameStart = 1;
+			startGame();
 		}
 
 		// Buttons
@@ -486,11 +604,30 @@ window.onload = function(){
 			["meshes/fence.json",		[40,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null, null, null, []],
 			["meshes/fence.json",		[-75,3,-98], [5,10,17], 90,  [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null, null, null, []],			
 			
+<<<<<<< HEAD
 			["meshes/key.json",		[80,1,76.5], [15,15,15], 		30,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}, null, null, []],
 			["meshes/wateringcan.json",		[80,-2,80], [0.25,0.25,0.25], 45,  [0,1,0], ["textures/wateringcan.png"], [1,1,1,1], null, null, null, null, null, []]
 
 		];
 		jsonObjects.push(["meshes/tombstone1.json",	   [-70,-2,90], [20,20,20], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null, null, null, []]);
+=======
+			["meshes/wheelbarrow.json",		[0,-2,0], [3,1.7,2],  45, [0,1,0], ["textures/door1.png"], [1,1,1,1], null, null, null],
+			["meshes/apple.json",			[22,10,38], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
+			["meshes/apple.json",			[22,10,42], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
+			["meshes/apple.json",			[26,10,38], [1,1,1], 	90, [0,1,0], ["textures/apple.png"],  [90/255,67/255,80/255,1], "food", getID()],
+			["meshes/banana.json",			[-30,-9,0], [1,1,1], 	92, [1,0,0], ["textures/banana.png"],  [90/255,67/255,80/255,1], "food", getID()],
+
+			["meshes/skulltula.json",		[100,20,-40], [0.1,0.1,0.1], -90,  [0,1,0], null, [1,215/255,0,1], null, null, null, null, false],
+
+			["meshes/key.json",		[80,1,76.5], [15,15,15], 		30,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
+			["meshes/wateringcan.json",		[80,-2,80], [0.25,0.25,0.25], 45,  [0,1,0], ["textures/wateringcan.png"], [1,1,1,1], null, null, null]
+
+		];
+		jsonObjects.push(["meshes/tombstone1.json",	   [-70,-2,90], [20,20,20], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
+		if (demo){
+			jsonObjects.push(["meshes/papyrus.json",		[-70,0,89], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+		}
+>>>>>>> 7611c597e09985da83c6cccb8549cd513a2bd822
 		var otherObjects = loadBox(["textures/dirtfloor.png", "textures/leaf.png", "textures/leaf.png"], doorways);
 
 		for(var i = 1; i < 6; i++){
@@ -520,6 +657,7 @@ window.onload = function(){
 			jsonObjects.push(["meshes/tombstone1.json",	   [-95,-2,-i * 20 + 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null, null, null, []]);
 		}
 
+<<<<<<< HEAD
 			jsonObjects.push(["meshes/painting.json",		[-92,10,23.5], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/will.png"], [1,1,1,1], null, null, null, null, false, []]);
 			jsonObjects.push(["meshes/painting.json",		[-92,10,43.5], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/eric.png"], [1,1,1,1], null, null, null, null, false, []]);
 			jsonObjects.push(["meshes/painting.json",		[-92,10,-45.5], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/christine.png"], [1,1,1,1], null, null, null, null, false, []]);
@@ -528,6 +666,17 @@ window.onload = function(){
 
 
 		jsonObjects.push(["meshes/grave.json",	[-8,-13,0], [10,12,10], -90,  [1,0,0], ["textures/tv.png"], [1,1,1,1], null, null, null, null, null, []]);
+=======
+		jsonObjects.push(["meshes/painting.json",		[-92,10,23.5], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/will.png"], [1,1,1,1], null, null, null, null, false]);
+		jsonObjects.push(["meshes/painting.json",		[-92,10,43.5], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/eric.png"], [1,1,1,1], null, null, null, null, false]);
+		jsonObjects.push(["meshes/painting.json",		[-92,10,-45.5], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/christine.png"], [1,1,1,1], null, null, null, null, false]);
+		jsonObjects.push(["meshes/painting.json",		[-92,10,-25], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/abdullah.png"], [1,1,1,1], null, null, null, null, false]);
+		jsonObjects.push(["meshes/painting.json",		[-40,6,-2], [1,1,1], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/chris.png"], [1,1,1,1], null, null, null, null, false]);
+    jsonObjects.push(["meshes/grave.json",	[-8,-13,0], [10,12,10], -90,  [1,0,0], ["textures/tv.png"], [1,1,1,1], "grave", getID(), null]);
+
+
+
+>>>>>>> 7611c597e09985da83c6cccb8549cd513a2bd822
 
 		var otherObjects = loadBox(["textures/dirtfloor.png", "textures/dirtfloor.png", "textures/tv.png"], doorways);
 		otherObjects[3].shape.useWater(); otherObjects[4].shape.useWater(); otherObjects[5].shape.useWater(); otherObjects[2].shape.useWater();
@@ -553,7 +702,8 @@ window.onload = function(){
 					["meshes/cheese.json",			[-58,21.5,75], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/cheese.png"],  [90/255,67/255,80/255,1], "food", getID()],
 					["meshes/umbreon.json",		[40,20,84], [3.2,3.2,3.2], 		-125,  [0,1,0], ["textures/umbreon.png","textures/umbreon2.png"], [1,1,1,1]],
 					["meshes/key.json",		[54,0,50], [15,15,15], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
-					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/waifu.png"], [1,1,1,1], null, null, null, null, false]];
+					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/waifu.png"], [1,1,1,1], null, null, null, null, false],
+					["meshes/papyrus.json",		[-93,22,82], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]];
 		var otherObjects = loadBox(["textures/hardwood.png", "textures/crate.png", "textures/wallpaper1.png"], doorways);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
@@ -572,6 +722,11 @@ window.onload = function(){
 				["meshes/key.json",		[48,13.5,0], [15,15,15], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}]
 
 		];
+
+		if (demo){
+			jsonObjects.push(["meshes/papyrus.json",		[42.5,5,13], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+		}
+
 		var otherObjects = loadBox(["textures/bathroomfloor.png", "textures/tile.png", "textures/tile.png"], doorways);
 
 		var water = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
@@ -585,7 +740,7 @@ window.onload = function(){
 		Rooms.push(new Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));
 	}
 
-	
+
 
 	function loadLivingRoom(coords, doors, doorways){
 		var jsonObjects = [
@@ -598,6 +753,10 @@ window.onload = function(){
 					["meshes/bookshelf.json",	[-99,-1,-49], [1.0,0.65,0.8], 90,  [0,1,0], ["textures/crate.png"], [1,1,1,1], null, null, null, null, false],
 					["meshes/cookie.json",			[20,4,-13], [2.2,2.2,2.2], 	90, [0,1,0], ["textures/cookie.png"],  [90/255,67/255,80/255,1], "food", getID()]
 				];
+
+		if (demo){
+			jsonObjects.push(["meshes/papyrus.json",		[-8,0,10], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+		}
 
 		var key_book = Math.floor(Math.random() * (9 - 3 + 1)) + 3;
 		for(var i = 3; i < 10; i++){
@@ -639,6 +798,9 @@ window.onload = function(){
 					["meshes/cheese.json",			[-58,14,-35], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/bread.jpg"],  [90/255,67/255,80/255,1], "food", getID()],
 					["meshes/key.json",		[-20,7.7,16], [14,14,14], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key_kitchen", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
 					["meshes/painting.json",		[-85,25,98.5], [2,2,2 * 1.26], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/tea.png"], [1,1,1,1], null, null, null, null, false]];
+			if (demo){
+				jsonObjects.push(["meshes/papyrus.json",		[-33.7,22,22], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+			}
 		var otherObjects = loadBox(["textures/tile.png", "textures/crate.png", "textures/kitchenwall.jpg"], doorways);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
@@ -670,9 +832,17 @@ window.onload = function(){
 					["meshes/painting.json",		[85,25,-98.5], [2,2,2], -270,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false],
 
 					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false]];
+			if (demo){
+				jsonObjects.push(["meshes/papyrus.json",		[-33.7,22,22], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+			}
 		var otherObjects = loadBox(["textures/space.png", "textures/space.png", "textures/space.png"], doorways, [], true);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
+
+		var sphere = new Shape(sphereMesh.vertices, sphereMesh.indices, sphereMesh.normals, sphereMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
+		sphere.attachTexture("textures/disco.png");
+		otherObjects.push(new Object(sphere, [0,35,0], [2,2,2], 0, [0,1,0], [1,1], "disco-ball"));
+
 
 		Rooms.push(new Room(gl, program, shadowMapProgram, shadowProgram, buffers, jsonObjects, otherObjects, coords));
 
@@ -700,7 +870,11 @@ window.onload = function(){
 		jsonObjects.push(["meshes/cubicle.json",	[-80,-4,-38 + -38], [1.43,1.43,1.5], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], null, null, null, null, false]);
 		jsonObjects.push(["meshes/grate.json",		[0,-3,0], [0.07,0.07,0.14], 0,  [0,1,0], ["textures/stone.png"], [0,1,1,1], null, null, null, null, false]);
 
-		jsonObjects.push(["meshes/board.json",	[0,55,0], [0.5,0.5,0.7], 0,  [0,0,1], null, [1,1,1,1], null, null, null])
+		jsonObjects.push(["meshes/board.json",	[0,55,0], [0.5,0.5,0.7], 0,  [0,0,1], null, [1,1,1,1], null, null, null]);
+
+		if (demo){
+			jsonObjects.push(["meshes/papyrus.json",		[-90.7,0,-23], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+		}
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
@@ -1210,7 +1384,7 @@ window.onload = function(){
             rotateCamera(0, -30);
           	tripID = setInterval(function(){
 				tripIt++;
-              
+
 				if(tripIt == 1200){
 					clearInterval(tripID);
 					trip_audio.pause();
@@ -1230,11 +1404,32 @@ window.onload = function(){
 			room.objects[i].translation[2] = room.objects[i].translation[2] - 19.0;
 			room.objects[i].itemType = "shower_door_2";
 			door_audio.play();
-		  } else if (itemType == "shower_door_2"){
+		  }
+			else if (itemType == "shower_door_2"){
 			room.objects[i].translation[2] = room.objects[i].translation[2] + 19.0;
 			room.objects[i].itemType = "shower_door_1";
 	        door_audio.play();
 		  }
+			else if (itemType == 'scroll'){
+				room.objects[i].delete();
+				// On scroll 4, turn the world spooky
+				if (scrollIterator == 3)
+					spooky = true;
+				if (scrollIterator < 7){
+					setScrollText(scrollTextArray[scrollIterator]);
+					scrollSeen[scrollIterator] = true;
+					scrollIterator++;
+					if (scrollIterator == 7){ // load the tomb room
+						templates = [loadTomb];
+					}
+				}
+			}
+			else if (itemType == 'grave'){
+				var graveScrollNumber = 7;
+				setScrollText(scrollTextArray[graveScrollNumber]);
+				// Add black screen
+				fadeToBlack = true;
+			}
         }
       }
     });
@@ -1244,10 +1439,16 @@ window.onload = function(){
 	var shadows = 1;
 	console.log()
 	var loop = function(){
-
 		handleInput();
 		theta = performance.now() / 1000 / 6 *  2 * Math.PI;
 		var object;
+
+		// Game is over, so clear and stop rendering
+		if (fadeToBlack){
+			gl.clearColor(0, 0, 0, 1);
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+			return;
+		}
 
 		// Draw Shadow map //
 		// Set GL state status
@@ -1305,10 +1506,19 @@ window.onload = function(){
 			 		// Begin transformations.
 			 		mat4.identity(worldMatrix);
 			 		mat4.scale(scalingMatrix, identityMatrix, object.scale);
+			 		mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
+
+			 		if(object.itemType == "disco-ball"){
+						mat4.translate(translationMatrix, identityMatrix, [-50, 0, 0]);
+						mat4.rotate(rotationMatrix, identityMatrix, theta, [0,1,0]);
+
+						mat4.mul(worldMatrix, translationMatrix	, worldMatrix);
+						mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
+					}
+
 			 		mat4.rotate(rotationMatrix, identityMatrix, object.rotation, object.axis);
 			 		mat4.translate(translationMatrix, identityMatrix, object.translation);
 
-			 		mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
 			 		mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
 			 		mat4.mul(worldMatrix, translationMatrix, worldMatrix);
 
@@ -1358,10 +1568,17 @@ window.onload = function(){
 					// Begin transformations.
 					mat4.identity(worldMatrix);
 					mat4.scale(scalingMatrix, identityMatrix, object.scale);
+					mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
+					if(object.itemType == "disco-ball"){
+						mat4.translate(translationMatrix, identityMatrix, [-40, 0, 0]);
+						mat4.rotate(rotationMatrix, identityMatrix, theta, [0,1,0]);
+
+						mat4.mul(worldMatrix, translationMatrix	, worldMatrix);
+						mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
+					}
 					mat4.rotate(rotationMatrix, identityMatrix, object.rotation, object.axis);
 					mat4.translate(translationMatrix, identityMatrix, object.translation);
 
-					mat4.mul(worldMatrix, scalingMatrix, worldMatrix);
 					mat4.mul(worldMatrix, rotationMatrix, worldMatrix);
 					mat4.mul(worldMatrix, translationMatrix, worldMatrix);
 
