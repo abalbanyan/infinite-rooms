@@ -1,8 +1,11 @@
 # infinite-rooms
 Infinite Rooms is a survival game that takes place in a procedurally generated grid of household rooms. Players must proceed from room to room, collecting food in order to survive. Each door in a given room is locked with a key - players must find the key hidden in each room in order to advance to the next room. To be idle is to perish - so push on to survive!
+
+
 In addition, notes are hidden in each room - these notes will provide hints to the player on the nature of the Infinite Rooms.
 
-I hope you enjoy the game! 
+
+Please enjoy the game! 
 
 ### Controls:
 ![Tutorial Message](http://i.imgur.com/40NNb51.png)
