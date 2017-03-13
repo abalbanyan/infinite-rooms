@@ -605,7 +605,7 @@ window.onload = function(){
 		if(gamepad.buttons[2].pressed) crouch = 1;
 		else crouch = 0;
 		if(gamepad.buttons[3].pressed) turnOffText();
-		playerSpeed = gamepad.buttons[1].pressed? 1.8 : 3.2; // B
+		playerSpeed = gamepad.buttons[1].pressed? 3.0 : 4.2; // B
 
 		if(crouch && crouch != prevcrouch){ // When crouch is pressed.
 			movePlayer(0, -20, 0);
