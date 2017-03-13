@@ -902,7 +902,7 @@ window.onload = function(){
 			jsonObjects.push(["meshes/painting.json",		[-45,25,-98.5], [2,2,2], -270,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/sans.jpg"], [1,1,1,1], [],null, null, null, null, false]);
 			jsonObjects.push(["meshes/painting.json",		[-98,25,-35.5], [2,2,2], -180,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/spooky.jpg"], [1,1,1,1],[], null, null, null, null, false]);
 			jsonObjects.push(["meshes/painting.json",		[85,25,98.5], [2,2,2], -90,   [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/papyrus.png"], [1,1,1,1], [],null, null, null, null, false]);
-			jsonObjects.push(["meshes/painting.json",		[98,25,-35.5], [2,2,2], 0,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/boo.jpg"], [1,1,1,1], null, [],null, null, null, false]);
+			jsonObjects.push(["meshes/painting.json",		[98,25,-35.5], [2,2,2], 0,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/boo.jpg"], [1,1,1,1], [], null,null, null, null, false]);
 			var otherObjects = loadBox(["textures/tile.png", "textures/crate.png", "textures/kitchenwallspook.jpg"], doorways);
 
 		}
