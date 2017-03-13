@@ -412,6 +412,12 @@ window.onload = function(){
 		if(map[75]) testKeys = ~testKeys;
 		if(map[16]) keyboard_crouch = 1; else keyboard_crouch = 0;
 		if(map[112] && scrollSeen[0] && scrollDebounce) toggleScrollText(scrollTextArray[0]);
+		if(map[113] && scrollSeen[1] && scrollDebounce) toggleScrollText(scrollTextArray[1]);
+		if(map[114] && scrollSeen[2] && scrollDebounce) toggleScrollText(scrollTextArray[2]);
+		if(map[115] && scrollSeen[3] && scrollDebounce) toggleScrollText(scrollTextArray[3]);
+		if(map[116] && scrollSeen[4] && scrollDebounce) toggleScrollText(scrollTextArray[4]);
+		if(map[117] && scrollSeen[5] && scrollDebounce) toggleScrollText(scrollTextArray[5]);
+		if(map[118] && scrollSeen[6] && scrollDebounce) toggleScrollText(scrollTextArray[6]);
 
 		if(keyboard_crouch && keyboard_crouch != keyboard_prevcrouch){ // When crouch is pressed.
 			movePlayer(0, -20, 0);
@@ -512,6 +518,9 @@ window.onload = function(){
 
 		];
 		jsonObjects.push(["meshes/tombstone1.json",	   [-70,-2,90], [20,20,20], 0,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
+		if (demo){
+			jsonObjects.push(["meshes/papyrus.json",		[-70,0,89], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+		}
 		var otherObjects = loadBox(["textures/dirtfloor.png", "textures/leaf.png", "textures/leaf.png"], doorways);
 
 		for(var i = 1; i < 6; i++){
@@ -541,7 +550,7 @@ window.onload = function(){
 			jsonObjects.push(["meshes/tombstone1.json",	   [-95,-2,-i * 20 + 5], [30,35,30], 90,  [0,1,0], ["textures/tombstone1.png"], [1,1,1,1], null, null, null]);
 		}
 
-		jsonObjects.push(["meshes/grave.json",	[-8,-13,0], [10,12,10], -90,  [1,0,0], ["textures/tv.png"], [1,1,1,1], null, null, null]);
+		jsonObjects.push(["meshes/grave.json",	[-8,-13,0], [10,12,10], -90,  [1,0,0], ["textures/tv.png"], [1,1,1,1], "grave", getID(), null]);
 
 		var otherObjects = loadBox(["textures/dirtfloor.png", "textures/dirtfloor.png", "textures/tv.png"], doorways);
 		otherObjects[3].shape.useWater(); otherObjects[4].shape.useWater(); otherObjects[5].shape.useWater(); otherObjects[2].shape.useWater();
@@ -587,6 +596,11 @@ window.onload = function(){
 				["meshes/key.json",		[48,13.5,0], [15,15,15], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}]
 
 		];
+
+		if (demo){
+			jsonObjects.push(["meshes/papyrus.json",		[42.5,5,13], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+		}
+
 		var otherObjects = loadBox(["textures/bathroomfloor.png", "textures/tile.png", "textures/tile.png"], doorways);
 
 		var water = new Shape(floorMesh.vertices, floorMesh.indices, floorMesh.normals, floorMesh.textureCoords, gl, program, shadowMapProgram, shadowProgram, buffers);
@@ -613,6 +627,10 @@ window.onload = function(){
 					["meshes/bookshelf.json",	[-99,-1,-49], [1.0,0.65,0.8], 90,  [0,1,0], ["textures/crate.png"], [1,1,1,1], null, null, null, null, false],
 					["meshes/cookie.json",			[20,4,-13], [2.2,2.2,2.2], 	90, [0,1,0], ["textures/cookie.png"],  [90/255,67/255,80/255,1], "food", getID()]
 				];
+
+		if (demo){
+			jsonObjects.push(["meshes/papyrus.json",		[-8,0,10], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+		}
 
 		var key_book = Math.floor(Math.random() * (9 - 3 + 1)) + 3;
 		for(var i = 3; i < 10; i++){
@@ -654,6 +672,9 @@ window.onload = function(){
 					["meshes/cheese.json",			[-58,14,-35], [0.5,0.5,0.5], 	90, [0,1,0], ["textures/bread.jpg"],  [90/255,67/255,80/255,1], "food", getID()],
 					["meshes/key.json",		[-20,7.7,16], [14,14,14], 		90,  [1,0,0], ["textures/key.png"], [1,1,1,1], "key_kitchen", getID(), {diffusivity: 3, shininess: 10, smoothness: 40}],
 					["meshes/painting.json",		[-85,25,98.5], [2,2,2 * 1.26], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/tea.png"], [1,1,1,1], null, null, null, null, false]];
+			if (demo){
+				jsonObjects.push(["meshes/papyrus.json",		[-33.7,22,22], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+			}
 		var otherObjects = loadBox(["textures/tile.png", "textures/crate.png", "textures/kitchenwall.jpg"], doorways);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
@@ -685,6 +706,9 @@ window.onload = function(){
 					["meshes/painting.json",		[85,25,-98.5], [2,2,2], -270,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false],
 
 					["meshes/painting.json",		[-85,25,98.5], [2,2,2], -90,  [0,1,0], ["textures/wood2.png","textures/wood2.png","textures/wood2.png", "textures/egg.jpg"], [1,1,1,1], null, null, null, null, false]];
+			if (demo){
+				jsonObjects.push(["meshes/papyrus.json",		[-33.7,22,22], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+			}
 		var otherObjects = loadBox(["textures/space.png", "textures/space.png", "textures/space.png"], doorways, [], true);
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
@@ -715,7 +739,11 @@ window.onload = function(){
 		jsonObjects.push(["meshes/cubicle.json",	[-80,-4,-38 + -38], [1.43,1.43,1.5], 90,  [0,1,0], ["textures/wood2.png"], [1,1,1,1], null, null, null, null, false]);
 		jsonObjects.push(["meshes/grate.json",		[0,-3,0], [0.07,0.07,0.14], 0,  [0,1,0], ["textures/stone.png"], [0,1,1,1], null, null, null, null, false]);
 
-		jsonObjects.push(["meshes/board.json",	[0,55,0], [0.5,0.5,0.7], 0,  [0,0,1], null, [1,1,1,1], null, null, null])
+		jsonObjects.push(["meshes/board.json",	[0,55,0], [0.5,0.5,0.7], 0,  [0,0,1], null, [1,1,1,1], null, null, null]);
+
+		if (demo){
+			jsonObjects.push(["meshes/papyrus.json",		[-90.7,0,-23], [0.03,0.03,0.03], -90, [1,0,0], null,	[0.96,0.945,0.87,1], "scroll", getID()]);
+		}
 
 		jsonObjects.push.apply(jsonObjects, loadDoors(doors));
 
@@ -1233,16 +1261,31 @@ window.onload = function(){
 			room.objects[i].translation[2] = room.objects[i].translation[2] - 19.0;
 			room.objects[i].itemType = "shower_door_2";
 			door_audio.play();
-		  } else if (itemType == "shower_door_2"){
+		  }
+			else if (itemType == "shower_door_2"){
 			room.objects[i].translation[2] = room.objects[i].translation[2] + 19.0;
 			room.objects[i].itemType = "shower_door_1";
 	        door_audio.play();
 		  }
 			else if (itemType == 'scroll'){
 				room.objects[i].delete();
-				setScrollText(scrollTextArray[scrollIterator]);
-				scrollSeen[scrollIterator] = true;
-				scrollIterator++;
+				// On scroll 4, turn the world spooky
+				if (scrollIterator == 3)
+					spooky = true;
+				if (scrollIterator < 7){
+					setScrollText(scrollTextArray[scrollIterator]);
+					scrollSeen[scrollIterator] = true;
+					scrollIterator++;
+					if (scrollIterator == 7){ // load the tomb room
+						templates = [loadTomb];
+					}
+				}
+			}
+			else if (itemType == 'grave'){
+				var graveScrollNumber = 7;
+				setScrollText(scrollTextArray[graveScrollNumber]);
+				// Add black screen
+				fadeToBlack = true;
 			}
         }
       }
@@ -1253,10 +1296,16 @@ window.onload = function(){
 	var shadows = 1;
 	console.log()
 	var loop = function(){
-
 		handleInput();
 		theta = performance.now() / 1000 / 6 *  2 * Math.PI;
 		var object;
+
+		// Game is over, so clear and stop rendering
+		if (fadeToBlack){
+			gl.clearColor(0, 0, 0, 1);
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+			return;
+		}
 
 		// Draw Shadow map //
 		// Set GL state status
